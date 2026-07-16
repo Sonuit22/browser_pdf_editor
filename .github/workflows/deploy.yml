@@ -1,0 +1,74 @@
+name: Deploy to Vercel/Netlify
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Lint code
+        run: npm run lint --if-present
+      
+      - name: Run tests
+        run: npm run test --if-present
+      
+      - name: Build
+        run: npm run build
+        env:
+          # Add environment variables here (non-sensitive only)
+          CI: true
+      
+      - name: Upload build artifacts
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-${{ matrix.node-version }}
+          path: dist/
+          retention-days: 7
+
+  security-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Check for secrets
+        run: |
+          if grep -r "PRIVATE_KEY\|API_KEY\|SECRET" . --include="*.json" --include="*.js" --include="*.ts" --include="*.env" --exclude-dir=node_modules --exclude-dir=.git; then
+            echo "⚠️ Potential secrets found in code!"
+            exit 1
+          else
+            echo "✓ No obvious secrets detected"
+          fi
+      
+      - name: Verify .env files ignored
+        run: |
+          if git ls-files | grep -E "\.env($|\.)"; then
+            echo "❌ .env files found in git!"
+            exit 1
+          else
+            echo "✓ .env files properly ignored"
+          fi
