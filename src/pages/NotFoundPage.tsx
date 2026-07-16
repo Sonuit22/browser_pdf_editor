@@ -1,12 +1,10 @@
 import { Link } from 'react-router-dom';
+import { PageContainer } from '../components/PageContainer';
 
-export function NotFoundPage() {
+export default function NotFoundPage() {
     return (
-        <section className="not-found" aria-labelledby="not-found-title">
-            <p className="eyebrow">404</p>
-            <h1 id="not-found-title">This workspace does not exist.</h1>
-            <p>The route may have moved, or it has not been planned yet.</p>
-            <Link className="button" to="/">Return to workspace</Link>
-        </section>
+        <PageContainer title="Page not found" eyebrow="404" description="The workspace you requested does not exist or has not been planned yet.">
+            <Link className="button" to="/">Return home</Link>
+        </PageContainer>
     );
 }
