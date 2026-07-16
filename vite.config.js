@@ -1,5 +1,6 @@
 import { copyFile, cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 function copyRootAssets() {
@@ -17,7 +18,7 @@ function copyRootAssets() {
             ]);
 
             await Promise.all(
-                ['index.html', 'privacy.html', 'terms.html', 'pages/no-javascript.html'].map(async (file) => {
+                ['index.html'].map(async (file) => {
                     const outputPath = path.join('dist', file);
                     const html = await readFile(outputPath, 'utf8');
                     const normalized = html
@@ -33,18 +34,9 @@ function copyRootAssets() {
 }
 
 export default defineConfig({
-    appType: 'mpa',
-    plugins: [copyRootAssets()],
+    plugins: [react(), copyRootAssets()],
     build: {
         outDir: 'dist',
         emptyOutDir: true,
-        rollupOptions: {
-            input: {
-                main: 'index.html',
-                privacy: 'privacy.html',
-                terms: 'terms.html',
-                noJavascript: 'pages/no-javascript.html',
-            },
-        },
     },
 });

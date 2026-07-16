@@ -6,8 +6,6 @@ const root = process.cwd();
 
 const requiredPaths = [
     'index.html',
-    'privacy.html',
-    'terms.html',
     'robots.txt',
     'sitemap.xml',
     'manifest.json',
@@ -19,22 +17,12 @@ const requiredPaths = [
     '.gitignore',
     '.gitattributes',
     'SECURITY.md',
-    'assets',
-    'components',
-    'pages',
-    'tools',
-    'utils',
-    'workers',
+    'src',
     'docs',
     'tests',
 ];
 
-const htmlFiles = [
-    'index.html',
-    'privacy.html',
-    'terms.html',
-    'pages/no-javascript.html',
-];
+const htmlFiles = ['index.html'];
 
 const errors = [];
 
@@ -91,7 +79,8 @@ async function validateHtml(relativePath) {
         'name="viewport"',
         'name="description"',
         'rel="canonical"',
-        '<main id="main"',
+        'id="root"',
+        'src="/src/main.tsx"',
     ]) {
         if (!html.includes(token)) {
             errors.push(`${relativePath}: missing ${token}`);

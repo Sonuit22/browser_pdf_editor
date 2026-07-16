@@ -1,21 +1,37 @@
 {
   "name": "browser-pdf-editor",
   "version": "0.1.0",
-  "description": "Browser-based PDF editor foundation with static Vite deployment",
+  "description": "Browser-based PDF editor application shell built with React, TypeScript, and Vite",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run validate && vite build",
+    "build": "npm run validate && npm run typecheck && npm run lint && vite build",
     "preview": "vite preview",
-    "test": "npm run validate",
-    "lint": "npm run validate",
+    "test": "npm run typecheck",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
     "validate": "node tools/validate-project.mjs",
     "format": "prettier --write ."
   },
-  "dependencies": {},
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0"
+  },
   "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.17.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "globals": "^15.13.0",
     "vite": "^5.4.19",
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.18.0"
   },
   "engines": {
     "node": ">=18.0.0"

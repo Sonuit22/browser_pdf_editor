@@ -39,81 +39,13 @@
     <link rel="apple-touch-icon" href="/assets/icons/app-icon.svg">
     <link rel="manifest" href="/manifest.json">
     
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="assets/css/style.css">
-    
     <!-- No-script fallback -->
     <noscript>
         <meta http-equiv="refresh" content="0;url=pages/no-javascript.html">
     </noscript>
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <a class="brand" href="/" aria-label="PDF Editor by ib home">
-            <img src="assets/icons/app-icon.svg" width="40" height="40" alt="" aria-hidden="true">
-            <span>PDF Editor by ib</span>
-        </a>
-        <nav aria-label="Primary navigation">
-            <a href="#tools">Tools</a>
-            <a href="privacy.html">Privacy</a>
-            <a href="terms.html">Terms</a>
-        </nav>
-    </header>
-    
-    <!-- Main Content -->
-    <main id="main">
-        <section class="hero" aria-labelledby="hero-title">
-            <div class="hero-copy">
-                <p class="eyebrow">Private, browser-based PDF tools</p>
-                <h1 id="hero-title">PDF Editor by ib</h1>
-                <p class="hero-text">A fast foundation for viewing, editing, merging, splitting, compressing, signing, and protecting PDFs entirely in your browser.</p>
-                <div class="hero-actions" aria-label="Primary actions">
-                    <button class="button button-primary" type="button" disabled>Open PDF</button>
-                    <a class="button button-secondary" href="#tools">View Tools</a>
-                </div>
-            </div>
-            <div class="privacy-panel" aria-label="Privacy promise">
-                <strong>Your files stay local.</strong>
-                <p>Future PDF processing modules are designed to run on-device with no backend, database, or upload step.</p>
-            </div>
-        </section>
-
-        <section id="tools" class="tool-grid" aria-labelledby="tools-title">
-            <div class="section-heading">
-                <h2 id="tools-title">PDF Tools Roadmap</h2>
-                <p>Scalable placeholders for the production modules planned for upcoming phases.</p>
-            </div>
-            <article>
-                <h3>View</h3>
-                <p>Render PDF pages, navigate documents, and inspect metadata.</p>
-            </article>
-            <article>
-                <h3>Edit</h3>
-                <p>Add text, images, annotations, signatures, and watermarks.</p>
-            </article>
-            <article>
-                <h3>Organize</h3>
-                <p>Merge, split, rotate, reorder, and extract PDF pages.</p>
-            </article>
-            <article>
-                <h3>Optimize</h3>
-                <p>Compress files and prepare documents for sharing.</p>
-            </article>
-        </section>
-    </main>
-    
-    <!-- Footer -->
-    <footer>
-        <nav aria-label="Footer Navigation">
-            <ul>
-                <li><a href="privacy.html">Privacy Policy</a></li>
-                <li><a href="terms.html">Terms of Service</a></li>
-            </ul>
-        </nav>
-    </footer>
-    
-    <!-- Service Worker Registration -->
-    <script type="module" src="assets/js/main.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>
