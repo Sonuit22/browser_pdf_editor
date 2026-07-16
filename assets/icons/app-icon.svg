@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">PDF Editor by ib app icon</title>
+  <rect width="512" height="512" rx="96" fill="#f8fafc"/>
+  <rect x="72" y="48" width="288" height="416" rx="32" fill="#ffffff" stroke="#0b63ce" stroke-width="24"/>
+  <path d="M360 48v116h96z" fill="#dbeafe" stroke="#0b63ce" stroke-linejoin="round" stroke-width="24"/>
+  <path d="M136 236h240M136 300h204M136 364h160" stroke="#0b63ce" stroke-linecap="round" stroke-width="32"/>
+  <circle cx="384" cy="384" r="72" fill="#12703a"/>
+  <path d="M350 384h68M384 350v68" stroke="#ffffff" stroke-linecap="round" stroke-width="24"/>
+</svg>

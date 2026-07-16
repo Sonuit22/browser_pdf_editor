@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">PDF Editor by ib maskable icon</title>
+  <rect width="512" height="512" fill="#0b63ce"/>
+  <rect x="112" y="80" width="248" height="352" rx="28" fill="#ffffff"/>
+  <path d="M360 80v96h80z" fill="#dbeafe"/>
+  <path d="M160 242h192M160 304h160M160 366h124" stroke="#0b63ce" stroke-linecap="round" stroke-width="30"/>
+</svg>

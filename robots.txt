@@ -1,0 +1,29 @@
+# robots.txt for PDF Editor by ib
+# SEO-friendly robots configuration for search engine crawlers
+
+# Allow all crawlers by default
+User-agent: *
+Allow: /
+Allow: /assets/
+Disallow: /components/
+Disallow: /pages/
+Disallow: /tools/
+Disallow: /utils/
+Disallow: /workers/
+Disallow: /docs/
+Disallow: /tests/
+Disallow: /.github/
+Allow: /manifest.json
+Allow: /sitemap.xml
+Allow: /sw.js
+
+# Specific rules for Google
+User-agent: Googlebot
+Allow: /
+
+# Crawl delay (optional - set if server load is a concern)
+# Crawl-delay: 1
+
+# Sitemap reference
+Sitemap: https://pdfeditorbyib.com/sitemap.xml
+Sitemap: https://pdfeditorbyib.in/sitemap.xml

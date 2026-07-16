@@ -1,0 +1,68 @@
+{
+  "name": "PDF Editor by ib",
+  "short_name": "PDF Editor",
+  "description": "Free browser-based PDF editor. View, edit, merge, split, and compress PDFs directly in your browser.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#f8fafc",
+  "background_color": "#f8fafc",
+  "categories": ["productivity", "utilities"],
+  "screenshots": [
+    {
+      "src": "assets/images/social-preview.svg",
+      "sizes": "1200x630",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "assets/images/social-preview.svg",
+      "sizes": "1200x630",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    }
+  ],
+  "icons": [
+    {
+      "src": "assets/icons/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/maskable-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Upload PDF",
+      "short_name": "Upload",
+      "description": "Upload and open a PDF file",
+      "url": "/?action=upload",
+      "icons": [
+        {
+          "src": "assets/icons/app-icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/?action=share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [
+        {
+          "name": "files",
+          "accept": ["application/pdf"]
+        }
+      ]
+    }
+  }
+}
