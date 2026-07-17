@@ -24,3 +24,23 @@ textarea:focus-visible,
         min-height: 40px;
     }
 }
+
+.tool-dashboard { width: min(100%, 1320px); margin: 0 auto; padding: 28px 8px 48px; }
+.tool-dashboard > h1 { margin: 0; text-align: center; font-size: 1.35rem; }
+.dashboard-privacy { margin: 14px 0 3px; color: var(--text); text-align: center; font-weight: 750; line-height: 1.45; }
+.dashboard-support { margin: 0 0 22px; color: var(--text-muted); text-align: center; font-size: .85rem; }
+.dashboard-search { width: min(100%, 680px); min-height: 48px; display: flex; align-items: center; gap: 10px; margin: 0 auto 16px; padding: 0 13px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.dashboard-search input { min-width: 0; flex: 1; border: 0; outline: 0; color: var(--text); background: transparent; }
+.dashboard-search button { border: 0; color: var(--text-muted); background: transparent; }
+.tool-pills { display: flex; justify-content: center; gap: 8px; margin: 0 -8px 28px; padding: 0 8px; overflow-x: auto; }
+.tool-pills button { min-height: 38px; flex: none; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; color: var(--text-muted); background: var(--surface); font-weight: 700; }
+.tool-pills button.is-active { border-color: var(--primary); color: #fff; background: var(--primary); }
+.tool-groups { display: grid; gap: 32px; }.tool-groups section h2 { margin: 0 0 14px; font-size: 1.05rem; }
+.tool-card-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+.tool-dashboard-card { min-height: 176px; display: grid; align-content: start; gap: 11px; padding: 20px; border: 1px solid var(--border); border-radius: 14px; color: var(--text); background: var(--surface); text-align: left; text-decoration: none; transition: transform 150ms ease, box-shadow 150ms ease; }
+.tool-dashboard-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }.tool-dashboard-card > svg { color: var(--primary); }.tool-dashboard-card > strong { font-size: .95rem; }.tool-dashboard-card > span { color: var(--text-muted); font-size: .82rem; line-height: 1.45; }.tool-dashboard-card small, .more-tools small { color: var(--accent); font-weight: 800; }
+.more-tools { margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--border); }.more-tools > button { border: 0; color: var(--text); background: transparent; font-weight: 800; }.more-tools p, .more-tools ul { color: var(--text-muted); font-size: .84rem; }.more-tools ul { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding-left: 18px; }
+.dashboard-privacy-strip { margin: 32px 0 0; padding: 12px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); color: var(--text-muted); text-align: center; font-size: .84rem; }
+@media (max-width: 1080px) { .tool-card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .tool-dashboard { padding-top: 20px; }.tool-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }.more-tools ul { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .tool-card-grid { grid-template-columns: 1fr; }.tool-dashboard-card { min-height: 146px; } }

@@ -18,7 +18,8 @@ export function AppLayout() {
     const requestUpload = useCallback(openFilePicker, [openFilePicker]);
     const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
     const shellValue = useMemo(() => ({ requestUpload }), [requestUpload]);
-    const showSidebar = !isMobile || isSidebarOpen;
+    const isToolDashboard = location.pathname === '/' || location.pathname === '/convert';
+    const showSidebar = !isToolDashboard && (!isMobile || isSidebarOpen);
 
     return (
         <ShellContext.Provider value={shellValue}>
@@ -26,12 +27,13 @@ export function AppLayout() {
                 <a className="skip-link" href="#main-content">Skip to main content</a>
                 <Header
                     isSidebarOpen={isSidebarOpen}
+                    showNavigation={!isToolDashboard}
                     onMenuToggle={() => setIsSidebarOpen((open) => !open)}
                     onRequestUpload={requestUpload}
                 />
-                <div className="app-body">
+                <div className={isToolDashboard ? 'app-body app-body--public' : 'app-body'}>
                     {showSidebar && <Sidebar onNavigate={closeSidebar} />}
-                    {isMobile && isSidebarOpen && <button className="sidebar-scrim" type="button" aria-label="Close navigation" onClick={closeSidebar} />}
+                    {!isToolDashboard && isMobile && isSidebarOpen && <button className="sidebar-scrim" type="button" aria-label="Close navigation" onClick={closeSidebar} />}
                     <main id="main-content" className="app-main app-main--workspace" tabIndex={-1}>
                         <p className="sr-only" aria-live="polite">Page changed to {location.pathname === '/' ? 'home' : location.pathname.slice(1)}</p>
                         <Outlet />
