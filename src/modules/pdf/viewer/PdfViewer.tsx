@@ -12,6 +12,7 @@ import { PdfPageCanvas } from './PdfPageCanvas';
 import { PdfThumbnail } from './PdfThumbnail';
 import { usePdfUtilities } from '../utilities/hooks/usePdfUtilities';
 import { UtilityPreviewOverlay } from '../utilities/components/UtilityPreviewOverlay';
+import { CropOverlay } from '../utilities/components/CropOverlay';
 
 const zoomOptions: Array<[string, ZoomPreset]> = [['Fit width', 'fit-width'], ['Fit page', 'fit-page'], ['25%', 25], ['50%', 50], ['75%', 75], ['100%', 100], ['125%', 125], ['150%', 150], ['200%', 200], ['300%', 300]];
 const rotationOptions: PdfRotation[] = [0, 90, 180, 270, 360];
@@ -76,7 +77,7 @@ export function PdfViewer() {
                 <aside className="thumbnail-sidebar" aria-label="Page thumbnails">
                     {pages.map((page, index) => <PdfThumbnail key={page.id} page={page} pageNumber={index + 1} active={activePageId === page.id} rotation={rotation} getPage={getPage} onSelect={(pageId) => setActivePage(pageId)} />)}
                 </aside>
-                <PdfPageCanvas page={activePage} pageNumber={currentPage} getPage={getPage} zoom={zoom} rotation={rotation} onRenderError={() => failViewer('A page could not be rendered safely. Please retry the document.')}>{(layout) => <><AnnotationOverlay pageId={activePage.id} layout={layout} /><UtilityPreviewOverlay pageId={activePage.id} pageNumber={currentPage} pageCount={pageCount} filename={info.filename} /></>}</PdfPageCanvas>
+                <PdfPageCanvas page={activePage} pageNumber={currentPage} getPage={getPage} zoom={zoom} rotation={rotation} onRenderError={() => failViewer('A page could not be rendered safely. Please retry the document.')}>{(layout) => <><AnnotationOverlay pageId={activePage.id} layout={layout} /><CropOverlay page={activePage} layout={layout} /><UtilityPreviewOverlay pageId={activePage.id} pageNumber={currentPage} pageCount={pageCount} filename={info.filename} /></>}</PdfPageCanvas>
             </div>
         </section>
     );

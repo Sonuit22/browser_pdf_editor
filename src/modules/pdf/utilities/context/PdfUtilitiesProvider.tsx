@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { usePdfEngine } from '../../hooks/usePdfEngine';
 import { usePdfPageOperations } from '../../organization/hooks/usePdfPageOperations';
-import { defaultUtilitySettings, type CropBox, type HeaderFooterSettings, type MetadataSettings, type PageNumberSettings, type UtilitySettings, type WatermarkSettings } from '../types/utilities';
+import { defaultUtilitySettings, type CropBox, type CropSettings, type HeaderFooterSettings, type MetadataSettings, type PageNumberSettings, type UtilitySettings, type WatermarkSettings } from '../types/utilities';
 import { PdfUtilitiesContext } from './utilityStore';
 
 function metadataFromInfo(info: ReturnType<typeof usePdfEngine>['info']): MetadataSettings {
@@ -18,11 +18,14 @@ export function PdfUtilitiesProvider({ children }: { children: ReactNode }) {
     const updatePageNumbers = useCallback((patch: Partial<PageNumberSettings>) => setSettings((current) => ({ ...current, pageNumbers: { ...current.pageNumbers, ...patch } })), []);
     const updateHeaderFooter = useCallback((patch: Partial<HeaderFooterSettings>) => setSettings((current) => ({ ...current, headerFooter: { ...current.headerFooter, ...patch } })), []);
     const updateMetadata = useCallback((patch: Partial<MetadataSettings>) => setSettings((current) => ({ ...current, metadata: { ...current.metadata, ...patch } })), []);
-    const applyCrop = useCallback((pageIds: string[], crop: CropBox) => setSettings((current) => ({ ...current, cropsByPageId: { ...current.cropsByPageId, ...Object.fromEntries(pageIds.map((pageId) => [pageId, crop])) } })), []);
-    const resetCrop = useCallback((pageIds: string[]) => setSettings((current) => ({ ...current, cropsByPageId: Object.fromEntries(Object.entries(current.cropsByPageId).filter(([pageId]) => !pageIds.includes(pageId))) })), []);
+    const updateCropSettings = useCallback((patch: Partial<CropSettings>) => setSettings((current) => ({ ...current, crop: { ...current.crop, ...patch } })), []);
+    const setCropDraft = useCallback((pageId: string, crop: CropBox) => setSettings((current) => ({ ...current, crop: { ...current.crop, draftByPageId: { ...current.crop.draftByPageId, [pageId]: crop } } })), []);
+    const cancelCrop = useCallback((pageId: string) => setSettings((current) => ({ ...current, crop: { ...current.crop, draftByPageId: Object.fromEntries(Object.entries(current.crop.draftByPageId).filter(([draftPageId]) => draftPageId !== pageId)) } })), []);
+    const applyCrops = useCallback((cropsByPageId: Record<string, CropBox>) => setSettings((current) => ({ ...current, cropsByPageId: { ...current.cropsByPageId, ...cropsByPageId }, crop: { ...current.crop, draftByPageId: Object.fromEntries(Object.entries(current.crop.draftByPageId).filter(([pageId]) => !Object.prototype.hasOwnProperty.call(cropsByPageId, pageId))) } })), []);
+    const resetCrop = useCallback((pageIds: string[]) => setSettings((current) => ({ ...current, cropsByPageId: Object.fromEntries(Object.entries(current.cropsByPageId).filter(([pageId]) => !pageIds.includes(pageId))), crop: { ...current.crop, draftByPageId: Object.fromEntries(Object.entries(current.crop.draftByPageId).filter(([pageId]) => !pageIds.includes(pageId))) } })), []);
     const resetWatermark = useCallback(() => setSettings((current) => ({ ...current, watermark: defaultUtilitySettings.watermark })), []);
     const resetPageNumbers = useCallback(() => setSettings((current) => ({ ...current, pageNumbers: defaultUtilitySettings.pageNumbers })), []);
     const resetHeaderFooter = useCallback(() => setSettings((current) => ({ ...current, headerFooter: defaultUtilitySettings.headerFooter })), []);
-    const value = useMemo(() => ({ ...settings, updateWatermark, updatePageNumbers, updateHeaderFooter, updateMetadata, applyCrop, resetCrop, resetWatermark, resetPageNumbers, resetHeaderFooter }), [applyCrop, resetCrop, resetHeaderFooter, resetPageNumbers, resetWatermark, settings, updateHeaderFooter, updateMetadata, updatePageNumbers, updateWatermark]);
+    const value = useMemo(() => ({ ...settings, updateWatermark, updatePageNumbers, updateHeaderFooter, updateMetadata, updateCropSettings, setCropDraft, cancelCrop, applyCrops, resetCrop, resetWatermark, resetPageNumbers, resetHeaderFooter }), [applyCrops, cancelCrop, resetCrop, resetHeaderFooter, resetPageNumbers, resetWatermark, setCropDraft, settings, updateCropSettings, updateHeaderFooter, updateMetadata, updatePageNumbers, updateWatermark]);
     return <PdfUtilitiesContext.Provider value={value}>{children}</PdfUtilitiesContext.Provider>;
 }

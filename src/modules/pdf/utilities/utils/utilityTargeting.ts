@@ -1,6 +1,6 @@
 import { formatPageRange, parsePageRange } from '../../organization/utils/pageRangeParser';
 import type { WorkingPage } from '../../organization/types/pages';
-import type { UtilityApplicationMode, UtilityTarget } from '../types/utilities';
+import type { CropApplicationMode, UtilityApplicationMode, UtilityTarget } from '../types/utilities';
 
 export type ResolvedUtilityTarget = {
     pageIds: string[];
@@ -29,6 +29,12 @@ export function resolveUtilityTarget({ applicationMode, customRange, pages, sele
     return { ...target, errors: result.errors.map((error) => `${error.token}: ${error.message}`), canApply: result.errors.length === 0 && target.affectedPageCount > 0 };
 }
 
+export function resolveCropTarget({ applicationMode, customRange, pages, selectedPageIds, activePageId }: Omit<ResolveUtilityTargetInput, 'applicationMode'> & { applicationMode: CropApplicationMode }): ResolvedUtilityTarget {
+    if (applicationMode !== 'current') return resolveUtilityTarget({ applicationMode, customRange, pages, selectedPageIds, activePageId });
+    const activeIndex = pages.findIndex((page) => page.id === activePageId);
+    return targetFromIndices(activeIndex < 0 ? [] : [activeIndex], pages);
+}
+
 function targetFromIndices(indices: number[], pages: WorkingPage[]): ResolvedUtilityTarget {
     const pageIds = indices.map((index) => pages[index]?.id).filter((pageId): pageId is string => Boolean(pageId));
     return { pageIds, affectedPageCount: pageIds.length, normalizedRange: formatPageRange(indices), errors: [], canApply: pageIds.length > 0 };
@@ -36,4 +42,8 @@ function targetFromIndices(indices: number[], pages: WorkingPage[]): ResolvedUti
 
 export function applicationModeLabel(mode: UtilityApplicationMode) {
     return mode === 'all' ? 'All pages' : mode === 'selected' ? 'Selected pages' : 'Custom range';
+}
+
+export function cropApplicationModeLabel(mode: CropApplicationMode) {
+    return mode === 'current' ? 'Current page' : applicationModeLabel(mode);
 }

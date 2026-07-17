@@ -1,4 +1,5 @@
 import type { CropBox, PageNumberSettings, UtilityPosition } from '../types/utilities';
+import { normalizeCropMargins } from './cropCoordinates';
 
 export function formatPageNumber(settings: PageNumberSettings, pageIndex: number, targetedPageIndex = pageIndex) {
     const number = settings.numberingMode === 'physical' ? pageIndex + 1 : settings.start + targetedPageIndex;
@@ -17,9 +18,8 @@ export function positionFor(pageWidth: number, pageHeight: number, position: Uti
 }
 
 export function cropBoxFromMargins(pageWidth: number, pageHeight: number, crop: CropBox) {
-    const width = Math.max(1, pageWidth - crop.left - crop.right);
-    const height = Math.max(1, pageHeight - crop.top - crop.bottom);
-    return { x: Math.max(0, crop.left), y: Math.max(0, crop.bottom), width, height };
+    const normalized = normalizeCropMargins(crop, { width: pageWidth, height: pageHeight });
+    return { x: normalized.left, y: normalized.bottom, width: pageWidth - normalized.left - normalized.right, height: pageHeight - normalized.top - normalized.bottom };
 }
 
 export function isPageTargeted(pageIds: string[], pageId: string) {
