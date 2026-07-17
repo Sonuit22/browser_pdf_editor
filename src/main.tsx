@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { ThemeProvider } from './contexts/ThemeContext';
 import './styles.css';
+import './styles/accessibility.css';
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>

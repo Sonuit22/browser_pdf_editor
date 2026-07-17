@@ -1,0 +1,26 @@
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.editor-toolbar .icon-button,
+.organize-toolbar .icon-button {
+    width: 40px;
+    min-height: 40px;
+}
+
+.crop-overlay__handle::after {
+    position: absolute;
+    inset: -10px;
+    content: '';
+}
+
+@media (max-width: 680px) {
+    .header-actions .icon-button,
+    .header-actions .avatar-button {
+        width: 40px;
+        min-height: 40px;
+    }
+}

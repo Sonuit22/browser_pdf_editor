@@ -20,7 +20,7 @@ export function StatusBar() {
             {statusItems.map(([label, value]) => (
                 <div key={label} className="status-bar__item">
                     <span>{label}</span>
-                    <strong>{value}</strong>
+                    <strong aria-live={label === 'Rendering' || label === 'Changes' ? 'polite' : undefined}>{value}</strong>
                 </div>
             ))}
         </section>

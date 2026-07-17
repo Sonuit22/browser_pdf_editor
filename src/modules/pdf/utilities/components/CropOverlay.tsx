@@ -4,6 +4,7 @@ import type { PdfPageLayout } from '../../viewer/PdfPageCanvas';
 import { usePdfUtilities } from '../hooks/usePdfUtilities';
 import type { CropBox } from '../types/utilities';
 import { cropMarginsToViewportRect, moveViewportRect, resizeViewportRect, viewportRectToCropMargins, type CropHandle, type ViewportRect } from '../utils/cropCoordinates';
+import { cropAreaDescription } from '../../../../components/ui/accessibility';
 
 type Gesture = { handle: CropHandle; start: { x: number; y: number }; rect: ViewportRect; crop: CropBox };
 const handles: Array<Exclude<CropHandle, 'move' | 'create'>> = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'];
@@ -19,6 +20,7 @@ export function CropOverlay({ page, layout }: { page: WorkingPage; layout: PdfPa
     const dimensions = { width: page.width, height: page.height };
     const currentCrop = crop.draftByPageId[page.id] ?? cropsByPageId[page.id] ?? { left: 0, right: 0, top: 0, bottom: 0 };
     const cropRect = cropMarginsToViewportRect(currentCrop, dimensions, layout.viewport);
+    const descriptionId = `crop-description-${page.id}`;
     const viewportPoint = (event: PointerEvent<HTMLDivElement>) => {
         const rect = overlayRef.current?.getBoundingClientRect();
         return { x: event.clientX - (rect?.left ?? 0), y: event.clientY - (rect?.top ?? 0) };
@@ -69,7 +71,8 @@ export function CropOverlay({ page, layout }: { page: WorkingPage; layout: PdfPa
         setFromRect(moveViewportRect(cropRect, offset[0], offset[1], { width: layout.width, height: layout.height }));
         event.preventDefault();
     };
-    return <div ref={overlayRef} className="crop-overlay" role="group" aria-label="Interactive crop rectangle. Use arrow keys to move it, or drag its handles to resize." tabIndex={0} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={release} onPointerCancel={onPointerCancel} onKeyDown={onKeyDown}>
+    return <div ref={overlayRef} className="crop-overlay" role="group" aria-label="Interactive crop rectangle" aria-describedby={descriptionId} tabIndex={0} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={release} onPointerCancel={onPointerCancel} onKeyDown={onKeyDown}>
+        <span id={descriptionId} className="sr-only">{cropAreaDescription(page.width, page.height, currentCrop)}</span>
         <div className="crop-overlay__rectangle" data-crop-body style={{ left: cropRect.left, top: cropRect.top, width: cropRect.width, height: cropRect.height }}>{handles.map((handle) => <span key={handle} className={`crop-overlay__handle crop-overlay__handle--${handle}`} data-crop-handle={handle} aria-hidden="true" />)}</div>
     </div>;
 }

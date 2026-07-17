@@ -9,5 +9,5 @@ export function NotificationRegion() {
         window.addEventListener('pdf-editor-notification', onNotice);
         return () => window.removeEventListener('pdf-editor-notification', onNotice);
     }, []);
-    return <div className="notification-region" aria-live="polite" aria-relevant="additions">{notices.map((notice) => <div key={notice.id} className={`notification notification--${notice.kind}`} role={notice.kind === 'error' ? 'alert' : 'status'}>{notice.message}</div>)}</div>;
+    return <div className="notification-region" aria-relevant="additions">{notices.map((notice) => <div key={notice.id} className={`notification notification--${notice.kind}`} role={notice.kind === 'error' ? 'alert' : 'status'}>{notice.message}</div>)}</div>;
 }
