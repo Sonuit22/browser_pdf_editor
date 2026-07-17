@@ -15,7 +15,6 @@ Disallow: /tests/
 Disallow: /.github/
 Allow: /manifest.json
 Allow: /sitemap.xml
-Allow: /sw.js
 
 # Specific rules for Google
 User-agent: Googlebot

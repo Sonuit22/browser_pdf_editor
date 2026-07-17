@@ -8,9 +8,8 @@ lerna-debug.log*
 
 # Environment variables - NEVER commit real secrets
 .env
-.env.local
-.env.*.local
-.env.prod
+.env.*
+!.env.example
 
 # Build outputs
 dist/
@@ -44,3 +43,6 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.log
+*.pem
+*.key
+credentials.json

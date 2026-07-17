@@ -38,10 +38,6 @@ export function SplitWorkspace() {
             setMessage('Choose a valid split pattern.');
             return;
         }
-        if (groupIndexes.length > 10) {
-            setMessage('Refine the split to ten files or fewer before downloading.');
-            return;
-        }
         setBusy(true);
         setMessage(null);
         try {
@@ -65,7 +61,7 @@ export function SplitWorkspace() {
             {mode === 'count' && <label>Pages per PDF<input type="number" min="1" max={pages.length || 1} value={count} onChange={(event) => setCount(event.target.value)} /></label>}
             {mode === 'ranges' && <label>Ranges<input value={ranges} onChange={(event) => setRanges(event.target.value)} aria-describedby="range-help" /><span id="range-help">Examples: 1-3, 5, 8-10. Each comma-separated range becomes one PDF.</span></label>}
         </div>
-        <div className="document-operation__summary"><strong>{pages.length} pages</strong><span>{mode === 'ranges' ? parsedRanges.errors.length ? parsedRanges.errors[0].message : `${parsedRanges.groups.length} output groups` : 'Downloads are limited to ten files per action.'}</span></div>
+        <div className="document-operation__summary"><strong>{pages.length} pages</strong><span>{mode === 'ranges' ? parsedRanges.errors.length ? parsedRanges.errors[0].message : `${parsedRanges.groups.length} output groups` : 'Each output PDF downloads separately.'}</span></div>
         <Button type="button" onClick={() => void split()} disabled={busy || !pages.length}><Scissors size={17} aria-hidden="true" />{busy ? 'Splitting' : 'Split and download'}</Button>
         {message && <p className="operation-message" role="status">{message}</p>}
     </section>;

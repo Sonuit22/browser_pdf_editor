@@ -9,7 +9,6 @@ const requiredPaths = [
     'robots.txt',
     'sitemap.xml',
     'manifest.json',
-    'sw.js',
     'README.md',
     'package.json',
     'vite.config.js',

@@ -4,8 +4,8 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 function copyRootAssets() {
-    const rootFiles = ['manifest.json', 'robots.txt', 'sitemap.xml', 'sw.js'];
-    const assetFolders = ['assets/css', 'assets/icons', 'assets/images', 'assets/js'];
+    const rootFiles = ['manifest.json', 'robots.txt', 'sitemap.xml'];
+    const assetFolders = ['assets/icons', 'assets/images'];
 
     return {
         name: 'copy-root-assets',
@@ -38,6 +38,7 @@ export default defineConfig({
     build: {
         outDir: 'dist',
         emptyOutDir: true,
+        sourcemap: false,
         chunkSizeWarningLimit: 1000,
         rollupOptions: {
             output: {
