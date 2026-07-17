@@ -8,3 +8,7 @@ export function Brand() {
         </Link>
     );
 }
+
+export function BrandLockup() {
+    return <div className="brand-lockup" aria-label="PDF Editor by ib"><div className="brand-title">PDF Editor</div><div className="brand-by">by</div><div className="brand-ib">ib</div></div>;
+}

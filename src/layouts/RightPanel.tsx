@@ -1,5 +1,5 @@
 import { memo, type ComponentType } from 'react';
-import { Bot, History, Layers, MessageSquareText, SlidersHorizontal, type LucideProps } from 'lucide-react';
+import { History, Layers, MessageSquareText, SlidersHorizontal, type LucideProps } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { usePdfEngine } from '../modules/pdf/hooks/usePdfEngine';
 import { usePdfEditor } from '../modules/pdf/editor/hooks/usePdfEditor';
@@ -9,7 +9,6 @@ const panels: Array<[string, string, ComponentType<LucideProps>]> = [
     ['Layers', 'Layer controls are reserved for editor tools.', Layers],
     ['Annotations', 'Comments and markup will appear here.', MessageSquareText],
     ['History', 'Document history will appear here.', History],
-    ['AI Assistant', 'Optional assistance will appear here.', Bot],
 ];
 
 export const RightPanel = memo(function RightPanel() {

@@ -10,6 +10,8 @@ import { usePdfEditor } from '../editor/hooks/usePdfEditor';
 import { editedFilename, exportWorkingPdf } from '../editor/services/pdfExportService';
 import { PdfPageCanvas } from './PdfPageCanvas';
 import { PdfThumbnail } from './PdfThumbnail';
+import { usePdfUtilities } from '../utilities/hooks/usePdfUtilities';
+import { UtilityPreviewOverlay } from '../utilities/components/UtilityPreviewOverlay';
 
 const zoomOptions: Array<[string, ZoomPreset]> = [['Fit width', 'fit-width'], ['Fit page', 'fit-page'], ['25%', 25], ['50%', 50], ['75%', 75], ['100%', 100], ['125%', 125], ['150%', 150], ['200%', 200], ['300%', 300]];
 const rotationOptions: PdfRotation[] = [0, 90, 180, 270, 360];
@@ -18,6 +20,7 @@ export function PdfViewer() {
     const { info, zoom, rotation, setZoom, setRotation, closeDocument, failViewer } = usePdfEngine();
     const { pages, activePageId, activePage, isInitializing, setActivePage, getPage, getSourceFile } = usePdfPageOperations();
     const { annotationsByPageId } = usePdfEditor();
+    const utilities = usePdfUtilities();
     const [exporting, setExporting] = useState(false);
     const [exportError, setExportError] = useState<string | null>(null);
     const currentPage = Math.max(1, pages.findIndex((page) => page.id === activePageId) + 1);
@@ -44,7 +47,7 @@ export function PdfViewer() {
         setExporting(true);
         setExportError(null);
         try {
-            await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile, filename: editedFilename(info.filename) });
+            await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile, filename: editedFilename(info.filename), utilities, sourceFilename: info.filename });
         } catch {
             setExportError('The modified PDF could not be exported. Check the source files and try again.');
         } finally {
@@ -73,7 +76,7 @@ export function PdfViewer() {
                 <aside className="thumbnail-sidebar" aria-label="Page thumbnails">
                     {pages.map((page, index) => <PdfThumbnail key={page.id} page={page} pageNumber={index + 1} active={activePageId === page.id} rotation={rotation} getPage={getPage} onSelect={(pageId) => setActivePage(pageId)} />)}
                 </aside>
-                <PdfPageCanvas page={activePage} pageNumber={currentPage} getPage={getPage} zoom={zoom} rotation={rotation} onRenderError={() => failViewer('A page could not be rendered safely. Please retry the document.')}>{(layout) => <AnnotationOverlay pageId={activePage.id} layout={layout} />}</PdfPageCanvas>
+                <PdfPageCanvas page={activePage} pageNumber={currentPage} getPage={getPage} zoom={zoom} rotation={rotation} onRenderError={() => failViewer('A page could not be rendered safely. Please retry the document.')}>{(layout) => <><AnnotationOverlay pageId={activePage.id} layout={layout} /><UtilityPreviewOverlay pageId={activePage.id} pageNumber={currentPage} pageCount={pageCount} filename={info.filename} /></>}</PdfPageCanvas>
             </div>
         </section>
     );

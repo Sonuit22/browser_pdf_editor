@@ -21,7 +21,7 @@ export async function getPdfDocumentInfo(document: PDFDocumentProxy, file: File)
     const metadata = await document.getMetadata().catch(() => null);
     const info = metadata?.info as Record<string, unknown> | undefined;
     return {
-        filename: file.name, pageCount: document.numPages, fileSize: formatFileSize(file.size), version: displayValue(info?.PDFFormatVersion ?? version), author: displayValue(info?.Author), subject: displayValue(info?.Subject), title: displayValue(info?.Title), creationDate: displayValue(info?.CreationDate), modificationDate: displayValue(info?.ModDate),
+        filename: file.name, pageCount: document.numPages, fileSize: formatFileSize(file.size), version: displayValue(info?.PDFFormatVersion ?? version), author: displayValue(info?.Author), subject: displayValue(info?.Subject), title: displayValue(info?.Title), keywords: displayValue(info?.Keywords), creator: displayValue(info?.Creator), producer: displayValue(info?.Producer), creationDate: displayValue(info?.CreationDate), modificationDate: displayValue(info?.ModDate),
     };
 }
 

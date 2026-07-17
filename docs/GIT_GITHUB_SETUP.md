@@ -171,7 +171,7 @@ Both should show:
 # 1. Create feature branch from main
 git checkout -b feature/pdf-viewer
 git checkout -b feature/merge-pdfs
-git checkout -b feature/ocr-integration
+git checkout -b feature/pdf-utilities
 
 # 2. Make changes locally
 # (Edit files in your editor)

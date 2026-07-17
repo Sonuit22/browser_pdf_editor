@@ -53,3 +53,17 @@ export function parsePageRangeGroups(input: string, options: ParseOptions): { gr
     }
     return { groups, errors };
 }
+
+export function formatPageRange(indices: number[]) {
+    const ordered = [...new Set(indices)].sort((left, right) => left - right);
+    const ranges: string[] = [];
+    for (let start = 0; start < ordered.length; start += 1) {
+        let end = start;
+        while (ordered[end + 1] === ordered[end] + 1) end += 1;
+        const first = ordered[start] + 1;
+        const last = ordered[end] + 1;
+        ranges.push(first === last ? String(first) : `${first}-${last}`);
+        start = end;
+    }
+    return ranges.join(', ');
+}

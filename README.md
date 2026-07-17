@@ -126,7 +126,7 @@ browser-pdf-editor/
 **Purpose**: Complete page layouts that combine components. Future examples: editor.html, viewer.html, merge.html, split.html.
 
 ### `tools/`
-**Purpose**: PDF manipulation logic (merge, split, compress, OCR). Future examples: pdf-merger.js, pdf-splitter.js, pdf-compressor.js.
+**Purpose**: PDF manipulation logic (viewing, editing, merge, split, and export). Future examples: pdf-merger.js, pdf-splitter.js, pdf-compressor.js.
 
 ### `utils/`
 **Purpose**: Helper functions used across the app. Future examples: file-handler.js, validator.js, logger.js.
@@ -251,11 +251,11 @@ refactor: Reorganize utils folder structure
 - Compress PDFs
 - Reorder pages
 
-### Phase 3: OCR & AI (Q3-Q4 2027)
-- Optical Character Recognition (OCR)
-- AI Assistant (ChatGPT integration)
-- Smart form filling
-- Document classification
+### Phase 3: Advanced Productivity (Q3-Q4 2027)
+- Batch document workflows
+- Saved document templates
+- Professional form tooling
+- Team-ready administration controls
 
 ### Phase 4: PWA & Monetization (2027-2028)
 - Progressive Web App (installable)

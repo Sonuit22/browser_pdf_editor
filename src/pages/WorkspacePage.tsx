@@ -11,6 +11,7 @@ import { PdfViewer } from '../modules/pdf/viewer/PdfViewer';
 import { OrganizationWorkspace } from '../modules/pdf/organization/components/OrganizationWorkspace';
 import { SplitWorkspace } from '../modules/pdf/organization/components/SplitWorkspace';
 import { MergeWorkspace } from '../modules/pdf/organization/components/MergeWorkspace';
+import { UtilityWorkspace } from '../modules/pdf/utilities/components/UtilityWorkspace';
 
 export default function WorkspacePage() {
     const { pathname } = useLocation();
@@ -22,7 +23,7 @@ export default function WorkspacePage() {
             <section className="editor-workspace" aria-label={`${route.title} workspace`}>
                 {pathname === '/merge' ? <MergeWorkspace /> : <>
                     {phase === 'loading' && <div className="pdf-loading" role="status"><LoadingSpinner label="Loading PDF" /><strong>Loading PDF</strong><span>{progress}%</span></div>}
-                    {phase === 'ready' && (pathname === '/organize' || pathname === '/rotate' ? <OrganizationWorkspace /> : pathname === '/split' ? <SplitWorkspace /> : <PdfViewer />)}
+                    {phase === 'ready' && (pathname === '/organize' || pathname === '/rotate' ? <OrganizationWorkspace /> : pathname === '/split' ? <SplitWorkspace /> : pathname === '/watermark' ? <UtilityWorkspace /> : <PdfViewer />)}
                     {phase !== 'loading' && phase !== 'ready' && <><UploadArea />{phase === 'error' && error ? <div className="pdf-error"><ErrorState description={error} /><Button type="button" variant="secondary" onClick={retry}>Retry</Button></div> : <EmptyState title="Your document canvas is ready" description="Choose a local PDF to inspect it in the browser. Files are never uploaded by this viewer." />}</>}
                 </>}
             </section>

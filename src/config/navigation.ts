@@ -1,6 +1,5 @@
 import {
     BadgeDollarSign,
-    Bot,
     Droplets,
     FileOutput,
     FilePenLine,
@@ -13,7 +12,6 @@ import {
     Newspaper,
     PenTool,
     RotateCw,
-    ScanText,
     Scissors,
     ShieldCheck,
 } from 'lucide-react';
@@ -27,11 +25,9 @@ export const navigationItems: NavigationItem[] = [
     { label: 'Compress PDF', path: '/compress', icon: Minimize2, section: 'Workspace' },
     { label: 'Organize Pages', path: '/organize', icon: FolderKanban, section: 'Workspace' },
     { label: 'Rotate PDF', path: '/rotate', icon: RotateCw, section: 'Workspace' },
-    { label: 'Watermark', path: '/watermark', icon: Droplets, section: 'Workspace' },
+    { label: 'PDF Utilities', path: '/watermark', icon: Droplets, section: 'Workspace' },
     { label: 'Sign PDF', path: '/sign', icon: PenTool, section: 'Workspace' },
-    { label: 'OCR', path: '/ocr', icon: ScanText, section: 'Workspace' },
     { label: 'Convert PDF', path: '/convert', icon: FileOutput, section: 'Workspace' },
-    { label: 'AI Assistant', path: '/ai', icon: Bot, section: 'Workspace' },
     { label: 'Pricing', path: '/pricing', icon: BadgeDollarSign, section: 'Resources' },
     { label: 'Blog', path: '/blog', icon: Newspaper, section: 'Resources' },
     { label: 'Support', path: '/support', icon: LifeBuoy, section: 'Resources' },
@@ -47,9 +43,7 @@ export const workspaceRoutes: Record<string, WorkspaceRoute> = {
     '/compress': { title: 'Compress PDF', eyebrow: 'Optimize', description: 'Prepare a file-size optimization workflow.' },
     '/organize': { title: 'Organize pages', eyebrow: 'Organize', description: 'Prepare page sorting and arrangement controls.' },
     '/rotate': { title: 'Rotate PDF', eyebrow: 'Organize', description: 'Prepare bulk page-orientation controls.' },
-    '/watermark': { title: 'Watermark', eyebrow: 'Edit', description: 'Prepare a watermarking workspace.' },
+    '/watermark': { title: 'PDF utilities', eyebrow: 'Edit', description: 'Add browser-based document details before export.' },
     '/sign': { title: 'Sign PDF', eyebrow: 'Protect', description: 'Prepare a document-signing workspace.' },
-    '/ocr': { title: 'OCR', eyebrow: 'Enhance', description: 'Prepare an optical text recognition workspace.' },
     '/convert': { title: 'Convert PDF', eyebrow: 'Convert', description: 'Prepare document conversion controls.' },
-    '/ai': { title: 'AI Assistant', eyebrow: 'Assistant', description: 'Prepare an optional document-assistance workspace.' },
 };

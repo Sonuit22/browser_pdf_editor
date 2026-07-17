@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parsePageRange, parsePageRangeGroups } from '../src/modules/pdf/organization/utils/pageRangeParser';
+import { formatPageRange, parsePageRange, parsePageRangeGroups } from '../src/modules/pdf/organization/utils/pageRangeParser';
 
 describe('parsePageRange', () => {
     it('normalizes single pages, inclusive ranges, whitespace, and duplicates', () => {
@@ -14,5 +14,9 @@ describe('parsePageRange', () => {
 
     it('returns separate groups for a split-by-ranges workflow', () => {
         expect(parsePageRangeGroups('1-3, 5, 8-10', { pageCount: 10 })).toEqual({ groups: [[0, 1, 2], [4], [7, 8, 9]], errors: [] });
+    });
+
+    it('formats zero-based indices as a normalized one-based range', () => {
+        expect(formatPageRange([7, 0, 1, 2, 4, 8, 9, 2])).toBe('1-3, 5, 8-10');
     });
 });

@@ -10,6 +10,7 @@ import { usePdfPageOperations } from '../hooks/usePdfPageOperations';
 import type { PageId, WorkingPage } from '../types/pages';
 import { A4_PORTRAIT, LETTER_PORTRAIT } from '../types/pages';
 import { safePdfFilename } from '../utils/pageUtils';
+import { usePdfUtilities } from '../../utilities/hooks/usePdfUtilities';
 
 const blankPresets = {
     'Same as active': null,
@@ -22,6 +23,7 @@ const blankPresets = {
 export function OrganizationWorkspace() {
     const { info } = usePdfEngine();
     const { annotationsByPageId } = usePdfEditor();
+    const utilities = usePdfUtilities();
     const operations = usePdfPageOperations();
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [preset, setPreset] = useState<keyof typeof blankPresets>('Same as active');
@@ -38,7 +40,7 @@ export function OrganizationWorkspace() {
         setBusy(true);
         setMessage(null);
         try {
-            await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile: operations.getSourceFile, filename: safePdfFilename(info.filename, suffix) });
+            await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile: operations.getSourceFile, filename: safePdfFilename(info.filename, suffix), utilities, sourceFilename: info.filename });
         } catch {
             setMessage('The selected pages could not be exported. Check every source PDF and try again.');
         } finally {

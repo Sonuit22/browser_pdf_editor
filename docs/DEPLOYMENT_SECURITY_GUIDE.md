@@ -226,7 +226,6 @@ pnpm audit
 - `pdf.js` (Mozilla, verified)
 - `pdf-lib` (npm, verified)
 - `fabric.js` (canvas library, verified)
-- `tesseract.js` (OCR, verified)
 
 ---
 
@@ -254,7 +253,6 @@ pnpm audit
 | **pdf.js** | PDF viewing | ✅ Yes | Script include or import |
 | **pdf-lib** | PDF editing | ✅ Yes | NPM import (future) |
 | **Fabric.js** | Canvas drawings | ✅ Yes | NPM import (future) |
-| **Tesseract.js** | OCR | ✅ Yes | Script or NPM import |
 | **Web Workers** | Background processing | ✅ Yes | Service Worker ready |
 | **IndexedDB** | File storage | ✅ Yes | Client-side only |
 | **Service Worker** | Offline support | ✅ Yes | Already configured |
@@ -546,7 +544,6 @@ When applicable, add:
 - ✅ Supports PDF.js
 - ✅ Supports pdf-lib
 - ✅ Supports Fabric.js
-- ✅ Supports OCR (Tesseract.js)
 - ✅ Supports Web Workers
 - ✅ Supports Service Worker
 - ✅ Supports PWA

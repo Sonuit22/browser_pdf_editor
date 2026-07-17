@@ -1,40 +1,9 @@
-import { ArrowRight, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Check, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { ToolCard } from '../components/ToolCard';
-import { tools } from '../data/tools';
+import { BrandLockup } from '../components/Brand';
 
-export function HomePage() {
-    return (
-        <div className="workspace-page">
-            <section className="workspace-intro" aria-labelledby="workspace-title">
-                <div>
-                    <p className="eyebrow">Workspace</p>
-                    <h1 id="workspace-title">Choose a PDF tool</h1>
-                    <p>Every workflow will run in the browser. Select a workspace to explore its planned interface.</p>
-                </div>
-                <div className="privacy-note">
-                    <ShieldCheck size={22} aria-hidden="true" />
-                    <div>
-                        <strong>Local-first by design</strong>
-                        <span>Processing controls will stay on-device as tools are introduced.</span>
-                    </div>
-                </div>
-            </section>
+const groups = [{ title: 'Edit', items: ['Add text', 'Add image', 'Highlight', 'Draw', 'Shapes', 'Sign'] }, { title: 'Organize', items: ['Merge', 'Split', 'Reorder', 'Extract', 'Rotate', 'Delete', 'Duplicate'] }, { title: 'Utility', items: ['Watermark', 'Page numbers', 'Header and footer', 'Crop', 'Metadata', 'Protect'] }, { title: 'Privacy', items: ['Browser-based', 'Local processing', 'No server upload', 'No forced watermark'] }];
 
-            <section className="tool-section" aria-labelledby="tools-title">
-                <div className="section-heading">
-                    <div>
-                        <p className="eyebrow">Planned tools</p>
-                        <h2 id="tools-title">Document workflows</h2>
-                    </div>
-                    <Link className="text-link" to="/organize">
-                        Explore organization <ArrowRight size={17} aria-hidden="true" />
-                    </Link>
-                </div>
-                <div className="tool-grid">
-                    {tools.map((tool) => <ToolCard key={tool.path} tool={tool} />)}
-                </div>
-            </section>
-        </div>
-    );
+export default function HomePage() {
+    return <div className="product-home"><section className="product-hero" aria-labelledby="product-title"><BrandLockup /><h1 id="product-title" className="sr-only">PDF Editor by ib</h1><p className="privacy-tagline" aria-hidden="true">Your data privacy is our concern. No server upload required.</p><p className="sr-only">Your data privacy is our concern. No server upload required.</p><div className="privacy-badge"><ShieldCheck size={18} aria-hidden="true" /><span><strong>Browser-based processing</strong>Files stay on your device</span></div><div className="hero-actions"><Link className="button button--primary" to="/edit">Open editor <ArrowRight size={17} aria-hidden="true" /></Link><Link className="button button--secondary" to="/watermark">Explore utilities</Link></div></section><section className="home-features" aria-labelledby="free-tools-title"><div className="section-heading"><div><p className="eyebrow">Free daily-use tools</p><h2 id="free-tools-title">Useful PDF work without artificial limits</h2></div><Link className="text-link" to="/pricing">Free and premium details <ArrowRight size={17} aria-hidden="true" /></Link></div><div className="feature-groups">{groups.map((group) => <section key={group.title}><h3>{group.title}</h3><ul>{group.items.map((item) => <li key={item}><Check size={15} aria-hidden="true" />{item}</li>)}</ul></section>)}</div></section></div>;
 }

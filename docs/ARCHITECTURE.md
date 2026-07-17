@@ -151,7 +151,7 @@ pages/
 ├── merge.html            - Merge PDFs page
 ├── split.html            - Split PDFs page
 ├── compress.html         - Compress PDFs page
-├── ocr.html              - OCR page
+├── utilities.html         - PDF utility tools page
 └── tools.html            - Tools directory page
 ```
 
@@ -166,8 +166,8 @@ tools/
 ├── pdf-merger.js         - Merge multiple PDFs
 ├── pdf-splitter.js       - Extract/remove pages
 ├── pdf-compressor.js     - Reduce file size
-├── ocr-engine.js         - Optical character recognition
-├── ai-assistant.js       - AI features
+├── watermark.js          - Watermark helpers
+├── metadata.js           - Metadata helpers
 ├── page-editor.js        - Page editing functions
 └── export.js             - Export to various formats
 ```
@@ -214,7 +214,7 @@ export const FileHandler = {
 workers/
 ├── pdf-processor.worker.js    - Heavy PDF operations
 ├── image-compressor.worker.js - Image optimization
-├── ocr.worker.js              - OCR processing
+├── utility.worker.js           - Browser utility processing
 └── canvas-renderer.worker.js  - Rendering worker
 ```
 
@@ -405,7 +405,7 @@ document.addEventListener('pdf-loaded', (e) => {
 main.js (core, ~20KB)
 ├── editor-bundle.js (loaded on demand)
 ├── merge-bundle.js (loaded on demand)
-└── ocr-bundle.js (loaded on demand)
+└── utilities-bundle.js (loaded on demand)
 ```
 
 ---
@@ -567,7 +567,7 @@ v0.1.0 - Foundation (HTML/CSS/JS only)
 v0.2.0 - PDF Viewer (pdf.js integration)
 v0.3.0 - Basic Editor (annotations, text)
 v1.0.0 - Core Features (merge, split, compress)
-v1.1.0 - Advanced Tools (OCR, AI)
+v1.1.0 - Advanced Productivity Tools
 v2.0.0 - PWA Features (offline, install)
 ```
 

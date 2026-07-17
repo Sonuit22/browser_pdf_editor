@@ -6,7 +6,7 @@ export type ZoomPreset = 'fit-width' | 'fit-page' | 25 | 50 | 75 | 100 | 125 | 1
 export type PdfRotation = 0 | 90 | 180 | 270 | 360;
 
 export type PdfDocumentInfo = {
-    filename: string; pageCount: number; fileSize: string; version: string; author: string; subject: string; title: string; creationDate: string; modificationDate: string;
+    filename: string; pageCount: number; fileSize: string; version: string; author: string; subject: string; title: string; keywords: string; creator: string; producer: string; creationDate: string; modificationDate: string;
 };
 
 export type PdfViewerState = {

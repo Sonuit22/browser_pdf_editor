@@ -8,6 +8,7 @@ import { usePdfPageOperations } from '../hooks/usePdfPageOperations';
 import { downloadSequentialPdfs } from '../services/documentOperationsService';
 import { safePdfFilename } from '../utils/pageUtils';
 import { parsePageRangeGroups } from '../utils/pageRangeParser';
+import { usePdfUtilities } from '../../utilities/hooks/usePdfUtilities';
 
 type SplitMode = 'every-page' | 'count' | 'ranges';
 
@@ -15,6 +16,7 @@ export function SplitWorkspace() {
     const { info } = usePdfEngine();
     const { pages, getSourceFile } = usePdfPageOperations();
     const { annotationsByPageId } = usePdfEditor();
+    const utilities = usePdfUtilities();
     const [mode, setMode] = useState<SplitMode>('every-page');
     const [count, setCount] = useState('2');
     const [ranges, setRanges] = useState('1-3, 4-6');
@@ -46,7 +48,7 @@ export function SplitWorkspace() {
             const output = [];
             for (let index = 0; index < groupIndexes.length; index += 1) {
                 const group = groupIndexes[index].map((pageIndex) => pages[pageIndex]).filter(Boolean);
-                output.push({ bytes: await createWorkingPdf({ pages: group, annotationsByPageId, getSourceFile }), filename: safePdfFilename(info?.filename ?? 'document', `part-${index + 1}`) });
+                output.push({ bytes: await createWorkingPdf({ pages: group, annotationsByPageId, getSourceFile, utilities, sourceFilename: info?.filename ?? 'document.pdf' }), filename: safePdfFilename(info?.filename ?? 'document', `part-${index + 1}`) });
             }
             downloadSequentialPdfs(output);
             setMessage(`${output.length} PDF file${output.length === 1 ? '' : 's'} downloaded.`);

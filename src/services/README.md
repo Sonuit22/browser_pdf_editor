@@ -1,3 +1,3 @@
 # Services
 
-This layer is reserved for future browser-only PDF adapters. The application shell intentionally contains no upload, parsing, OCR, AI, or PDF processing service.
+This layer is reserved for browser-only PDF adapters. Current document processing stays on-device and does not require an upload service.

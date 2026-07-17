@@ -160,8 +160,7 @@ As per requirements:
 - ✅ No PDF viewing libraries
 - ✅ No PDF editing code
 - ✅ No compression logic
-- ✅ No OCR code
-- ✅ No AI assistant code
+- ✅ No remote processing features
 - ✅ Pure HTML5/CSS3/JS foundation only
 
 ## Architecture Supports Future Features
@@ -172,8 +171,7 @@ The folder structure is designed so that adding any of these features requires N
 - ✅ PDF editing (add components to `components/`)
 - ✅ Merge/Split (add to `tools/`)
 - ✅ Compression (add Web Worker to `workers/`)
-- ✅ OCR (add to `tools/` or as worker)
-- ✅ AI Assistant (add to `tools/`)
+- ✅ Browser-only utility workflows
 - ✅ Premium subscriptions (add utility functions to `utils/`)
 - ✅ Analytics (configure in `assets/js/`)
 
