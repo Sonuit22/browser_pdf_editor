@@ -20,7 +20,7 @@ const rotationOptions: PdfRotation[] = [0, 90, 180, 270, 360];
 export function PdfViewer() {
     const { info, zoom, rotation, setZoom, setRotation, closeDocument, failViewer } = usePdfEngine();
     const { pages, activePageId, activePage, isInitializing, setActivePage, getPage, getSourceFile } = usePdfPageOperations();
-    const { annotationsByPageId } = usePdfEditor();
+    const { annotationsByPageId, formValues, flattenForms } = usePdfEditor();
     const utilities = usePdfUtilities();
     const [exporting, setExporting] = useState(false);
     const [exportError, setExportError] = useState<string | null>(null);
@@ -48,7 +48,7 @@ export function PdfViewer() {
         setExporting(true);
         setExportError(null);
         try {
-            await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile, filename: editedFilename(info.filename), utilities, sourceFilename: info.filename });
+            await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile, filename: editedFilename(info.filename), utilities, sourceFilename: info.filename, formValues, flattenForms });
         } catch {
             setExportError('The modified PDF could not be exported. Check the source files and try again.');
         } finally {

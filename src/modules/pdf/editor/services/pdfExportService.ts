@@ -14,6 +14,8 @@ type PdfExportInput = {
     onProgress?: (percent: number) => void;
     utilities?: UtilitySettings;
     sourceFilename?: string;
+    formValues?: Record<string, string | boolean | string[]>;
+    flattenForms?: boolean;
 };
 
 function color(value: string) {
@@ -52,6 +54,20 @@ async function drawAnnotations(pdf: PDFDocument, page: PDFPage, annotations: Pdf
             const isPng = annotation.type === 'image' ? annotation.mimeType === 'image/png' : annotation.source.startsWith('data:image/png');
             const image = isPng ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
             page.drawImage(image, { x: annotation.x, y: annotation.y, width: annotation.width, height: annotation.height, ...shared });
+        } else if (annotation.type === 'stamp') {
+            page.drawRectangle({ x: annotation.x, y: annotation.y, width: annotation.width, height: annotation.height, borderColor: color(annotation.color), borderWidth: 2, ...shared });
+            page.drawText(annotation.text, { x: annotation.x + 8, y: annotation.y + annotation.height / 2 - 7, size: Math.min(18, annotation.height / 2), color: color(annotation.color), ...shared });
+        } else if (annotation.type === 'form-text' || annotation.type === 'form-signature') {
+            const field = pdf.getForm().createTextField(annotation.name);
+            if (annotation.required) field.enableRequired();
+            if (annotation.type === 'form-text' && annotation.multiline) field.enableMultiline();
+            field.setText(annotation.defaultValue);
+            field.addToPage(page, { x: annotation.x, y: annotation.y, width: annotation.width, height: annotation.height, borderColor: color(annotation.strokeColor), textColor: color('#172433') });
+        } else if (annotation.type === 'form-checkbox') {
+            const field = pdf.getForm().createCheckBox(annotation.name);
+            if (annotation.required) field.enableRequired();
+            if (annotation.defaultValue) field.check();
+            field.addToPage(page, { x: annotation.x, y: annotation.y, width: annotation.width, height: annotation.height, borderColor: color(annotation.strokeColor) });
         }
     }
 }
@@ -118,7 +134,20 @@ function applyMetadata(pdf: PDFDocument, utilities?: UtilitySettings) {
     pdf.setProducer(metadataValue(metadata.producer));
 }
 
-export async function createWorkingPdf({ pages, annotationsByPageId, getSourceFile, onProgress, utilities, sourceFilename = 'document.pdf' }: Omit<PdfExportInput, 'filename'>) {
+function applyAcroForm(pdf: PDFDocument, formValues: Record<string, string | boolean | string[]> | undefined, flattenForms: boolean | undefined) {
+    const form = pdf.getForm();
+    for (const field of form.getFields()) {
+        const value = formValues?.[field.getName()];
+        if (value === undefined) continue;
+        const candidate = field as unknown as { setText?: (text: string) => void; check?: () => void; uncheck?: () => void; select?: (value: string | string[]) => void };
+        if (typeof value === 'boolean') { if (value) candidate.check?.(); else candidate.uncheck?.(); }
+        else if (Array.isArray(value)) candidate.select?.(value);
+        else if (candidate.setText) candidate.setText(value); else candidate.select?.(value);
+    }
+    if (flattenForms) form.flatten();
+}
+
+export async function createWorkingPdf({ pages, annotationsByPageId, getSourceFile, onProgress, utilities, sourceFilename = 'document.pdf', formValues, flattenForms }: Omit<PdfExportInput, 'filename'>) {
     if (!pages.length) throw new Error('Add at least one page before exporting.');
     const output = await PDFDocument.create();
     const sourceDocuments = new Map<string, PDFDocument>();
@@ -148,6 +177,7 @@ export async function createWorkingPdf({ pages, annotationsByPageId, getSourceFi
         await drawAnnotations(output, page, annotationsByPageId[workingPage.id] ?? []);
         onProgress?.(Math.round(((index + 1) / pages.length) * 100));
     }
+    applyAcroForm(output, formValues, flattenForms);
     applyMetadata(output, utilities);
     return output.save();
 }
