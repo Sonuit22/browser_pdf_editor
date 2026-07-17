@@ -143,7 +143,7 @@ export function PdfPageOperationsProvider({ children }: { children: ReactNode })
         let source = existing;
         if (!source) {
             const data = await validatePdfFile(file);
-            const task = createDocumentLoadingTask(data.slice(), () => undefined);
+            const task = createDocumentLoadingTask(data, () => undefined);
             const document = await task.promise;
             const id = `import-${fileDocumentId(file)}-${createPageId()}`;
             source = { id, file, pageCount: document.numPages, document, loadingTask: task, root: false };

@@ -14,6 +14,7 @@ export function usePdfViewer() {
     const documentRef = useRef<PDFDocumentProxy | null>(null);
     const taskRef = useRef<PDFDocumentLoadingTask | null>(null);
     const requestRef = useRef(0);
+    const mountedRef = useRef(true);
 
     const dispose = useCallback(async () => {
         const task = taskRef.current;
@@ -27,12 +28,13 @@ export function usePdfViewer() {
         const request = ++requestRef.current;
         await dispose();
         setLastFile(file);
+        if (!mountedRef.current) return;
         setState({ ...initialState, phase: 'loading', progress: 1 });
         try {
             const data = await validatePdfFile(file);
             if (request !== requestRef.current) return;
-            const task = createDocumentLoadingTask(data.slice(), (progress) => {
-                if (request === requestRef.current) setState((current) => ({ ...current, progress }));
+            const task = createDocumentLoadingTask(data, (progress) => {
+                if (mountedRef.current && request === requestRef.current) setState((current) => ({ ...current, progress }));
             });
             taskRef.current = task;
             const document = await task.promise;
@@ -40,10 +42,11 @@ export function usePdfViewer() {
             documentRef.current = document;
             const info = await getPdfDocumentInfo(document, file);
             if (request !== requestRef.current) return;
+            if (!mountedRef.current) return;
             setState({ phase: 'ready', document, loadingTask: task, info, progress: 100, currentPage: 1, zoom: 'fit-width', rotation: 0, error: null });
             notify(`${file.name} loaded successfully.`);
         } catch (error) {
-            if (request === requestRef.current) {
+            if (mountedRef.current && request === requestRef.current) {
                 taskRef.current = null;
                 documentRef.current = null;
                 setState({ ...initialState, phase: 'error', error: getPdfErrorMessage(error) });
@@ -59,6 +62,6 @@ export function usePdfViewer() {
     const setZoom = useCallback((zoom: ZoomPreset) => setState((current) => ({ ...current, zoom })), []);
     const setRotation = useCallback((rotation: PdfRotation) => setState((current) => ({ ...current, rotation })), []);
 
-    useEffect(() => () => { ++requestRef.current; void dispose(); }, [dispose]);
+    useEffect(() => () => { mountedRef.current = false; ++requestRef.current; void dispose(); }, [dispose]);
     return { ...state, sourceFile: lastFile, openFile, retry, closeDocument, setCurrentPage, setZoom, setRotation, setUploadError, failViewer };
 }

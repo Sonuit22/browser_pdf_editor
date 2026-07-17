@@ -1,4 +1,4 @@
-import { useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import type { PdfPageLayout } from '../../viewer/PdfPageCanvas';
 import { usePdfEditor } from '../hooks/usePdfEditor';
 import { boundsFromPoints, createAnnotationId } from '../utils/annotationUtils';
@@ -24,8 +24,11 @@ export function AnnotationOverlay({ pageId, layout }: { pageId: string; layout: 
     const { annotationsByPageId, activeTool, selectedIds, add, update, select, setFormValue, formValues } = usePdfEditor();
     const overlayRef = useRef<HTMLDivElement>(null);
     const gestureRef = useRef<Gesture | null>(null);
+    const frameRef = useRef(0);
+    const pendingDraftRef = useRef<PdfAnnotation | null>(null);
     const [draft, setDraft] = useState<PdfAnnotation | null>(null);
     const annotations = annotationsByPageId[pageId] ?? [];
+    useEffect(() => () => cancelAnimationFrame(frameRef.current), []);
 
     const getPoint = (event: PointerEvent<HTMLDivElement>) => overlayRef.current ? clientPointToPdfPoint(event, overlayRef.current, layout.viewport) : { x: 0, y: 0 };
     const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -51,14 +54,16 @@ export function AnnotationOverlay({ pageId, layout }: { pageId: string; layout: 
             : gesture.mode === 'move'
                 ? { ...gesture.annotation, x: gesture.annotation.x + point.x - gesture.start.x, y: gesture.annotation.y + point.y - gesture.start.y, updatedAt: Date.now() }
                 : { ...gesture.annotation, ...boundsFromPoints(gesture.start, point), updatedAt: Date.now() };
-        setDraft(next as PdfAnnotation);
+        pendingDraftRef.current = next as PdfAnnotation;
+        if (!frameRef.current) frameRef.current = requestAnimationFrame(() => { frameRef.current = 0; setDraft(pendingDraftRef.current); });
     };
     const onPointerUp = (event: PointerEvent<HTMLDivElement>) => {
         const gesture = gestureRef.current;
-        if (!gesture || !draft) return;
+        const latestDraft = pendingDraftRef.current ?? draft;
+        if (!gesture || !latestDraft) return;
         if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-        if (gesture.mode === 'move') update(draft.id, { x: draft.x, y: draft.y, width: draft.width, height: draft.height }); else add(draft);
-        gestureRef.current = null; setDraft(null);
+        if (gesture.mode === 'move') update(latestDraft.id, { x: latestDraft.x, y: latestDraft.y, width: latestDraft.width, height: latestDraft.height }); else add(latestDraft);
+        gestureRef.current = null; pendingDraftRef.current = null; cancelAnimationFrame(frameRef.current); frameRef.current = 0; setDraft(null);
     };
     const rendered = draft && !annotations.some((annotation) => annotation.id === draft.id) ? [...annotations, draft] : annotations.map((annotation) => annotation.id === draft?.id ? draft : annotation);
     return <div ref={overlayRef} className={`annotation-overlay annotation-overlay--${activeTool}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={() => { gestureRef.current = null; setDraft(null); }}>{rendered.map((annotation) => <AnnotationItem key={annotation.id} annotation={annotation} viewport={layout.viewport} selected={selectedIds.includes(annotation.id)} formValues={formValues} onFormValue={setFormValue} />)}</div>;

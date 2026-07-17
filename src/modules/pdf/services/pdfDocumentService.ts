@@ -28,4 +28,6 @@ export async function getPdfDocumentInfo(document: PDFDocumentProxy, file: File)
 export async function releasePdfDocument(task: PDFDocumentLoadingTask | null, document: PDFDocumentProxy | null) {
     await task?.destroy().catch(() => undefined);
     await document?.cleanup().catch(() => undefined);
+    const destroy = (document as unknown as { destroy?: () => Promise<void> } | null)?.destroy;
+    await destroy?.().catch(() => undefined);
 }

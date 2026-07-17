@@ -26,6 +26,7 @@ export function PdfViewer() {
     const utilities = usePdfUtilities();
     const [exporting, setExporting] = useState(false);
     const [exportError, setExportError] = useState<string | null>(null);
+    const [exportProgress, setExportProgress] = useState(0);
     const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
     const currentPage = Math.max(1, pages.findIndex((page) => page.id === activePageId) + 1);
     const pageCount = pages.length;
@@ -49,9 +50,10 @@ export function PdfViewer() {
     const exportDocument = async () => {
         if (exporting) return;
         setExporting(true);
+        setExportProgress(0);
         setExportError(null);
         try {
-            await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile, filename: editedFilename(info.filename), utilities, sourceFilename: info.filename, formValues, flattenForms });
+            await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile, filename: editedFilename(info.filename), utilities, sourceFilename: info.filename, formValues, flattenForms, onProgress: setExportProgress });
             notify(flattenForms ? 'PDF exported with flattened form fields.' : 'PDF export completed.');
         } catch {
             const message = 'Export failed. Check available browser memory and the source PDF, then try again.';
@@ -78,6 +80,8 @@ export function PdfViewer() {
                 </div>
             </div>
             <EditorToolbar onExport={() => void exportDocument()} exporting={exporting} />
+            {exporting && <p className="pdf-export-progress" role="status">Preparing export: {exportProgress}%</p>}
+            {pageCount >= 200 && <p className="pdf-export-progress" role="status">Large document: rendering the active page and nearby thumbnails on demand.</p>}
             {exportError && <p className="pdf-export-error" role="alert">{exportError}</p>}
             <div className="pdf-viewer__body">
                 <aside className="thumbnail-sidebar" aria-label="Page thumbnails">

@@ -1,4 +1,4 @@
-import { useRef, type KeyboardEvent, type PointerEvent } from 'react';
+import { useEffect, useRef, type KeyboardEvent, type PointerEvent } from 'react';
 import type { WorkingPage } from '../../organization/types/pages';
 import type { PdfPageLayout } from '../../viewer/PdfPageCanvas';
 import { usePdfUtilities } from '../hooks/usePdfUtilities';
@@ -12,6 +12,9 @@ export function CropOverlay({ page, layout }: { page: WorkingPage; layout: PdfPa
     const { crop, cropsByPageId, setCropDraft, cancelCrop } = usePdfUtilities();
     const overlayRef = useRef<HTMLDivElement>(null);
     const gestureRef = useRef<Gesture | null>(null);
+    const frameRef = useRef(0);
+    const pendingRectRef = useRef<ViewportRect | null>(null);
+    useEffect(() => () => cancelAnimationFrame(frameRef.current), []);
     if (!crop.isEditing) return null;
     const dimensions = { width: page.width, height: page.height };
     const currentCrop = crop.draftByPageId[page.id] ?? cropsByPageId[page.id] ?? { left: 0, right: 0, top: 0, bottom: 0 };
@@ -21,7 +24,8 @@ export function CropOverlay({ page, layout }: { page: WorkingPage; layout: PdfPa
         return { x: event.clientX - (rect?.left ?? 0), y: event.clientY - (rect?.top ?? 0) };
     };
     const setFromRect = (rect: ViewportRect) => setCropDraft(page.id, viewportRectToCropMargins(rect, dimensions, layout.viewport));
-    const release = (event: PointerEvent<HTMLDivElement>) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); gestureRef.current = null; };
+    const scheduleRect = (rect: ViewportRect) => { pendingRectRef.current = rect; if (!frameRef.current) frameRef.current = requestAnimationFrame(() => { frameRef.current = 0; if (pendingRectRef.current) setFromRect(pendingRectRef.current); }); };
+    const release = (event: PointerEvent<HTMLDivElement>) => { if (pendingRectRef.current) setFromRect(pendingRectRef.current); pendingRectRef.current = null; cancelAnimationFrame(frameRef.current); frameRef.current = 0; if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); gestureRef.current = null; };
     const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
         if (event.button !== 0) return;
         const target = event.target as HTMLElement;
@@ -43,12 +47,12 @@ export function CropOverlay({ page, layout }: { page: WorkingPage; layout: PdfPa
             : gesture.handle === 'move'
                 ? moveViewportRect(gesture.rect, point.x - gesture.start.x, point.y - gesture.start.y, viewport)
                 : resizeViewportRect(gesture.rect, gesture.handle, point, viewport);
-        setFromRect(next);
+        scheduleRect(next);
     };
     const onPointerCancel = (event: PointerEvent<HTMLDivElement>) => {
         const gesture = gestureRef.current;
         if (gesture) setCropDraft(page.id, gesture.crop);
-        release(event);
+        pendingRectRef.current = null; cancelAnimationFrame(frameRef.current); frameRef.current = 0; release(event);
     };
     const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
         if (event.key === 'Escape') {

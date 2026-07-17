@@ -19,6 +19,8 @@ export function PdfThumbnail({ page, pageNumber, active, rotation, getPage, onSe
         return () => observer.disconnect();
     }, [visible]);
 
+    useEffect(() => { if (active) setVisible(true); }, [active]);
+
     useEffect(() => {
         if (!visible) return;
         let cancelled = false;

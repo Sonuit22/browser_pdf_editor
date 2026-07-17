@@ -50,9 +50,10 @@ export function PdfPageCanvas({ page, pageNumber, getPage, zoom, rotation, onRen
     useEffect(() => {
         const element = containerRef.current;
         if (!element) return;
-        const observer = new ResizeObserver(([entry]) => setSize({ width: entry.contentRect.width, height: entry.contentRect.height }));
+        let frame = 0;
+        const observer = new ResizeObserver(([entry]) => { cancelAnimationFrame(frame); frame = requestAnimationFrame(() => setSize({ width: entry.contentRect.width, height: entry.contentRect.height })); });
         observer.observe(element);
-        return () => observer.disconnect();
+        return () => { observer.disconnect(); cancelAnimationFrame(frame); };
     }, []);
 
     useEffect(() => {
