@@ -9,6 +9,7 @@ import { Header } from './Header';
 import { RightPanel } from './RightPanel';
 import { Sidebar } from './Sidebar';
 import { usePdfEngine } from '../modules/pdf/hooks/usePdfEngine';
+import { NotificationRegion } from '../components/feedback/NotificationRegion';
 
 type DialogName = 'settings' | 'help' | null;
 
@@ -52,6 +53,7 @@ export function AppLayout() {
                 </div>
                 <StatusBar />
                 <Footer />
+                <NotificationRegion />
                 {dialog && <Modal title={dialog.title} onClose={() => setActiveDialog(null)}><p>{dialog.body}</p></Modal>}
             </div>
         </ShellContext.Provider>

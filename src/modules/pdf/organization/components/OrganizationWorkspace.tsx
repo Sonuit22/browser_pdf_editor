@@ -11,6 +11,7 @@ import type { PageId, WorkingPage } from '../types/pages';
 import { A4_PORTRAIT, LETTER_PORTRAIT } from '../types/pages';
 import { safePdfFilename } from '../utils/pageUtils';
 import { usePdfUtilities } from '../../utilities/hooks/usePdfUtilities';
+import { notify } from '../../../../components/feedback/notifications';
 
 const blankPresets = {
     'Same as active': null,
@@ -52,7 +53,7 @@ export function OrganizationWorkspace() {
         operations.insertBlank(dimensions, 'after-active');
     };
     const confirmDelete = () => {
-        if (!operations.deleteSelected()) setMessage('At least one page must remain in the document.');
+        if (!operations.deleteSelected()) setMessage('At least one page must remain in the document.'); else notify('Selected pages deleted. You can undo this operation.');
         setDeleteOpen(false);
     };
     const importFile = async (event: ChangeEvent<HTMLInputElement>) => {

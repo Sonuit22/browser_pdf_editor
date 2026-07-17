@@ -4,6 +4,7 @@ import { createDocumentLoadingTask, getPdfDocumentInfo, releasePdfDocument } fro
 import { validatePdfFile } from '../services/pdfValidationService';
 import type { PdfRotation, PdfViewerState, ZoomPreset } from '../types/pdf';
 import { getPdfErrorMessage } from '../utils/pdfErrors';
+import { notify } from '../../../components/feedback/notifications';
 
 const initialState: PdfViewerState = { phase: 'idle', document: null, loadingTask: null, info: null, progress: 0, currentPage: 1, zoom: 'fit-width', rotation: 0, error: null };
 
@@ -40,6 +41,7 @@ export function usePdfViewer() {
             const info = await getPdfDocumentInfo(document, file);
             if (request !== requestRef.current) return;
             setState({ phase: 'ready', document, loadingTask: task, info, progress: 100, currentPage: 1, zoom: 'fit-width', rotation: 0, error: null });
+            notify(`${file.name} loaded successfully.`);
         } catch (error) {
             if (request === requestRef.current) {
                 taskRef.current = null;
