@@ -8,22 +8,23 @@ import { Footer } from './Footer';
 import { Header } from './Header';
 import { RightPanel } from './RightPanel';
 import { Sidebar } from './Sidebar';
+import { usePdfEngine } from '../modules/pdf/hooks/usePdfEngine';
 
-type DialogName = 'upload' | 'settings' | 'help' | null;
+type DialogName = 'settings' | 'help' | null;
 
 const dialogContent = {
-    upload: { title: 'Upload PDF', body: 'File selection is not connected yet. This shell reserves the upload entry point for a future browser-only workflow.' },
     settings: { title: 'Settings', body: 'Workspace preferences will appear here. Theme selection is already available in the header.' },
     help: { title: 'Help', body: 'Support guidance and product documentation will appear here as the PDF workflows are introduced.' },
 };
 
 export function AppLayout() {
+    const { openFilePicker } = usePdfEngine();
     const isMobile = useMediaQuery('(max-width: 920px)');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [activeDialog, setActiveDialog] = useState<DialogName>(null);
     const location = useLocation();
 
-    const requestUpload = useCallback(() => setActiveDialog('upload'), []);
+    const requestUpload = useCallback(openFilePicker, [openFilePicker]);
     const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
     const shellValue = useMemo(() => ({ requestUpload }), [requestUpload]);
     const dialog = activeDialog ? dialogContent[activeDialog] : null;

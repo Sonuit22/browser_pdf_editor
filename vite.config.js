@@ -38,5 +38,15 @@ export default defineConfig({
     build: {
         outDir: 'dist',
         emptyOutDir: true,
+        chunkSizeWarningLimit: 1000,
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+                    'pdf-engine': ['pdfjs-dist', 'pdf-lib'],
+                    'ui-icons': ['lucide-react'],
+                },
+            },
+        },
     },
 });

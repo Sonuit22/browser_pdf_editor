@@ -2,6 +2,9 @@ import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { AppLayout } from './layouts/AppLayout';
+import { PdfEngineProvider } from './modules/pdf/context/PdfEngineContext';
+import { PdfEditorProvider } from './modules/pdf/editor/context/PdfEditorProvider';
+import { PdfPageOperationsProvider } from './modules/pdf/organization/context/PdfPageOperationsProvider';
 
 const WorkspacePage = lazy(() => import('./pages/WorkspacePage'));
 const LegalPage = lazy(() => import('./pages/LegalPage'));
@@ -12,7 +15,7 @@ export default function App() {
     return (
         <Suspense fallback={<div className="route-loading"><LoadingSpinner /></div>}>
             <Routes>
-                <Route element={<AppLayout />}>
+                <Route element={<PdfEngineProvider><PdfPageOperationsProvider><PdfEditorProvider><AppLayout /></PdfEditorProvider></PdfPageOperationsProvider></PdfEngineProvider>}>
                     {workspacePaths.map((path) => <Route key={path} path={path} element={<WorkspacePage />} />)}
                     <Route path="pricing" element={<LegalPage title="Pricing" description="Plans and subscription options will be introduced with production PDF workflows." />} />
                     <Route path="blog" element={<LegalPage title="Blog" description="Product updates and document-workflow guides will appear here." />} />

@@ -1,0 +1,16 @@
+export type AnnotationId = string;
+export type EditorTool = 'select' | 'text' | 'highlight' | 'draw' | 'rectangle' | 'ellipse' | 'line' | 'arrow' | 'image' | 'signature';
+export type AnnotationType = 'text' | 'highlight' | 'draw' | 'rectangle' | 'ellipse' | 'line' | 'arrow' | 'image' | 'signature';
+export type Point = { x: number; y: number };
+export type AnnotationBounds = { x: number; y: number; width: number; height: number };
+export type AnnotationStyle = { opacity: number; rotation: number; strokeColor: string; strokeWidth: number; fillColor: string };
+export type AnnotationBase = AnnotationBounds & AnnotationStyle & { id: AnnotationId; pageId: string; type: AnnotationType; zIndex: number; createdAt: number; updatedAt: number };
+export type TextAnnotation = AnnotationBase & { type: 'text'; text: string; fontSize: number; fontFamily: 'Helvetica' | 'Times-Roman' | 'Courier'; bold: boolean; italic: boolean; color: string; backgroundColor: string; align: 'left' | 'center' | 'right' };
+export type HighlightAnnotation = AnnotationBase & { type: 'highlight'; color: string };
+export type DrawAnnotation = AnnotationBase & { type: 'draw'; points: Point[]; color: string };
+export type ShapeAnnotation = AnnotationBase & { type: 'rectangle' | 'ellipse' | 'line' | 'arrow' };
+export type ImageAnnotation = AnnotationBase & { type: 'image'; source: string; mimeType: 'image/png' | 'image/jpeg'; aspectRatio: number };
+export type SignatureAnnotation = AnnotationBase & { type: 'signature'; source: string; signatureKind: 'drawn' | 'typed' | 'uploaded'; aspectRatio: number };
+export type PdfAnnotation = TextAnnotation | HighlightAnnotation | DrawAnnotation | ShapeAnnotation | ImageAnnotation | SignatureAnnotation;
+export type EditorPresent = { documentId: string | null; annotationsByPageId: Record<string, PdfAnnotation[]>; selectedId: AnnotationId | null; activeTool: EditorTool; clipboard: PdfAnnotation | null; dirty: boolean };
+export type EditorHistoryState = { present: EditorPresent; past: EditorPresent[]; future: EditorPresent[] };
