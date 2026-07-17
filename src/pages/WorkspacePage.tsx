@@ -1,9 +1,7 @@
 import { useLocation } from 'react-router-dom';
-import { PageContainer } from '../components/PageContainer';
 import { Button } from '../components/ui/Button';
 import { ErrorState } from '../components/ui/ErrorState';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
-import { EmptyState } from '../components/ui/EmptyState';
 import { UploadArea } from '../components/workspace/UploadArea';
 import { workspaceRoutes } from '../config/navigation';
 import { usePdfEngine } from '../modules/pdf/hooks/usePdfEngine';
@@ -19,14 +17,13 @@ export default function WorkspacePage() {
     const route = workspaceRoutes[pathname] ?? workspaceRoutes['/'];
 
     return (
-        <PageContainer {...route}>
-            <section className="editor-workspace" aria-label={`${route.title} workspace`}>
+        <section className="editor-workspace" aria-label={`${route.title} workspace`}>
+            <h1 className="sr-only">{route.title}</h1>
                 {pathname === '/merge' ? <MergeWorkspace /> : <>
                     {phase === 'loading' && <div className="pdf-loading" role="status"><LoadingSpinner label="Loading PDF" /><strong>Loading PDF</strong><span>{progress}%</span></div>}
                     {phase === 'ready' && (pathname === '/organize' || pathname === '/rotate' ? <OrganizationWorkspace /> : pathname === '/split' ? <SplitWorkspace /> : pathname === '/watermark' ? <UtilityWorkspace /> : <PdfViewer />)}
-                    {phase !== 'loading' && phase !== 'ready' && <><UploadArea />{phase === 'error' && error ? <div className="pdf-error"><ErrorState description={error} /><Button type="button" variant="secondary" onClick={retry}>Retry</Button></div> : <EmptyState title="Your document canvas is ready" description="Choose a local PDF to inspect it in the browser. Files are never uploaded by this viewer." />}</>}
+                    {phase !== 'loading' && phase !== 'ready' && <>{phase === 'error' && error ? <div className="pdf-error"><ErrorState description={error} /><Button type="button" variant="secondary" onClick={retry}>Retry</Button></div> : <UploadArea />}</>}
                 </>}
             </section>
-        </PageContainer>
     );
 }

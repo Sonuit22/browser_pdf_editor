@@ -15,7 +15,8 @@ const HomePage = lazy(() => import('./pages/HomePage'));
 const PricingPage = lazy(() => import('./pages/PricingPage'));
 const LegalPage = lazy(() => import('./pages/LegalPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
-const workspacePaths = ['/edit', '/merge', '/split', '/organize', '/rotate', '/watermark'];
+const ConvertPage = lazy(() => import('./pages/ConvertPage'));
+const workspacePaths = ['/edit', '/merge', '/split', '/organize', '/rotate'];
 
 export default function App() {
     if (!hasPdfBrowserSupport()) return <UnsupportedBrowser />;
@@ -24,6 +25,7 @@ export default function App() {
             <Routes>
                 <Route element={<PdfEngineProvider><PdfPageOperationsProvider><PdfEditorProvider><PdfUtilitiesProvider><AppLayout /></PdfUtilitiesProvider></PdfEditorProvider></PdfPageOperationsProvider></PdfEngineProvider>}>
                     <Route path="/" element={<HomePage />} />
+                    <Route path="convert" element={<ConvertPage />} />
                     {workspacePaths.map((path) => <Route key={path} path={path} element={<WorkspacePage />} />)}
                     <Route path="pricing" element={<PricingPage />} />
                     <Route path="privacy" element={<LegalPage kind="privacy" />} />

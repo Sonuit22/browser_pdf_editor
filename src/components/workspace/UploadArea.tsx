@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { useDropzone, type FileRejection } from 'react-dropzone';
-import { FileUp } from 'lucide-react';
 import { usePdfEngine } from '../../modules/pdf/hooks/usePdfEngine';
 import { MAX_PDF_FILE_SIZE } from '../../modules/pdf/types/pdf';
 import { Button } from '../ui/Button';
@@ -21,12 +20,11 @@ export function UploadArea() {
     return (
         <section {...getRootProps({ className: `upload-area${isDragActive ? ' is-dragging' : ''}`, 'aria-labelledby': 'upload-title' })}>
             <input {...getInputProps()} />
-            <FileUp className="upload-area__icon" size={42} strokeWidth={1.4} aria-hidden="true" />
-            <p className="eyebrow">No document selected</p>
-            <h2 id="upload-title">Drop PDF Here</h2>
+            <h2 id="upload-title">Drop a PDF here</h2>
             <p>or</p>
-            <Button type="button" onClick={(event) => { event.stopPropagation(); openFilePicker(); }}>Click to Upload</Button>
-            <dl className="upload-area__meta"><div><dt>Maximum file size</dt><dd>{Math.round(MAX_PDF_FILE_SIZE / 1024 / 1024)} MB</dd></div><div><dt>Supported formats</dt><dd>PDF only</dd></div></dl>
+            <Button type="button" onClick={(event) => { event.stopPropagation(); openFilePicker(); }}>Open PDF</Button>
+            <p className="upload-area__privacy">Your file stays on your device. No server upload required.</p>
+            <p className="upload-area__hint">PDF only, up to {Math.round(MAX_PDF_FILE_SIZE / 1024 / 1024)} MB.</p>
         </section>
     );
 }

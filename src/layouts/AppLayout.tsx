@@ -5,7 +5,6 @@ import { useMediaQuery } from '../hooks/useMediaQuery';
 import { StatusBar } from '../components/workspace/StatusBar';
 import { Footer } from './Footer';
 import { Header } from './Header';
-import { RightPanel } from './RightPanel';
 import { Sidebar } from './Sidebar';
 import { usePdfEngine } from '../modules/pdf/hooks/usePdfEngine';
 import { NotificationRegion } from '../components/feedback/NotificationRegion';
@@ -33,11 +32,10 @@ export function AppLayout() {
                 <div className="app-body">
                     {showSidebar && <Sidebar onNavigate={closeSidebar} />}
                     {isMobile && isSidebarOpen && <button className="sidebar-scrim" type="button" aria-label="Close navigation" onClick={closeSidebar} />}
-                    <main id="main-content" className="app-main" tabIndex={-1}>
+                    <main id="main-content" className="app-main app-main--workspace" tabIndex={-1}>
                         <p className="sr-only" aria-live="polite">Page changed to {location.pathname === '/' ? 'home' : location.pathname.slice(1)}</p>
                         <Outlet />
                     </main>
-                    <RightPanel />
                 </div>
                 <StatusBar />
                 <Footer />

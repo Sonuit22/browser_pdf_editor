@@ -9,8 +9,7 @@ export const Sidebar = memo(function Sidebar({ onNavigate }: SidebarProps) {
     return (
         <aside className="sidebar" aria-label="Application navigation">
             <nav>
-                <SidebarGroup label="Workspace" onNavigate={onNavigate} items={navigationItems.filter((item) => item.section === 'Workspace')} />
-                <SidebarGroup label="Resources" onNavigate={onNavigate} items={navigationItems.filter((item) => item.section === 'Resources')} />
+                <SidebarGroup label="Document" onNavigate={onNavigate} items={navigationItems.filter((item) => item.section === 'Workspace')} />
             </nav>
         </aside>
     );

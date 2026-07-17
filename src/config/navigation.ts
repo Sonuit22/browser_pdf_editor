@@ -1,6 +1,6 @@
 import {
     BadgeDollarSign,
-    Droplets,
+    FileOutput,
     FilePenLine,
     FileText,
     Files,
@@ -19,7 +19,7 @@ export const navigationItems: NavigationItem[] = [
     { label: 'Split PDF', path: '/split', icon: Scissors, section: 'Workspace' },
     { label: 'Organize Pages', path: '/organize', icon: FolderKanban, section: 'Workspace' },
     { label: 'Rotate PDF', path: '/rotate', icon: RotateCw, section: 'Workspace' },
-    { label: 'PDF Utilities', path: '/watermark', icon: Droplets, section: 'Workspace' },
+    { label: 'Convert', path: '/convert', icon: FileOutput, section: 'Workspace' },
     { label: 'Pricing', path: '/pricing', icon: BadgeDollarSign, section: 'Resources' },
     { label: 'Privacy', path: '/privacy', icon: ShieldCheck, section: 'Resources' },
     { label: 'Terms', path: '/terms', icon: FileText, section: 'Resources' },
@@ -32,5 +32,4 @@ export const workspaceRoutes: Record<string, WorkspaceRoute> = {
     '/split': { title: 'Split PDF', eyebrow: 'Organize', description: 'Prepare a page-separation workflow.' },
     '/organize': { title: 'Organize pages', eyebrow: 'Organize', description: 'Prepare page sorting and arrangement controls.' },
     '/rotate': { title: 'Rotate PDF', eyebrow: 'Organize', description: 'Prepare bulk page-orientation controls.' },
-    '/watermark': { title: 'PDF utilities', eyebrow: 'Edit', description: 'Add browser-based document details before export.' },
 };
