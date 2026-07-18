@@ -16,6 +16,7 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const ToolInfoPage = lazy(() => import('./pages/ToolInfoPage'));
 const SimplePage = lazy(() => import('./pages/SimplePage'));
 const LegalPage = lazy(() => import('./pages/LegalPage'));
+const FaqPage = lazy(() => import('./pages/FaqPage'));
 const ConversionWorkspace = lazy(() => import('./modules/conversion/ConversionWorkspace'));
 const workspacePaths = ['/edit', '/sign-pdf', '/merge', '/split', '/organize', '/remove-pages', '/extract-pages'];
 const conversionPaths = ['/jpg-to-pdf', '/word-to-pdf', '/pdf-to-jpg', '/pdf-to-word', '/pdf-to-ppt'];
@@ -35,6 +36,7 @@ export default function App() {
                     <Route path="support" element={<SimplePage />} />
                     <Route path="privacy" element={<LegalPage kind="privacy" />} />
                     <Route path="terms" element={<LegalPage kind="terms" />} />
+                    <Route path="faq" element={<FaqPage />} />
                     <Route path="*" element={<NotFoundPage />} />
                 </Route>
             </Routes>

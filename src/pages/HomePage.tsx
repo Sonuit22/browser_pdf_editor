@@ -36,7 +36,7 @@ export default function HomePage() {
             <p className="dynamic-tagline" aria-hidden="true"><span>{taglines[phrase].slice(0, length)}</span><i /></p>
             <p className="sr-only">Powerful, private PDF tools that work in your browser.</p>
         </header>
-        <div className="tool-card-grid">{toolRegistry.map((tool) => {
+        <div id="tools" className="tool-card-grid">{toolRegistry.map((tool) => {
             const Icon = tool.icon;
             const content = <><Icon size={26} strokeWidth={1.8} aria-hidden="true" /><strong>{tool.title}</strong><p>{tool.description}</p>{tool.badge && <span className="tool-status-badge">{tool.badge}</span>}</>;
             return tool.enabled
