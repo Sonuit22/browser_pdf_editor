@@ -6,13 +6,13 @@ import { clientPointToPdfPoint, pdfBoundsToViewport, pdfPointToViewport } from '
 import type { EditorTool, PdfAnnotation, Point } from '../types/annotations';
 
 type Gesture = { mode: 'create' | 'move'; start: Point; annotation: PdfAnnotation };
-const base = (pageId: string, type: PdfAnnotation['type'], point: Point): Omit<PdfAnnotation, 'type'> & { type: PdfAnnotation['type'] } => ({ id: createAnnotationId(), pageId, type, x: point.x, y: point.y, width: 2, height: 2, zIndex: Date.now(), opacity: .8, rotation: 0, strokeColor: '#0f6aa6', strokeWidth: 2, fillColor: '#f4cd55', createdAt: Date.now(), updatedAt: Date.now() } as PdfAnnotation);
+const base = (pageId: string, type: PdfAnnotation['type'], point: Point): Omit<PdfAnnotation, 'type'> & { type: PdfAnnotation['type'] } => ({ id: createAnnotationId(), pageId, type, x: point.x, y: point.y, width: 2, height: 2, zIndex: Date.now(), opacity: type === 'highlight' ? .3 : .9, rotation: 0, strokeColor: '#178a49', strokeWidth: 2, fillColor: 'transparent', createdAt: Date.now(), updatedAt: Date.now() } as PdfAnnotation);
 
 function createAnnotation(tool: EditorTool, pageId: string, point: Point): PdfAnnotation | null {
     if (tool === 'text') return { ...base(pageId, 'text', point), type: 'text', width: 160, height: 36, text: 'Added text', fontSize: 16, fontFamily: 'Helvetica', bold: false, italic: false, color: '#172433', backgroundColor: 'transparent', align: 'left' };
     if (tool === 'highlight') return { ...base(pageId, 'highlight', point), type: 'highlight', color: '#ffe066' };
     if (tool === 'draw') return { ...base(pageId, 'draw', point), type: 'draw', points: [point], color: '#0f6aa6' };
-    if (['rectangle', 'ellipse', 'line', 'arrow'].includes(tool)) return { ...base(pageId, tool as 'rectangle' | 'ellipse' | 'line' | 'arrow', point), type: tool as 'rectangle' | 'ellipse' | 'line' | 'arrow' };
+    if (['rectangle', 'rounded-rectangle', 'ellipse', 'line', 'arrow', 'triangle'].includes(tool)) return { ...base(pageId, tool as 'rectangle' | 'rounded-rectangle' | 'ellipse' | 'line' | 'arrow' | 'triangle', point), type: tool as 'rectangle' | 'rounded-rectangle' | 'ellipse' | 'line' | 'arrow' | 'triangle' };
     if (tool === 'stamp') return { ...base(pageId, 'stamp', point), type: 'stamp', width: 150, height: 52, text: 'APPROVED', color: '#16794c', opacity: .82 };
     if (tool === 'form-text') return { ...base(pageId, 'form-text', point), type: 'form-text', width: 180, height: 30, name: `text_${Date.now()}`, required: false, multiline: false, defaultValue: '' };
     if (tool === 'form-checkbox') return { ...base(pageId, 'form-checkbox', point), type: 'form-checkbox', width: 22, height: 22, name: `checkbox_${Date.now()}`, required: false, defaultValue: false };
@@ -83,9 +83,10 @@ function AnnotationItem({ annotation, viewport, selected, formValues, onFormValu
     return <svg data-annotation-id={annotation.id} className={`annotation-item annotation-shape${selectedClass}`} style={style} viewBox={`0 0 ${Math.max(2, box.width)} ${Math.max(2, box.height)}`}><Shape annotation={annotation} width={box.width} height={box.height} /></svg>;
 }
 
-function Shape({ annotation, width, height }: { annotation: Extract<PdfAnnotation, { type: 'rectangle' | 'ellipse' | 'line' | 'arrow' }>; width: number; height: number }) {
-    const common = { stroke: annotation.strokeColor, strokeWidth: annotation.strokeWidth, fill: annotation.type === 'rectangle' || annotation.type === 'ellipse' ? annotation.fillColor : 'none' };
+function Shape({ annotation, width, height }: { annotation: Extract<PdfAnnotation, { type: 'rectangle' | 'rounded-rectangle' | 'ellipse' | 'line' | 'arrow' | 'triangle' }>; width: number; height: number }) {
+    const common = { stroke: annotation.strokeColor, strokeWidth: annotation.strokeWidth, fill: ['rectangle', 'rounded-rectangle', 'ellipse', 'triangle'].includes(annotation.type) ? annotation.fillColor : 'none' };
     if (annotation.type === 'ellipse') return <ellipse cx={width / 2} cy={height / 2} rx={Math.max(1, width / 2 - 1)} ry={Math.max(1, height / 2 - 1)} {...common} />;
-    if (annotation.type === 'rectangle') return <rect x="1" y="1" width={Math.max(1, width - 2)} height={Math.max(1, height - 2)} {...common} />;
+    if (annotation.type === 'rectangle' || annotation.type === 'rounded-rectangle') return <rect x="1" y="1" rx={annotation.type === 'rounded-rectangle' ? 10 : 0} width={Math.max(1, width - 2)} height={Math.max(1, height - 2)} {...common} />;
+    if (annotation.type === 'triangle') return <polygon points={`${width / 2},1 ${width - 1},${height - 1} 1,${height - 1}`} {...common} />;
     return <><line x1="1" y1={height - 1} x2={width - 1} y2="1" {...common} />{annotation.type === 'arrow' && <polygon points={`${width - 1},1 ${width - 10},3 ${width - 3},10`} fill={annotation.strokeColor} />}</>;
 }

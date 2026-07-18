@@ -1,6 +1,6 @@
 export type AnnotationId = string;
-export type EditorTool = 'select' | 'text' | 'highlight' | 'draw' | 'rectangle' | 'ellipse' | 'line' | 'arrow' | 'image' | 'signature' | 'stamp' | 'form-text' | 'form-checkbox' | 'form-signature';
-export type AnnotationType = 'text' | 'highlight' | 'draw' | 'rectangle' | 'ellipse' | 'line' | 'arrow' | 'image' | 'signature' | 'stamp' | 'form-text' | 'form-checkbox' | 'form-signature';
+export type EditorTool = 'select' | 'text' | 'highlight' | 'draw' | 'rectangle' | 'rounded-rectangle' | 'ellipse' | 'line' | 'arrow' | 'triangle' | 'image' | 'signature' | 'stamp' | 'form-text' | 'form-checkbox' | 'form-signature';
+export type AnnotationType = 'text' | 'highlight' | 'draw' | 'rectangle' | 'rounded-rectangle' | 'ellipse' | 'line' | 'arrow' | 'triangle' | 'image' | 'signature' | 'stamp' | 'form-text' | 'form-checkbox' | 'form-signature';
 export type Point = { x: number; y: number };
 export type AnnotationBounds = { x: number; y: number; width: number; height: number };
 export type AnnotationStyle = { opacity: number; rotation: number; strokeColor: string; strokeWidth: number; fillColor: string };
@@ -8,7 +8,7 @@ export type AnnotationBase = AnnotationBounds & AnnotationStyle & { id: Annotati
 export type TextAnnotation = AnnotationBase & { type: 'text'; text: string; fontSize: number; fontFamily: 'Helvetica' | 'Times-Roman' | 'Courier'; bold: boolean; italic: boolean; color: string; backgroundColor: string; align: 'left' | 'center' | 'right' };
 export type HighlightAnnotation = AnnotationBase & { type: 'highlight'; color: string };
 export type DrawAnnotation = AnnotationBase & { type: 'draw'; points: Point[]; color: string };
-export type ShapeAnnotation = AnnotationBase & { type: 'rectangle' | 'ellipse' | 'line' | 'arrow' };
+export type ShapeAnnotation = AnnotationBase & { type: 'rectangle' | 'rounded-rectangle' | 'ellipse' | 'line' | 'arrow' | 'triangle' };
 export type ImageAnnotation = AnnotationBase & { type: 'image'; source: string; mimeType: 'image/png' | 'image/jpeg'; aspectRatio: number };
 export type SignatureAnnotation = AnnotationBase & { type: 'signature'; source: string; signatureKind: 'drawn' | 'typed' | 'uploaded'; aspectRatio: number };
 export type StampAnnotation = AnnotationBase & { type: 'stamp'; text: string; color: string };

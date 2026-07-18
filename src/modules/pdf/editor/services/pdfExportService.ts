@@ -43,12 +43,15 @@ async function drawAnnotations(pdf: PDFDocument, page: PDFPage, annotations: Pdf
             for (let point = 1; point < annotation.points.length; point += 1) {
                 page.drawLine({ start: annotation.points[point - 1], end: annotation.points[point], color: color(annotation.color), thickness: annotation.strokeWidth, opacity: annotation.opacity });
             }
-        } else if (annotation.type === 'rectangle') {
-            page.drawRectangle({ x: annotation.x, y: annotation.y, width: annotation.width, height: annotation.height, borderColor: color(annotation.strokeColor), borderWidth: annotation.strokeWidth, color: color(annotation.fillColor), ...shared });
+        } else if (annotation.type === 'rectangle' || annotation.type === 'rounded-rectangle') {
+            page.drawRectangle({ x: annotation.x, y: annotation.y, width: annotation.width, height: annotation.height, borderColor: color(annotation.strokeColor), borderWidth: annotation.strokeWidth, ...(annotation.fillColor === 'transparent' ? {} : { color: color(annotation.fillColor) }), ...shared });
         } else if (annotation.type === 'ellipse') {
-            page.drawEllipse({ x: annotation.x + annotation.width / 2, y: annotation.y + annotation.height / 2, xScale: annotation.width / 2, yScale: annotation.height / 2, borderColor: color(annotation.strokeColor), borderWidth: annotation.strokeWidth, color: color(annotation.fillColor), ...shared });
+            page.drawEllipse({ x: annotation.x + annotation.width / 2, y: annotation.y + annotation.height / 2, xScale: annotation.width / 2, yScale: annotation.height / 2, borderColor: color(annotation.strokeColor), borderWidth: annotation.strokeWidth, ...(annotation.fillColor === 'transparent' ? {} : { color: color(annotation.fillColor) }), ...shared });
         } else if (annotation.type === 'line' || annotation.type === 'arrow') {
             page.drawLine({ start: { x: annotation.x, y: annotation.y }, end: { x: annotation.x + annotation.width, y: annotation.y + annotation.height }, color: color(annotation.strokeColor), thickness: annotation.strokeWidth, opacity: annotation.opacity });
+        } else if (annotation.type === 'triangle') {
+            const points = [{ x: annotation.x + annotation.width / 2, y: annotation.y + annotation.height }, { x: annotation.x + annotation.width, y: annotation.y }, { x: annotation.x, y: annotation.y }];
+            for (let index = 0; index < 3; index += 1) page.drawLine({ start: points[index], end: points[(index + 1) % 3], color: color(annotation.strokeColor), thickness: annotation.strokeWidth, opacity: annotation.opacity });
         } else if (annotation.type === 'image' || annotation.type === 'signature') {
             const bytes = await fetch(annotation.source).then((response) => response.arrayBuffer());
             const isPng = annotation.type === 'image' ? annotation.mimeType === 'image/png' : annotation.source.startsWith('data:image/png');
