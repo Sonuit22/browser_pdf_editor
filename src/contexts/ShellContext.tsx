@@ -2,6 +2,8 @@ import { createContext, useContext } from 'react';
 
 type ShellContextValue = {
     requestUpload: () => void;
+    resetToolWorkspace: () => void;
+    requestNavigation: (destination: string | 'back') => void;
 };
 
 export const ShellContext = createContext<ShellContextValue | null>(null);

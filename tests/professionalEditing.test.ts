@@ -4,7 +4,7 @@ import type { PdfAnnotation } from '../src/modules/pdf/editor/types/annotations'
 import { alignAnnotations, snapValue } from '../src/modules/pdf/editor/utils/professionalEditing';
 
 function text(id: string, x: number, y: number, width = 40, height = 20): PdfAnnotation {
-    return { id, pageId: 'page-1', type: 'text', x, y, width, height, zIndex: 1, opacity: 1, rotation: 0, strokeColor: '#000000', strokeWidth: 1, fillColor: '#ffffff', createdAt: 1, updatedAt: 1, text: id, fontSize: 12, fontFamily: 'Helvetica', bold: false, italic: false, color: '#000000', backgroundColor: 'transparent', align: 'left' };
+    return { id, pageId: 'page-1', type: 'text', x, y, width, height, zIndex: 1, opacity: 1, rotation: 0, strokeColor: '#000000', strokeWidth: 1, fillColor: '#ffffff', createdAt: 1, updatedAt: 1, text: id, fontSize: 12, fontFamily: 'Helvetica', bold: false, italic: false, underline: false, color: '#000000', backgroundColor: '#ffffff', backgroundOpacity: 0, borderColor: '#000000', borderWidth: 0, padding: 4, lineHeight: 1.2, letterSpacing: 0, align: 'left' };
 }
 
 describe('professional editing utilities', () => {

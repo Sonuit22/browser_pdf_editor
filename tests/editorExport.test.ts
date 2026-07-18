@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PDFDocument } from 'pdf-lib';
 import { createWorkingPdf } from '../src/modules/pdf/editor/services/pdfExportService';
-import type { ImageAnnotation, ShapeAnnotation } from '../src/modules/pdf/editor/types/annotations';
+import type { HighlightAnnotation, ImageAnnotation, ShapeAnnotation, TextAnnotation } from '../src/modules/pdf/editor/types/annotations';
 import type { WorkingPage } from '../src/modules/pdf/organization/types/pages';
 
 const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAEAQH/2p7nGQAAAABJRU5ErkJggg==';
@@ -15,7 +15,9 @@ describe('editor export', () => {
             { ...base, id: 'shape-1', type: 'rounded-rectangle' },
             { ...base, id: 'shape-2', type: 'triangle' },
         ];
-        const bytes = await createWorkingPdf({ pages: [page], annotationsByPageId: { [page.id]: [image, ...shapes] }, getSourceFile: () => null });
+        const highlight: HighlightAnnotation = { ...base, id: 'highlight-1', type: 'highlight', color: '#ffe066', opacity: .3, strokeWidth: 18, points: [{ x: 50, y: 200 }, { x: 250, y: 200 }] };
+        const text: TextAnnotation = { ...base, id: 'text-1', type: 'text', text: 'First line\nSecond line', fontSize: 16, fontFamily: 'Helvetica', bold: false, italic: false, underline: false, color: '#111111', backgroundColor: '#ffffff', backgroundOpacity: .25, borderColor: '#178a49', borderWidth: 1, padding: 6, lineHeight: 1.3, letterSpacing: 0, align: 'left' };
+        const bytes = await createWorkingPdf({ pages: [page], annotationsByPageId: { [page.id]: [image, text, highlight, ...shapes] }, getSourceFile: () => null });
         const output = await PDFDocument.load(bytes);
         expect(output.getPageCount()).toBe(1);
         expect(bytes.byteLength).toBeGreaterThan(500);

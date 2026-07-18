@@ -36,9 +36,15 @@ async function drawAnnotations(pdf: PDFDocument, page: PDFPage, annotations: Pdf
         const shared = { opacity: annotation.opacity, rotate: degrees(annotation.rotation) };
         if (annotation.type === 'text') {
             const font = await pdf.embedFont(fontName(annotation));
-            page.drawText(annotation.text, { x: annotation.x, y: annotation.y, size: annotation.fontSize, font, color: color(annotation.color), ...shared });
+            if (annotation.backgroundOpacity > 0 || annotation.borderWidth > 0) page.drawRectangle({
+                x: annotation.x, y: annotation.y, width: annotation.width, height: annotation.height,
+                ...(annotation.backgroundOpacity > 0 ? { color: color(annotation.backgroundColor), opacity: annotation.backgroundOpacity * annotation.opacity } : {}),
+                ...(annotation.borderWidth > 0 ? { borderColor: color(annotation.borderColor), borderWidth: annotation.borderWidth } : {}),
+                rotate: degrees(annotation.rotation),
+            });
+            page.drawText(annotation.text, { x: annotation.x + annotation.padding, y: annotation.y + annotation.height - annotation.padding - annotation.fontSize, size: annotation.fontSize, lineHeight: annotation.fontSize * annotation.lineHeight, maxWidth: Math.max(10, annotation.width - annotation.padding * 2), font, color: color(annotation.color), ...shared });
         } else if (annotation.type === 'highlight') {
-            page.drawRectangle({ x: annotation.x, y: annotation.y, width: annotation.width, height: annotation.height, color: color(annotation.color), opacity: annotation.opacity });
+            for (let point = 1; point < annotation.points.length; point += 1) page.drawLine({ start: annotation.points[point - 1], end: annotation.points[point], color: color(annotation.color), thickness: annotation.strokeWidth, opacity: annotation.opacity });
         } else if (annotation.type === 'draw') {
             for (let point = 1; point < annotation.points.length; point += 1) {
                 page.drawLine({ start: annotation.points[point - 1], end: annotation.points[point], color: color(annotation.color), thickness: annotation.strokeWidth, opacity: annotation.opacity });

@@ -12,15 +12,17 @@ import { MergeWorkspace } from '../modules/pdf/organization/components/MergeWork
 import { RightPanel } from '../layouts/RightPanel';
 import { ArrowLeft, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useShell } from '../contexts/ShellContext';
 
 export default function WorkspacePage() {
     const { pathname } = useLocation();
     const { phase, error, progress, retry } = usePdfEngine();
     const route = workspaceRoutes[pathname] ?? workspaceRoutes['/'];
+    const { requestNavigation } = useShell();
 
     return (
         <section className="tool-workspace-shell" aria-label={`${route.title} workspace`}>
-            <div className="workspace-main"><div className="workspace-heading"><div><p>Browser-based PDF tool</p><h1>{route.title}</h1></div><div><Link to="/"><ArrowLeft size={16} />Back</Link><Link to="/"><Home size={16} />Home</Link></div></div>
+            <div className="workspace-main"><div className="workspace-heading"><div><p>Browser-based PDF tool</p><h1>{route.title}</h1></div><div><Link to="/" onClick={(event) => { event.preventDefault(); requestNavigation('back'); }}><ArrowLeft size={16} />Back</Link><Link to="/" onClick={(event) => { event.preventDefault(); requestNavigation('/'); }}><Home size={16} />Home</Link></div></div>
             <div className="editor-workspace">
                 {pathname === '/merge' ? <MergeWorkspace /> : <>
                     {phase === 'loading' && <div className="pdf-loading" role="status"><LoadingSpinner label="Loading PDF" /><strong>Loading PDF</strong><span>{progress}%</span></div>}
