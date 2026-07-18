@@ -18,5 +18,6 @@ export type FormSignatureAnnotation = AnnotationBase & { type: 'form-signature';
 export type PdfAnnotation = TextAnnotation | HighlightAnnotation | DrawAnnotation | ShapeAnnotation | ImageAnnotation | SignatureAnnotation | StampAnnotation | FormTextAnnotation | FormCheckboxAnnotation | FormSignatureAnnotation;
 export type Guide = { id: string; axis: 'horizontal' | 'vertical'; position: number };
 export type EditorLayout = { showRulers: boolean; rulerUnit: 'pt' | 'mm' | 'inch'; showGrid: boolean; snapToGrid: boolean; gridSpacing: number; snapToGuides: boolean; guides: Guide[] };
-export type EditorPresent = { documentId: string | null; annotationsByPageId: Record<string, PdfAnnotation[]>; selectedId: AnnotationId | null; selectedIds: AnnotationId[]; activeTool: EditorTool; clipboard: PdfAnnotation | null; formValues: Record<string, string | boolean | string[]>; flattenForms: boolean; layout: EditorLayout; dirty: boolean };
+export type HighlighterSettings = { color: string; opacity: number; strokeWidth: number };
+export type EditorPresent = { documentId: string | null; annotationsByPageId: Record<string, PdfAnnotation[]>; selectedId: AnnotationId | null; selectedIds: AnnotationId[]; activeTool: EditorTool; highlighterSettings: HighlighterSettings; clipboard: PdfAnnotation | null; formValues: Record<string, string | boolean | string[]>; flattenForms: boolean; layout: EditorLayout; dirty: boolean };
 export type EditorHistoryState = { present: EditorPresent; past: EditorPresent[]; future: EditorPresent[] };

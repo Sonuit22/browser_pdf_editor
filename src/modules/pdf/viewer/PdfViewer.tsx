@@ -9,20 +9,23 @@ import { EditorToolbar } from '../editor/components/EditorToolbar';
 import { usePdfEditor } from '../editor/hooks/usePdfEditor';
 import { editedFilename, exportWorkingPdf } from '../editor/services/pdfExportService';
 import { PdfPageCanvas } from './PdfPageCanvas';
-import { PdfThumbnail } from './PdfThumbnail';
+import { PageThumbnailPanel } from '../organization/components/PageThumbnailPanel';
 import { usePdfUtilities } from '../utilities/hooks/usePdfUtilities';
 import { UtilityPreviewOverlay } from '../utilities/components/UtilityPreviewOverlay';
 import { CropOverlay } from '../utilities/components/CropOverlay';
 import { notify } from '../../../components/feedback/notifications';
 import { Modal } from '../../../components/ui/Modal';
 import { RightPanel } from '../../../layouts/RightPanel';
+import { SigningToolbar } from '../editor/components/SigningToolbar';
+import { useLocation } from 'react-router-dom';
 
 const zoomOptions: Array<[string, ZoomPreset]> = [['Fit width', 'fit-width'], ['Fit page', 'fit-page'], ['25%', 25], ['50%', 50], ['75%', 75], ['100%', 100], ['125%', 125], ['150%', 150], ['200%', 200], ['300%', 300]];
 const rotationOptions: PdfRotation[] = [0, 90, 180, 270, 360];
 
 export function PdfViewer() {
+    const { pathname } = useLocation();
     const { info, zoom, rotation, setZoom, setRotation, closeDocument, failViewer } = usePdfEngine();
-    const { pages, activePageId, activePage, isInitializing, setActivePage, getPage, getSourceFile } = usePdfPageOperations();
+    const { pages, activePageId, activePage, isInitializing, setActivePage, reorderPages, getPage, getSourceFile } = usePdfPageOperations();
     const { annotationsByPageId, formValues, flattenForms, dirty } = usePdfEditor();
     const utilities = usePdfUtilities();
     const [exporting, setExporting] = useState(false);
@@ -82,14 +85,12 @@ export function PdfViewer() {
                     <button className="icon-button" type="button" onClick={() => setDocumentToolsOpen(true)} aria-label="Open document tools" title="Document tools"><SlidersHorizontal size={16} aria-hidden="true" /></button>
                 </div>
             </div>
-            <EditorToolbar onExport={() => void exportDocument()} exporting={exporting} />
+            {pathname === '/sign-pdf' ? <SigningToolbar onExport={() => void exportDocument()} exporting={exporting} /> : <EditorToolbar onExport={() => void exportDocument()} exporting={exporting} />}
             {exporting && <p className="pdf-export-progress" role="status">Preparing export: {exportProgress}%</p>}
             {pageCount >= 200 && <p className="pdf-export-progress" role="status">Large document: rendering the active page and nearby thumbnails on demand.</p>}
             {exportError && <p className="pdf-export-error" role="alert">{exportError}</p>}
             <div className="pdf-viewer__body">
-                <aside className="thumbnail-sidebar" aria-label="Page thumbnails">
-                    {pages.map((page, index) => <PdfThumbnail key={page.id} page={page} pageNumber={index + 1} active={activePageId === page.id} rotation={rotation} getPage={getPage} onSelect={(pageId) => setActivePage(pageId)} />)}
-                </aside>
+                <aside className="thumbnail-sidebar" aria-label="Page thumbnails"><PageThumbnailPanel pages={pages} activePageId={activePageId} getPage={getPage} reorderEnabled onSelect={(pageId) => setActivePage(pageId)} onReorder={reorderPages} /></aside>
                 <PdfPageCanvas page={activePage} pageNumber={currentPage} getPage={getPage} zoom={zoom} rotation={rotation} onRenderError={() => failViewer('A page could not be rendered safely. Please retry the document.')}>{(layout) => <><AnnotationOverlay pageId={activePage.id} layout={layout} /><CropOverlay page={activePage} layout={layout} /><UtilityPreviewOverlay pageId={activePage.id} pageNumber={currentPage} pageCount={pageCount} filename={info.filename} /></>}</PdfPageCanvas>
             </div>
             {closeConfirmOpen && <Modal title="Discard unsaved work" onClose={() => setCloseConfirmOpen(false)}><p>Close this document and discard unsaved edits?</p><div className="modal-actions"><Button variant="secondary" type="button" onClick={() => setCloseConfirmOpen(false)}>Keep editing</Button><Button type="button" onClick={() => { setCloseConfirmOpen(false); closeDocument(); }}>Discard work</Button></div></Modal>}

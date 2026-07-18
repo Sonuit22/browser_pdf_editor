@@ -97,6 +97,11 @@ export function PdfPageOperationsProvider({ children }: { children: ReactNode })
         const next = reorderWorkingPages(present, moving, targetId, placement);
         if (next !== present) commit(next);
     }, [commit, selectedIds]);
+    const reorderPages = useCallback((movingIds: PageId[], targetId: PageId, placement: 'before' | 'after') => {
+        const present = stateRef.current.present;
+        const next = reorderWorkingPages(present, movingIds, targetId, placement);
+        if (next !== present) commit(next);
+    }, [commit]);
     const moveActive = useCallback((direction: -1 | 1) => {
         const present = stateRef.current.present;
         const activeIndex = pageIndexById(present.pages, present.activePageId);
@@ -167,7 +172,7 @@ export function PdfPageOperationsProvider({ children }: { children: ReactNode })
     const getPageNumber = useCallback((pageId: PageId) => pageIndexById(stateRef.current.present.pages, pageId) + 1, []);
 
     const activePage = state.present.pages.find((page) => page.id === state.present.activePageId) ?? null;
-    const value = useMemo(() => ({ documentId: state.present.documentId, pages: state.present.pages, selectedPageIds: state.present.selectedPageIds, activePageId: state.present.activePageId, activePage, isInitializing, canUndo: state.past.length > 0, canRedo: state.future.length > 0, select, setActivePage, selectAll, clearSelection, invertSelection, reorder, moveActive, deleteSelected, duplicateSelected, insertBlank, rotateSelected, rotateAll, undo: () => dispatch({ type: 'undo' }), redo: () => dispatch({ type: 'redo' }), importPages, getPage, getSourceFile, getPageNumber }), [activePage, clearSelection, deleteSelected, duplicateSelected, getPage, getPageNumber, getSourceFile, importPages, insertBlank, invertSelection, isInitializing, moveActive, reorder, rotateAll, rotateSelected, select, selectAll, setActivePage, state]);
+    const value = useMemo(() => ({ documentId: state.present.documentId, pages: state.present.pages, selectedPageIds: state.present.selectedPageIds, activePageId: state.present.activePageId, activePage, isInitializing, canUndo: state.past.length > 0, canRedo: state.future.length > 0, select, setActivePage, selectAll, clearSelection, invertSelection, reorder, reorderPages, moveActive, deleteSelected, duplicateSelected, insertBlank, rotateSelected, rotateAll, undo: () => dispatch({ type: 'undo' }), redo: () => dispatch({ type: 'redo' }), importPages, getPage, getSourceFile, getPageNumber }), [activePage, clearSelection, deleteSelected, duplicateSelected, getPage, getPageNumber, getSourceFile, importPages, insertBlank, invertSelection, isInitializing, moveActive, reorder, reorderPages, rotateAll, rotateSelected, select, selectAll, setActivePage, state]);
 
     return <PdfPageOperationsContext.Provider value={value}>{children}</PdfPageOperationsContext.Provider>;
 }

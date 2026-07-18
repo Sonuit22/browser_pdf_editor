@@ -15,8 +15,10 @@ const HomePage = lazy(() => import('./pages/HomePage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const ToolInfoPage = lazy(() => import('./pages/ToolInfoPage'));
 const SimplePage = lazy(() => import('./pages/SimplePage'));
+const ConversionWorkspace = lazy(() => import('./modules/conversion/ConversionWorkspace'));
 const workspacePaths = ['/edit', '/sign-pdf', '/merge', '/split', '/organize', '/remove-pages', '/extract-pages'];
-const limitedPaths = ['/compress', '/jpg-to-pdf', '/word-to-pdf', '/ppt-to-pdf', '/pdf-to-jpg', '/pdf-to-word', '/pdf-to-ppt', '/protect-pdf'];
+const conversionPaths = ['/jpg-to-pdf', '/word-to-pdf', '/ppt-to-pdf', '/pdf-to-jpg', '/pdf-to-word', '/pdf-to-ppt'];
+const limitedPaths = ['/compress', '/protect-pdf'];
 
 export default function App() {
     if (!hasPdfBrowserSupport()) return <UnsupportedBrowser />;
@@ -26,6 +28,7 @@ export default function App() {
                 <Route element={<PdfEngineProvider><PdfPageOperationsProvider><PdfEditorProvider><PdfUtilitiesProvider><AppLayout /></PdfUtilitiesProvider></PdfEditorProvider></PdfPageOperationsProvider></PdfEngineProvider>}>
                     <Route path="/" element={<HomePage />} />
                     {workspacePaths.map((path) => <Route key={path} path={path} element={<WorkspacePage />} />)}
+                    {conversionPaths.map((path) => <Route key={path} path={path} element={<ConversionWorkspace />} />)}
                     {limitedPaths.map((path) => <Route key={path} path={path} element={<ToolInfoPage />} />)}
                     <Route path="contact" element={<SimplePage />} />
                     <Route path="support" element={<SimplePage />} />

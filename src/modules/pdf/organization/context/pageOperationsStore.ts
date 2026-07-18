@@ -19,6 +19,7 @@ export type PdfPageOperationsValue = {
     clearSelection: () => void;
     invertSelection: () => void;
     reorder: (targetId: PageId, placement: 'before' | 'after') => void;
+    reorderPages: (movingIds: PageId[], targetId: PageId, placement: 'before' | 'after') => void;
     moveActive: (direction: -1 | 1) => void;
     deleteSelected: () => boolean;
     duplicateSelected: () => void;

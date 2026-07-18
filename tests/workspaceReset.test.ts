@@ -25,4 +25,11 @@ describe('tool workspace reset', () => {
         expect(reset.past).toEqual([]);
         expect(reset.future).toEqual([]);
     });
+
+    it('preserves highlighter choices inside the editor and restores defaults on reset', () => {
+        const customized = editorReducer(initialEditorState, { type: 'highlighter-settings', settings: { color: '#ff9fca', opacity: .6, strokeWidth: 32 } });
+        expect(customized.present.highlighterSettings).toEqual({ color: '#ff9fca', opacity: .6, strokeWidth: 32 });
+        const reset = editorReducer(customized, { type: 'reset', documentId: null });
+        expect(reset.present.highlighterSettings).toEqual({ color: '#ffe066', opacity: .3, strokeWidth: 20 });
+    });
 });

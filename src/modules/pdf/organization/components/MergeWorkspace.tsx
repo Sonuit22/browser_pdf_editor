@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent } from 'react';
+import { useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { ArrowDown, ArrowUp, Download, GripVertical, Plus, Trash2 } from 'lucide-react';
 import { Button } from '../../../../components/ui/Button';
 import { downloadPdf } from '../utils/pdfDownload';
@@ -11,6 +11,7 @@ export function MergeWorkspace() {
     const [busy, setBusy] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const draggingIndex = useRef<number | null>(null);
     const addFiles = (incoming: File[]) => {
         const known = new Set(files.map(({ file }) => `${file.name}-${file.size}-${file.lastModified}`));
         const additions = incoming.filter((file) => !known.has(`${file.name}-${file.size}-${file.lastModified}`)).map((file) => ({ file, pageCount: null }));
@@ -47,7 +48,7 @@ export function MergeWorkspace() {
             <Button type="button" variant="secondary" onClick={() => inputRef.current?.click()}><Plus size={17} aria-hidden="true" />Add PDFs</Button>
         </div>
         <ol className="merge-file-list" aria-label="PDF merge order">
-            {files.map(({ file, pageCount }, index) => <li key={`${file.name}-${file.size}-${file.lastModified}`}><GripVertical size={18} aria-hidden="true" /><div><strong>{file.name}</strong><span>{formatFileSize(file.size)}{pageCount ? ` - ${pageCount} pages` : ''}</span></div><button className="icon-button" type="button" onClick={() => move(index, -1)} disabled={index === 0} aria-label={`Move ${file.name} earlier`} title="Move earlier"><ArrowUp size={16} aria-hidden="true" /></button><button className="icon-button" type="button" onClick={() => move(index, 1)} disabled={index === files.length - 1} aria-label={`Move ${file.name} later`} title="Move later"><ArrowDown size={16} aria-hidden="true" /></button><button className="icon-button" type="button" onClick={() => setFiles((current) => current.filter((_, currentIndex) => currentIndex !== index))} aria-label={`Remove ${file.name}`} title="Remove"><Trash2 size={16} aria-hidden="true" /></button></li>)}
+            {files.map(({ file, pageCount }, index) => <li key={`${file.name}-${file.size}-${file.lastModified}`} draggable onDragStart={() => { draggingIndex.current = index; }} onDragOver={(event: DragEvent) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const source = draggingIndex.current; if (source === null || source === index) return; setFiles((current) => { const next = [...current]; const [moving] = next.splice(source, 1); next.splice(index, 0, moving); return next; }); draggingIndex.current = null; }}><GripVertical size={18} aria-hidden="true" /><div><strong>{file.name}</strong><span>{formatFileSize(file.size)}{pageCount ? ` - ${pageCount} pages` : ''}</span></div><button className="icon-button" type="button" onClick={() => move(index, -1)} disabled={index === 0} aria-label={`Move ${file.name} earlier`} title="Move earlier"><ArrowUp size={16} aria-hidden="true" /></button><button className="icon-button" type="button" onClick={() => move(index, 1)} disabled={index === files.length - 1} aria-label={`Move ${file.name} later`} title="Move later"><ArrowDown size={16} aria-hidden="true" /></button><button className="icon-button" type="button" onClick={() => setFiles((current) => current.filter((_, currentIndex) => currentIndex !== index))} aria-label={`Remove ${file.name}`} title="Remove"><Trash2 size={16} aria-hidden="true" /></button></li>)}
         </ol>
         <Button type="button" onClick={() => void merge()} disabled={files.length < 2 || busy}><Download size={17} aria-hidden="true" />{busy ? 'Merging' : 'Merge and download'}</Button>
         {message && <p className="operation-message" role="status">{message}</p>}
