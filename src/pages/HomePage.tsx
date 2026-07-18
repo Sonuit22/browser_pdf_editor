@@ -1,9 +1,40 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { filterTools, officeTools, toolCategories, type ToolCategory } from '../config/toolRegistry';
+import { filterTools } from '../config/toolRegistry';
 
-export default function HomePage({ initialCategory = 'All' as ToolCategory | 'All' }: { initialCategory?: ToolCategory | 'All' }) {
-    const [category, setCategory] = useState(initialCategory); const [query, setQuery] = useState(''); const [notice, setNotice] = useState(''); const [moreOpen, setMoreOpen] = useState(false); const tools = useMemo(() => filterTools(category, query), [category, query]);
-    return <main className="tool-dashboard"><h1>PDF Editor by ib</h1><p className="dashboard-privacy">Your data privacy is our concern.<br />No server upload required.</p><p className="dashboard-support">Supported tools process files directly in your browser.</p><label className="dashboard-search"><Search size={19} aria-hidden="true" /><span className="sr-only">Search PDF tools</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search PDF tools..." />{query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')}><X size={17} aria-hidden="true" /></button>}</label><div className="tool-pills" role="toolbar" aria-label="Tool categories">{toolCategories.map((item) => <button type="button" key={item} aria-pressed={category === item} className={category === item ? 'is-active' : ''} onClick={() => setCategory(item)}>{item}</button>)}</div>{notice && <p className="sr-only" role="status">{notice}</p>}<div className="tool-groups">{toolCategories.slice(1).filter((item) => category === 'All' || category === item).map((group) => { const cards = tools.filter((tool) => tool.category === group); const sectionId = `group-${group.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`; return cards.length ? <section key={group} aria-labelledby={sectionId}><h2 id={sectionId}>{group}</h2><div className="tool-card-grid">{cards.map((tool) => { const Icon = tool.icon; const content = <><Icon size={24} aria-hidden="true" /><strong>{tool.title}</strong><span>{tool.description}</span>{tool.status && <small>Coming later</small>}</>; return tool.implemented && tool.route ? <Link className="tool-dashboard-card" key={tool.id} to={tool.route}>{content}</Link> : <button className="tool-dashboard-card" type="button" key={tool.id} onClick={() => setNotice(`${tool.title} is coming later.`)}>{content}</button>; })}</div></section> : null; })}</div><p className="dashboard-privacy-strip">Your files stay on your device while you work.</p><section className="more-tools"><button type="button" aria-expanded={moreOpen} onClick={() => setMoreOpen((open) => !open)}>More conversions coming later</button>{moreOpen && <><p>High-fidelity Office conversion is not yet available in the browser-only edition.</p><ul>{officeTools.map((tool) => <li key={tool}>{tool} <small>Coming later</small></li>)}</ul></>}</section></main>;
+const messages = [
+    'Your data stays in your browser.', 'No server upload required.', 'Fast. Secure. Private.',
+    '100% Browser-Based PDF Editor.', 'Everything happens locally.', 'Your files never leave your device.',
+];
+
+function TypingTagline() {
+    const [message, setMessage] = useState(0);
+    const [length, setLength] = useState(0);
+    const [deleting, setDeleting] = useState(false);
+    useEffect(() => {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const text = messages[message];
+        const atEnd = length === text.length;
+        const atStart = length === 0;
+        const delay = atEnd && !deleting ? 1400 : deleting ? 38 : 58;
+        const timer = window.setTimeout(() => {
+            if (atEnd && !deleting) setDeleting(true);
+            else if (atStart && deleting) { setDeleting(false); setMessage((value) => (value + 1) % messages.length); }
+            else setLength((value) => value + (deleting ? -1 : 1));
+        }, delay);
+        return () => window.clearTimeout(timer);
+    }, [deleting, length, message]);
+    return <p className="typing-tagline" aria-live="polite"><span>{messages[message].slice(0, length) || messages[0]}</span><i aria-hidden="true" /></p>;
+}
+
+export default function HomePage() {
+    const [query, setQuery] = useState('');
+    const tools = useMemo(() => filterTools('All', query), [query]);
+    return <main className="tool-dashboard">
+        <div className="home-brand"><h1>PDF Editor</h1><span>by ib</span></div>
+        <TypingTagline />
+        <label className="dashboard-search"><Search size={19} aria-hidden="true" /><span className="sr-only">Search PDF tools</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search PDF tools..." />{query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')}><X size={17} aria-hidden="true" /></button>}</label>
+        {tools.length ? <div className="tool-card-grid">{tools.map((tool) => { const Icon = tool.icon; return <Link className="tool-dashboard-card" key={tool.id} to={tool.route} aria-label={tool.title}><Icon size={25} strokeWidth={1.8} aria-hidden="true" /><strong>{tool.title}</strong></Link>; })}</div> : <div className="no-tools" role="status"><Search size={24} aria-hidden="true" /><strong>No tools found</strong><span>Try a different tool name.</span></div>}
+    </main>;
 }

@@ -12,11 +12,11 @@ import { PdfUtilitiesProvider } from './modules/pdf/utilities/context/PdfUtiliti
 
 const WorkspacePage = lazy(() => import('./pages/WorkspacePage'));
 const HomePage = lazy(() => import('./pages/HomePage'));
-const PricingPage = lazy(() => import('./pages/PricingPage'));
-const LegalPage = lazy(() => import('./pages/LegalPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
-const ConvertPage = lazy(() => import('./pages/ConvertPage'));
-const workspacePaths = ['/edit', '/merge', '/split', '/organize', '/rotate'];
+const ToolInfoPage = lazy(() => import('./pages/ToolInfoPage'));
+const SimplePage = lazy(() => import('./pages/SimplePage'));
+const workspacePaths = ['/edit', '/sign-pdf', '/merge', '/split', '/organize', '/remove-pages', '/extract-pages'];
+const limitedPaths = ['/compress', '/jpg-to-pdf', '/word-to-pdf', '/ppt-to-pdf', '/pdf-to-jpg', '/pdf-to-word', '/pdf-to-ppt', '/protect-pdf'];
 
 export default function App() {
     if (!hasPdfBrowserSupport()) return <UnsupportedBrowser />;
@@ -25,11 +25,10 @@ export default function App() {
             <Routes>
                 <Route element={<PdfEngineProvider><PdfPageOperationsProvider><PdfEditorProvider><PdfUtilitiesProvider><AppLayout /></PdfUtilitiesProvider></PdfEditorProvider></PdfPageOperationsProvider></PdfEngineProvider>}>
                     <Route path="/" element={<HomePage />} />
-                    <Route path="convert" element={<ConvertPage />} />
                     {workspacePaths.map((path) => <Route key={path} path={path} element={<WorkspacePage />} />)}
-                    <Route path="pricing" element={<PricingPage />} />
-                    <Route path="privacy" element={<LegalPage kind="privacy" />} />
-                    <Route path="terms" element={<LegalPage kind="terms" />} />
+                    {limitedPaths.map((path) => <Route key={path} path={path} element={<ToolInfoPage />} />)}
+                    <Route path="contact" element={<SimplePage />} />
+                    <Route path="support" element={<SimplePage />} />
                     <Route path="*" element={<NotFoundPage />} />
                 </Route>
             </Routes>

@@ -9,7 +9,6 @@ import { PdfViewer } from '../modules/pdf/viewer/PdfViewer';
 import { OrganizationWorkspace } from '../modules/pdf/organization/components/OrganizationWorkspace';
 import { SplitWorkspace } from '../modules/pdf/organization/components/SplitWorkspace';
 import { MergeWorkspace } from '../modules/pdf/organization/components/MergeWorkspace';
-import { UtilityWorkspace } from '../modules/pdf/utilities/components/UtilityWorkspace';
 
 export default function WorkspacePage() {
     const { pathname } = useLocation();
@@ -21,7 +20,7 @@ export default function WorkspacePage() {
             <h1 className="sr-only">{route.title}</h1>
                 {pathname === '/merge' ? <MergeWorkspace /> : <>
                     {phase === 'loading' && <div className="pdf-loading" role="status"><LoadingSpinner label="Loading PDF" /><strong>Loading PDF</strong><span>{progress}%</span></div>}
-                    {phase === 'ready' && (pathname === '/organize' || pathname === '/rotate' ? <OrganizationWorkspace /> : pathname === '/split' ? <SplitWorkspace /> : pathname === '/watermark' ? <UtilityWorkspace /> : <PdfViewer />)}
+                    {phase === 'ready' && (['/organize', '/remove-pages', '/extract-pages'].includes(pathname) ? <OrganizationWorkspace /> : pathname === '/split' ? <SplitWorkspace /> : <PdfViewer />)}
                     {phase !== 'loading' && phase !== 'ready' && <>{phase === 'error' && error ? <div className="pdf-error"><ErrorState description={error} /><Button type="button" variant="secondary" onClick={retry}>Retry</Button></div> : <UploadArea />}</>}
                 </>}
             </section>

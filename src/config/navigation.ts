@@ -1,35 +1,7 @@
-import {
-    BadgeDollarSign,
-    FileOutput,
-    FilePenLine,
-    FileText,
-    Files,
-    FolderKanban,
-    House,
-    RotateCw,
-    Scissors,
-    ShieldCheck,
-} from 'lucide-react';
-import type { NavigationItem, WorkspaceRoute } from '../types/navigation';
+import type { WorkspaceRoute } from '../types/navigation';
+import { toolRegistry } from './toolRegistry';
 
-export const navigationItems: NavigationItem[] = [
-    { label: 'Home', path: '/', icon: House, section: 'Workspace' },
-    { label: 'Edit PDF', path: '/edit', icon: FilePenLine, section: 'Workspace' },
-    { label: 'Merge PDF', path: '/merge', icon: Files, section: 'Workspace' },
-    { label: 'Split PDF', path: '/split', icon: Scissors, section: 'Workspace' },
-    { label: 'Organize Pages', path: '/organize', icon: FolderKanban, section: 'Workspace' },
-    { label: 'Rotate PDF', path: '/rotate', icon: RotateCw, section: 'Workspace' },
-    { label: 'Convert', path: '/convert', icon: FileOutput, section: 'Workspace' },
-    { label: 'Pricing', path: '/pricing', icon: BadgeDollarSign, section: 'Resources' },
-    { label: 'Privacy', path: '/privacy', icon: ShieldCheck, section: 'Resources' },
-    { label: 'Terms', path: '/terms', icon: FileText, section: 'Resources' },
-];
-
-export const workspaceRoutes: Record<string, WorkspaceRoute> = {
-    '/': { title: 'PDF workspace', eyebrow: 'Home', description: 'Start with a document when PDF workflows are introduced.' },
-    '/edit': { title: 'Edit PDF', eyebrow: 'Edit', description: 'A focused workspace for future document editing tools.' },
-    '/merge': { title: 'Merge PDF', eyebrow: 'Organize', description: 'Prepare a document-combination workflow.' },
-    '/split': { title: 'Split PDF', eyebrow: 'Organize', description: 'Prepare a page-separation workflow.' },
-    '/organize': { title: 'Organize pages', eyebrow: 'Organize', description: 'Prepare page sorting and arrangement controls.' },
-    '/rotate': { title: 'Rotate PDF', eyebrow: 'Organize', description: 'Prepare bulk page-orientation controls.' },
-};
+export const navigationItems = toolRegistry.map(({ title: label, route: path, icon }) => ({ label, path, icon, section: 'Workspace' as const }));
+export const workspaceRoutes: Record<string, WorkspaceRoute> = Object.fromEntries(toolRegistry.map((tool) => [tool.route, {
+    title: tool.title, eyebrow: 'Browser tool', description: tool.limitation ?? 'Files are processed locally in your browser.',
+}]));

@@ -1,8 +1,14 @@
-import { Download, Pencil, Highlighter, MousePointer2, PenLine, Redo2, RotateCw, Shapes, Trash2, Undo2, Copy, ImagePlus, Signature, Stamp, TextCursorInput, CheckSquare } from 'lucide-react';
+import { Download, Pencil, Highlighter, PenLine, Redo2, Shapes, Trash2, Undo2, Copy, ImagePlus } from 'lucide-react';
 import { usePdfEditor } from '../hooks/usePdfEditor';
 import type { EditorTool } from '../types/annotations';
 
-const tools: Array<[EditorTool, string, typeof MousePointer2]> = [['select', 'Select', MousePointer2], ['text', 'Add text', Pencil], ['highlight', 'Highlight', Highlighter], ['draw', 'Freehand draw', PenLine], ['rectangle', 'Rectangle', Shapes], ['ellipse', 'Ellipse', Shapes], ['line', 'Line', PenLine], ['arrow', 'Arrow', RotateCw], ['image', 'Add image', ImagePlus], ['signature', 'Add visual signature', Signature], ['stamp', 'Add approved stamp', Stamp], ['form-text', 'Add text form field', TextCursorInput], ['form-checkbox', 'Add checkbox form field', CheckSquare], ['form-signature', 'Add signature form field', Signature]];
+const tools: Array<[EditorTool, string, typeof Pencil]> = [
+    ['text', 'Add Text', Pencil],
+    ['image', 'Add Image', ImagePlus],
+    ['draw', 'Draw', PenLine],
+    ['rectangle', 'Add Shape', Shapes],
+    ['highlight', 'Highlighter', Highlighter],
+];
 
 export function EditorToolbar({ onExport, exporting }: { onExport: () => void; exporting: boolean }) {
     const { activeTool, selectedIds, canUndo, canRedo, setTool, removeSelected, duplicateSelected, undo, redo } = usePdfEditor();

@@ -20,9 +20,9 @@ export function UploadArea() {
     return (
         <section {...getRootProps({ className: `upload-area${isDragActive ? ' is-dragging' : ''}`, 'aria-labelledby': 'upload-title' })}>
             <input {...getInputProps()} />
-            <h2 id="upload-title">Drop a PDF here</h2>
+            <h2 id="upload-title">Drop file here</h2>
             <p>or</p>
-            <Button type="button" onClick={(event) => { event.stopPropagation(); openFilePicker(); }}>Open PDF</Button>
+            <Button type="button" onClick={(event) => { event.stopPropagation(); openFilePicker(); }}>Select PDF</Button>
             <p className="upload-area__privacy">Your file stays on your device. No server upload required.</p>
             <p className="upload-area__hint">PDF only, up to {Math.round(MAX_PDF_FILE_SIZE / 1024 / 1024)} MB.</p>
         </section>

@@ -1,15 +1,37 @@
-import { FileImage, FilePenLine, FileText, Files, Highlighter, ImagePlus, Images, PenLine, RotateCw, Scissors, ShieldCheck, Stamp, Type, type LucideIcon } from 'lucide-react';
+import {
+    Archive, FileImage, FilePenLine, FileText, Files, Images, LockKeyhole,
+    Presentation, Scissors, Signature, Trash2, type LucideIcon,
+} from 'lucide-react';
 
 export type ToolCategory = 'Edit' | 'Organize' | 'Convert' | 'Forms & Sign' | 'Security';
-export type ToolCard = { id: string; title: string; description: string; category: ToolCategory; aliases: string[]; icon: LucideIcon; route?: string; status?: 'coming-later'; browserOnly: true; implemented: boolean };
-const tool = (id: string, title: string, description: string, category: ToolCategory, aliases: string[], icon: LucideIcon, route?: string, implemented = Boolean(route)): ToolCard => ({ id, title, description, category, aliases, icon, route, browserOnly: true, implemented, ...(implemented ? {} : { status: 'coming-later' as const }) });
-export const toolCategories: Array<ToolCategory | 'All'> = ['All', 'Edit', 'Organize', 'Convert', 'Forms & Sign', 'Security'];
+export type ToolCard = {
+    id: string; title: string; category: ToolCategory; aliases: string[];
+    icon: LucideIcon; route: string; browserOnly: true; implemented: boolean;
+    limitation?: string;
+};
+
+const tool = (id: string, title: string, category: ToolCategory, aliases: string[], icon: LucideIcon, route: string, implemented = true, limitation?: string): ToolCard =>
+    ({ id, title, category, aliases, icon, route, browserOnly: true, implemented, limitation });
+
 export const toolRegistry: ToolCard[] = [
-    tool('edit', 'Edit PDF', 'Open a local PDF for editing.', 'Edit', ['edit'], FilePenLine, '/edit'), tool('text', 'Add Text', 'Add text annotations to a PDF.', 'Edit', ['text'], Type, '/edit'), tool('image', 'Add Image', 'Place an image on a PDF page.', 'Edit', ['image'], ImagePlus, '/edit'), tool('highlight', 'Highlight PDF', 'Highlight document content.', 'Edit', ['highlight'], Highlighter, '/edit'), tool('draw', 'Draw on PDF', 'Draw freehand annotations.', 'Edit', ['draw'], PenLine, '/edit'), tool('shapes', 'Add Shapes', 'Add lines and shapes.', 'Edit', ['shape'], FilePenLine, '/edit'), tool('watermark', 'Add Watermark', 'Apply a text or image watermark.', 'Edit', ['watermark'], Stamp, '/edit'), tool('numbers', 'Add Page Numbers', 'Add page numbers before export.', 'Edit', ['numbers'], FileText, '/edit'), tool('crop', 'Crop PDF', 'Crop document pages.', 'Edit', ['crop'], FilePenLine, '/edit'),
-    tool('merge', 'Merge PDF', 'Combine multiple PDFs into one.', 'Organize', ['merge', 'combine'], Files, '/merge'), tool('split', 'Split PDF', 'Split pages into separate PDFs.', 'Organize', ['split'], Scissors, '/split'), tool('organize', 'Reorder Pages', 'Reorder, extract, delete, and duplicate pages.', 'Organize', ['reorder', 'extract', 'delete', 'duplicate', 'insert', 'import'], Files, '/organize'), tool('rotate', 'Rotate Pages', 'Rotate document pages.', 'Organize', ['rotate'], RotateCw, '/rotate'),
-    tool('pdf-jpg', 'PDF to JPG', 'Export PDF pages as JPG images.', 'Convert', ['pdf jpg', 'jpg', 'image'], FileImage), tool('pdf-png', 'PDF to PNG', 'Export PDF pages as PNG images.', 'Convert', ['pdf png', 'png', 'image'], FileImage), tool('pdf-text', 'PDF to Text', 'Extract selectable PDF text.', 'Convert', ['pdf text', 'text', 'txt'], FileText), tool('images-pdf', 'Images to PDF', 'Create a PDF from multiple images.', 'Convert', ['jpg pdf', 'png pdf', 'webp pdf', 'svg pdf', 'bmp pdf', 'image'], Images, undefined), tool('text-pdf', 'Text to PDF', 'Turn plain text into a PDF.', 'Convert', ['text pdf', 'txt'], FileText), tool('image-convert', 'Image Conversion', 'Convert JPG, PNG, and WebP images.', 'Convert', ['jpg png webp bmp image'], FileImage),
-    tool('forms', 'Fill PDF Form', 'Fill interactive PDF form fields.', 'Forms & Sign', ['form'], FileText, '/edit'), tool('signature', 'Sign PDF', 'Add a visual signature.', 'Forms & Sign', ['sign', 'signature'], PenLine, '/edit'), tool('stamp', 'Add Stamp', 'Place a document stamp.', 'Forms & Sign', ['stamp'], Stamp, '/edit'), tool('flatten', 'Flatten Form', 'Flatten form fields on export.', 'Forms & Sign', ['flatten'], FileText, '/edit'),
-    tool('protect', 'Protect PDF', 'Browser-only protection is not available.', 'Security', ['protect', 'unlock'], ShieldCheck), tool('metadata', 'Remove Metadata', 'Edit document metadata before export.', 'Security', ['metadata'], ShieldCheck, '/edit'),
+    tool('merge', 'Merge PDF', 'Organize', ['combine'], Files, '/merge'),
+    tool('split', 'Split PDF', 'Organize', ['separate'], Scissors, '/split'),
+    tool('remove-pages', 'Remove Pages', 'Organize', ['delete pages'], Trash2, '/remove-pages'),
+    tool('extract-pages', 'Extract Pages', 'Organize', ['copy pages'], Archive, '/extract-pages'),
+    tool('organize', 'Organize PDF', 'Organize', ['reorder rotate delete'], Files, '/organize'),
+    tool('compress', 'Compress PDF', 'Convert', ['reduce size'], Archive, '/compress', false, 'Compression results vary by document. This browser edition does not claim a target output size.'),
+    tool('jpg-pdf', 'JPG to PDF', 'Convert', ['jpeg image'], Images, '/jpg-to-pdf', false, 'Image conversion is being prepared for a reliable local-only release.'),
+    tool('word-pdf', 'Word to PDF', 'Convert', ['doc docx'], FileText, '/word-to-pdf', false, 'Complex Word formatting cannot currently be reproduced reliably in this browser-only edition.'),
+    tool('ppt-pdf', 'PPT to PDF', 'Convert', ['powerpoint slides'], Presentation, '/ppt-to-pdf', false, 'Complex PowerPoint formatting cannot currently be reproduced reliably in this browser-only edition.'),
+    tool('pdf-jpg', 'PDF to JPG', 'Convert', ['jpeg image'], FileImage, '/pdf-to-jpg', false, 'Page image export is not yet available in this browser-only edition.'),
+    tool('pdf-word', 'PDF to Word', 'Convert', ['doc docx'], FileText, '/pdf-to-word', false, 'Complex PDF layouts cannot currently be converted to editable Word documents reliably.'),
+    tool('pdf-ppt', 'PDF to PPT', 'Convert', ['powerpoint slides'], Presentation, '/pdf-to-ppt', false, 'Complex PDF layouts cannot currently be converted to editable slides reliably.'),
+    tool('protect', 'Protect PDF', 'Security', ['password secure'], LockKeyhole, '/protect-pdf', false, 'Password encryption is not yet available in the local browser engine.'),
+    tool('sign', 'Sign PDF', 'Forms & Sign', ['signature'], Signature, '/sign-pdf'),
+    tool('edit', 'Edit PDF', 'Edit', ['text image draw shape highlight'], FilePenLine, '/edit'),
 ];
-export const officeTools = ['PDF to Word', 'PDF to Excel', 'PDF to PowerPoint', 'Word to PDF', 'Excel to PDF', 'PowerPoint to PDF'];
-export function filterTools(category: ToolCategory | 'All', query: string) { const value = query.trim().toLowerCase(); return toolRegistry.filter((item) => (category === 'All' || item.category === category) && (!value || [item.title, item.description, item.category, ...item.aliases].join(' ').toLowerCase().includes(value))); }
+
+export function filterTools(category: ToolCategory | 'All', query: string) {
+    const value = query.trim().toLowerCase();
+    return toolRegistry.filter((item) => (category === 'All' || item.category === category) && (!value || [item.title, ...item.aliases].join(' ').toLowerCase().includes(value)));
+}
