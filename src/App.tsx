@@ -17,8 +17,8 @@ const ToolInfoPage = lazy(() => import('./pages/ToolInfoPage'));
 const SimplePage = lazy(() => import('./pages/SimplePage'));
 const ConversionWorkspace = lazy(() => import('./modules/conversion/ConversionWorkspace'));
 const workspacePaths = ['/edit', '/sign-pdf', '/merge', '/split', '/organize', '/remove-pages', '/extract-pages'];
-const conversionPaths = ['/jpg-to-pdf', '/word-to-pdf', '/ppt-to-pdf', '/pdf-to-jpg', '/pdf-to-word', '/pdf-to-ppt'];
-const limitedPaths = ['/compress', '/protect-pdf'];
+const conversionPaths = ['/jpg-to-pdf', '/word-to-pdf', '/pdf-to-jpg', '/pdf-to-word', '/pdf-to-ppt'];
+const limitedPaths = ['/compress', '/protect-pdf', '/ppt-to-pdf'];
 
 export default function App() {
     if (!hasPdfBrowserSupport()) return <UnsupportedBrowser />;

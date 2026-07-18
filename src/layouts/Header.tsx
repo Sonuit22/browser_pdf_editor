@@ -20,7 +20,9 @@ export function Header({ isSidebarOpen, onMenuToggle, onNavigateRequest }: { isS
         <div className={`header-search${mobileSearch ? ' is-open' : ''}`}>
             <Search size={17} aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search tools..." aria-label="Search tools" />
             {query && <button type="button" onClick={() => setQuery('')} aria-label="Clear search"><X size={16} /></button>}
-            {results.length > 0 && <div className="header-search__results" role="listbox">{results.map((tool) => <Link key={tool.id} role="option" aria-selected="false" to={tool.route} onClick={(event) => { event.preventDefault(); leaveSearch(); onNavigateRequest(tool.route); }}><tool.icon size={17} aria-hidden="true" />{tool.title}</Link>)}</div>}
+            {results.length > 0 && <div className="header-search__results" role="listbox">{results.map((tool) => tool.enabled
+                ? <Link key={tool.id} role="option" aria-selected="false" to={tool.route} aria-label={`${tool.title}. ${tool.description}`} onClick={(event) => { event.preventDefault(); leaveSearch(); onNavigateRequest(tool.route); }}><tool.icon size={17} aria-hidden="true" /><span><strong>{tool.title}</strong><small>{tool.description}</small></span>{tool.badge && <em className="tool-status-badge">{tool.badge}</em>}</Link>
+                : <div key={tool.id} className="header-search__disabled" role="option" aria-disabled="true" aria-label={`${tool.title}, coming soon`}><tool.icon size={17} aria-hidden="true" /><span><strong>{tool.title}</strong><small>{tool.description}</small></span><em className="tool-status-badge">Coming Soon</em></div>)}</div>}
         </div>
         <button className="icon-button mobile-search-toggle" type="button" onClick={() => setMobileSearch((value) => !value)} aria-label="Search tools"><Search size={19} /></button>
         <ThemeToggle />
