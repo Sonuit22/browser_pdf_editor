@@ -5,7 +5,7 @@ import { Button } from '../../../../components/ui/Button';
 import { usePdfPageOperations } from '../../organization/hooks/usePdfPageOperations';
 import { usePdfEditor } from '../hooks/usePdfEditor';
 import { createAnnotationId } from '../utils/annotationUtils';
-import type { SignatureAnnotation, TextAnnotation } from '../types/annotations';
+import type { SignatureAnnotation } from '../types/annotations';
 import { EditorToolbar } from './EditorToolbar';
 import { notify } from '../../../../components/feedback/notifications';
 import { readBrowserImage } from '../../../../utils/imageFiles';
@@ -13,25 +13,63 @@ import { readBrowserImage } from '../../../../utils/imageFiles';
 export function SigningToolbar({ onExport, exporting }: { onExport: () => void; exporting: boolean }) {
     const editor = usePdfEditor(); const { activePage } = usePdfPageOperations();
     const [modalKind, setModalKind] = useState<'signature' | 'initials' | null>(null);
-    const addText = (text: string, width = 130) => {
-        if (!activePage) return; const now = Date.now();
-        const annotation: TextAnnotation = { id: createAnnotationId(), pageId: activePage.id, type: 'text', text, x: (activePage.width - width) / 2, y: activePage.height / 2, width, height: 42, zIndex: now, opacity: 1, rotation: 0, strokeColor: '#178a49', strokeWidth: 0, fillColor: 'transparent', createdAt: now, updatedAt: now, fontSize: 16, fontFamily: 'Helvetica', bold: false, italic: false, underline: false, color: '#111111', backgroundColor: '#ffffff', backgroundOpacity: 0, borderColor: '#178a49', borderWidth: 0, padding: 5, lineHeight: 1.2, letterSpacing: 0, align: 'center' };
+    const addSigningObject = (source: string, signatureKind: SignatureAnnotation['signatureKind'], aspectRatio: number, preferredWidth: number) => {
+        if (!activePage) return;
+        const width = Math.min(preferredWidth, activePage.width * .45);
+        const height = width / aspectRatio;
+        const now = Date.now();
+        const annotation: SignatureAnnotation = { id: createAnnotationId(), pageId: activePage.id, type: 'signature', source, signatureKind, aspectRatio, x: Math.max(0, (activePage.width - width) / 2), y: Math.max(0, (activePage.height - height) / 2), width, height, zIndex: now, opacity: 1, rotation: 0, strokeColor: '#178a49', strokeWidth: 0, fillColor: 'transparent', createdAt: now, updatedAt: now };
         editor.add(annotation); editor.setTool('select');
+    };
+    const addDate = () => {
+        try {
+            const visual = renderSigningObject(new Date().toLocaleDateString(), { width: 560, height: 160, font: '600 64px Arial, sans-serif' });
+            addSigningObject(visual.source, 'date', visual.aspectRatio, 150);
+        } catch (error) {
+            notify(error instanceof Error ? error.message : 'The date could not be created.', 'error');
+        }
+    };
+    const addCheckmark = () => {
+        try {
+            const visual = renderSigningObject('✓', { width: 180, height: 180, font: '700 132px Arial, sans-serif' });
+            addSigningObject(visual.source, 'checkmark', visual.aspectRatio, 52);
+        } catch (error) {
+            notify(error instanceof Error ? error.message : 'The checkmark could not be created.', 'error');
+        }
     };
     return <><div className="signing-actions" role="toolbar" aria-label="Signing tools">
         <button type="button" onClick={() => setModalKind('signature')}><PenTool size={17} />Add Signature</button>
         <button type="button" onClick={() => setModalKind('initials')}><UserRoundPen size={17} />Add Initials</button>
-        <button type="button" onClick={() => addText(new Date().toLocaleDateString())}><CalendarDays size={17} />Add Date</button>
-        <button type="button" onClick={() => addText('✓', 58)}><Check size={17} />Add Checkmark</button>
+        <button type="button" onClick={addDate}><CalendarDays size={17} />Add Date</button>
+        <button type="button" onClick={addCheckmark}><Check size={17} />Add Checkmark</button>
     </div><EditorToolbar onExport={onExport} exporting={exporting} />
     {modalKind && <SignatureModal kind={modalKind} onClose={() => setModalKind(null)} onFreeDraw={() => {
         editor.setTool('draw');
         setModalKind(null);
     }} onInsert={(source, signatureKind, aspectRatio) => {
-        if (!activePage) return; const width = Math.min(220, activePage.width * .45); const now = Date.now();
-        const annotation: SignatureAnnotation = { id: createAnnotationId(), pageId: activePage.id, type: 'signature', source, signatureKind, aspectRatio, x: (activePage.width - width) / 2, y: (activePage.height - width / aspectRatio) / 2, width, height: width / aspectRatio, zIndex: now, opacity: 1, rotation: 0, strokeColor: '#178a49', strokeWidth: 0, fillColor: 'transparent', createdAt: now, updatedAt: now };
-        editor.add(annotation); editor.setTool('select'); setModalKind(null);
+        addSigningObject(source, signatureKind, aspectRatio, 220);
+        setModalKind(null);
     }} />}</>;
+}
+
+function renderSigningObject(text: string, options: { width: number; height: number; font: string }) {
+    const canvas = document.createElement('canvas');
+    canvas.width = options.width;
+    canvas.height = options.height;
+    try {
+        const context = canvas.getContext('2d');
+        if (!context) throw new Error('This browser could not create the signing object.');
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = '#111111';
+        context.font = options.font;
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+        return { source: canvas.toDataURL('image/png'), aspectRatio: canvas.width / canvas.height };
+    } finally {
+        canvas.width = 0;
+        canvas.height = 0;
+    }
 }
 
 function SignatureModal({ kind, onClose, onFreeDraw, onInsert }: { kind: 'signature' | 'initials'; onClose: () => void; onFreeDraw: () => void; onInsert: (source: string, type: SignatureAnnotation['signatureKind'], aspectRatio: number) => void }) {
