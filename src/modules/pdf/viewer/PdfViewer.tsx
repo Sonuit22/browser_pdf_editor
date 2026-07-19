@@ -56,12 +56,14 @@ export function PdfViewer() {
     const exportDocument = async () => {
         if (exportingRef.current) return;
         exportingRef.current = true;
+        let completed = false;
         setExporting(true);
         setExportProgress(0);
         setExportError(null);
         try {
             await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile, filename: editedFilename(info.filename), utilities, sourceFilename: info.filename, formValues, flattenForms, onProgress: setExportProgress });
             notify(flattenForms ? 'PDF exported with flattened form fields.' : 'PDF export completed.');
+            completed = true;
         } catch {
             const message = 'Export failed. Check available browser memory and the source PDF, then try again.';
             setExportError(message);
@@ -70,6 +72,7 @@ export function PdfViewer() {
             exportingRef.current = false;
             setExporting(false);
         }
+        if (completed) closeDocument();
     };
 
     const jumpToPage = (value: number) => setActivePage(pages[Math.min(Math.max(1, value), pageCount) - 1]?.id ?? null);

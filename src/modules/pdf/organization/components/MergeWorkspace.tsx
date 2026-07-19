@@ -4,6 +4,7 @@ import { Button } from '../../../../components/ui/Button';
 import { downloadPdf } from '../utils/pdfDownload';
 import { mergePdfFiles } from '../services/documentOperationsService';
 import { validatePdfFileSelection } from '../../services/pdfValidationService';
+import { resetCompletedToolSource } from '../../../../utils/toolReset';
 
 type MergeFile = { file: File; pageCount: number | null };
 type OperationMessage = { text: string; error: boolean };
@@ -63,6 +64,13 @@ export function MergeWorkspace() {
             const bytes = await mergePdfFiles(files.map(({ file }) => file));
             if (!mountedRef.current) return;
             downloadPdf(bytes, 'merged-document.pdf');
+            resetCompletedToolSource({
+                clearSource: () => {
+                    draggingIndex.current = null;
+                    setFiles([]);
+                },
+                fileInputs: [inputRef.current],
+            });
             setMessage({ text: 'Merged PDF downloaded.', error: false });
         } catch (error) {
             if (mountedRef.current) setMessage({ text: error instanceof Error ? error.message : 'The PDFs could not be merged.', error: true });

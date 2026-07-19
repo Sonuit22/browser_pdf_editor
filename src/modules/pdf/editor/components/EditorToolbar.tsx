@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Copy, Download, Highlighter, ImagePlus, MousePointer2, Pencil, PenLine, Redo2, Shapes, Trash2, Undo2 } from 'lucide-react';
 import { usePdfEditor } from '../hooks/usePdfEditor';
 import { usePdfPageOperations } from '../../organization/hooks/usePdfPageOperations';
@@ -19,16 +19,47 @@ export function EditorToolbar({ onExport, exporting }: { onExport: () => void; e
     const { activePage } = usePdfPageOperations();
     const imageInput = useRef<HTMLInputElement>(null);
     const [imageBusy, setImageBusy] = useState(false);
+    const [highlighterOpen, setHighlighterOpen] = useState(false);
     const selected = Object.values(editor.annotationsByPageId).flat().find((item) => item.id === editor.selectedId);
     const selectedHighlight = selected?.type === 'highlight' ? selected : null;
     const visibleHighlighter = selectedHighlight ?? editor.highlighterSettings;
     const chooseTool = (tool: EditorTool) => {
         if (tool === 'image') {
+            setHighlighterOpen(false);
+            editor.setTool('select');
             if (!imageBusy) imageInput.current?.click();
+        } else if (tool === 'highlight') {
+            editor.setTool('highlight');
+            setHighlighterOpen(true);
         } else {
+            setHighlighterOpen(false);
             editor.setTool(tool);
         }
     };
+    useEffect(() => {
+        if (editor.activeTool !== 'highlight') setHighlighterOpen(false);
+    }, [editor.activeTool]);
+    useEffect(() => {
+        if (!highlighterOpen) return;
+        const deactivate = () => {
+            setHighlighterOpen(false);
+            if (editor.activeTool === 'highlight') editor.setTool('select');
+        };
+        const onDocumentClick = (event: MouseEvent) => {
+            const target = event.target as HTMLElement | null;
+            if (target?.closest('[data-highlighter-controls],[aria-label="Highlighter"]')) return;
+            deactivate();
+        };
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') deactivate();
+        };
+        document.addEventListener('click', onDocumentClick);
+        window.addEventListener('keydown', onKeyDown);
+        return () => {
+            document.removeEventListener('click', onDocumentClick);
+            window.removeEventListener('keydown', onKeyDown);
+        };
+    }, [editor, highlighterOpen]);
     const addImage = async (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]; event.target.value = '';
         if (!file || !activePage || imageBusy) return;
@@ -67,8 +98,8 @@ export function EditorToolbar({ onExport, exporting }: { onExport: () => void; e
             </div>
         </div>
         {['rectangle', 'rounded-rectangle', 'ellipse', 'line', 'arrow', 'triangle'].includes(editor.activeTool) && <div className="editor-properties" aria-label="Shape options"><strong>Shape</strong>{shapeTools.map(([tool, label]) => <button type="button" className={editor.activeTool === tool ? 'is-active' : ''} key={tool} onClick={() => editor.setTool(tool)}>{label}</button>)}</div>}
-        {(editor.activeTool === 'highlight' || selectedHighlight) && <section className="highlighter-settings" aria-label="Highlighter Settings">
-            <div className="highlighter-settings__heading"><div><Highlighter size={18} aria-hidden="true" /><strong>Highlighter Settings</strong></div>{selectedHighlight && <span>Editing selected highlight</span>}</div>
+        {highlighterOpen && editor.activeTool === 'highlight' && <section className="highlighter-settings" aria-label="Highlighter Settings" data-highlighter-controls>
+            <div className="highlighter-settings__heading"><div><Highlighter size={18} aria-hidden="true" /><strong>Highlighter Settings</strong></div><span className="highlighter-current-color"><i style={{ backgroundColor: visibleHighlighter.color }} aria-hidden="true" />Selected color</span></div>
             <fieldset><legend>Color</legend><div className="color-swatches">{highlightColors.map(([label, color]) => <button type="button" key={color} aria-label={label} title={label} aria-pressed={visibleHighlighter.color.toLowerCase() === color} className={visibleHighlighter.color.toLowerCase() === color ? 'is-selected' : ''} style={{ background: color }} onClick={() => updateHighlighter({ color })} />)}<label className="custom-color" title="Custom highlight color"><span>Custom</span><input type="color" aria-label="Custom highlight color" value={visibleHighlighter.color} onChange={(event) => updateHighlighter({ color: event.target.value })} /></label></div></fieldset>
             <label className="highlighter-range"><span>Highlight darkness <output>{Math.round(visibleHighlighter.opacity * 100)}%</output></span><input type="range" min="10" max="70" step="1" value={Math.round(visibleHighlighter.opacity * 100)} onChange={(event) => updateHighlighter({ opacity: Number(event.target.value) / 100 })} /></label>
             <label className="highlighter-range"><span>Marker size <output>{Math.round(visibleHighlighter.strokeWidth)}px</output></span><input type="range" min="8" max="40" step="1" value={visibleHighlighter.strokeWidth} onChange={(event) => updateHighlighter({ strokeWidth: Number(event.target.value) })} /></label>

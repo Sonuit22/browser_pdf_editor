@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { constrainBounds, resizeBounds } from '../src/modules/pdf/editor/utils/touchGeometry';
+import { clampPdfPoint } from '../src/modules/pdf/editor/utils/coordinates';
 import type { ImageAnnotation, TextAnnotation } from '../src/modules/pdf/editor/types/annotations';
 
 const base = { id: 'object-1', pageId: 'page-1', x: 100, y: 100, width: 200, height: 100, rotation: 0, opacity: 1, zIndex: 1, strokeColor: '#000', strokeWidth: 0, fillColor: 'transparent', createdAt: 1, updatedAt: 1 };
@@ -19,5 +20,10 @@ describe('mobile object gestures', () => {
     it('keeps text boxes above a touch-friendly minimum size', () => {
         const text: TextAnnotation = { ...base, type: 'text', text: 'Editable', fontSize: 16, fontFamily: 'Helvetica', bold: false, italic: false, underline: false, color: '#111', backgroundColor: '#fff', backgroundOpacity: 0, borderColor: '#000', borderWidth: 0, padding: 4, lineHeight: 1.2, letterSpacing: 0, align: 'left' };
         expect(resizeBounds(text, -500, 500, 'se')).toMatchObject({ width: 80, height: 36 });
+    });
+
+    it('clamps free-draw points to the active PDF page', () => {
+        expect(clampPdfPoint({ x: -20, y: 840 }, 612, 792)).toEqual({ x: 0, y: 792 });
+        expect(clampPdfPoint({ x: 310, y: 420 }, 612, 792)).toEqual({ x: 310, y: 420 });
     });
 });

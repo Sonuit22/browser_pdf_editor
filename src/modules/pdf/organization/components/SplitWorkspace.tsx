@@ -10,12 +10,13 @@ import { safePdfFilename } from '../utils/pageUtils';
 import { parsePageRangeGroups } from '../utils/pageRangeParser';
 import { usePdfUtilities } from '../../utilities/hooks/usePdfUtilities';
 import { PageThumbnailPanel } from './PageThumbnailPanel';
+import { notify } from '../../../../components/feedback/notifications';
 
 type SplitMode = 'ranges' | 'selected' | 'count' | 'parts' | 'every-page';
 type OperationMessage = { text: string; error: boolean };
 
 export function SplitWorkspace() {
-    const { info } = usePdfEngine();
+    const { closeDocument, info } = usePdfEngine();
     const operations = usePdfPageOperations();
     const { pages, getSourceFile } = operations;
     const { annotationsByPageId } = usePdfEditor();
@@ -51,6 +52,7 @@ export function SplitWorkspace() {
             return;
         }
         busyRef.current = true;
+        let completed = false;
         setBusy(true); setMessage(null);
         try {
             const output = [];
@@ -62,12 +64,15 @@ export function SplitWorkspace() {
             if (!mountedRef.current) return;
             downloadSequentialPdfs(output);
             setMessage({ text: `${output.length} PDF file${output.length === 1 ? '' : 's'} downloaded.`, error: false });
+            notify(`${output.length} PDF file${output.length === 1 ? '' : 's'} downloaded.`);
+            completed = true;
         } catch (error) {
             if (mountedRef.current) setMessage({ text: error instanceof Error ? error.message : 'The PDF could not be split. Check the source document and try again.', error: true });
         } finally {
             busyRef.current = false;
             if (mountedRef.current) setBusy(false);
         }
+        if (completed && mountedRef.current) closeDocument();
     };
     const toggle = (id: string, selectionMode: 'replace' | 'toggle' | 'range') => {
         if (!busyRef.current) {

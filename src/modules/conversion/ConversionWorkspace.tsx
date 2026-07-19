@@ -6,6 +6,7 @@ import { useShell } from '../../contexts/ShellContext';
 import { activeConversionLimits, conversionAccept } from './conversionConfig';
 import { docxToHtml, htmlToPdf, imagesToPdf, loadPdf, pdfToJpg, pdfToPpt, pdfToWord, releaseLoadedPdf, renderPageToBlob, type CancelSignal } from './conversionServices';
 import { validateImageFile } from '../../utils/imageFiles';
+import { resetCompletedToolSource } from '../../utils/toolReset';
 
 type ToolKey = 'jpg-to-pdf' | 'pdf-to-jpg' | 'pdf-to-ppt' | 'pdf-to-word' | 'word-to-pdf' | 'ppt-to-pdf';
 const titles: Record<ToolKey, string> = {
@@ -65,14 +66,26 @@ export default function ConversionWorkspace() {
         thumbsRef.current = urls;
         setThumbs(urls);
     }, []);
+    const resetSourceState = useCallback((preserveOutput: boolean) => {
+        const objectUrls = thumbsRef.current;
+        thumbsRef.current = [];
+        resetCompletedToolSource({
+            clearSource: () => {
+                setFiles([]); setThumbs([]); setPageCount(0); setSelected([]); setHtml(''); setWarnings([]);
+                setError(''); setBusy(false); setProgress({ current: 0, total: 0, label: '' });
+                setPageSize('a4'); setOrientation('portrait'); setMargin(24); setImageQuality(.85); setRenderQuality('high');
+                if (!preserveOutput) setOutput(null);
+            },
+            fileInputs: [input.current],
+            objectUrls,
+        });
+    }, []);
     const clear = useCallback(() => {
         operationRef.current += 1;
         signal.current.cancelled = true;
         busyRef.current = false;
-        revokeThumbnails();
-        setFiles([]); setThumbs([]); setPageCount(0); setSelected([]); setHtml(''); setWarnings([]);
-        setError(''); setBusy(false); setProgress({ current: 0, total: 0, label: '' }); setOutput(null);
-    }, [revokeThumbnails]);
+        resetSourceState(false);
+    }, [resetSourceState]);
     useEffect(() => {
         clear();
         return () => {
@@ -213,7 +226,10 @@ export default function ConversionWorkspace() {
                 blob = await htmlToPdf(preview.current, update, operationSignal); name = 'converted.pdf';
             } else throw new Error('Basic PPT to PDF conversion is under development.');
             if (!blob.size) throw new Error('Conversion produced an empty output and was stopped.');
-            if (isCurrent()) setOutput({ blob, name });
+            if (isCurrent()) {
+                setOutput({ blob, name });
+                resetSourceState(true);
+            }
         } catch (cause) {
             if (isCurrent() && !(cause instanceof DOMException && cause.name === 'AbortError')) setError(cause instanceof Error ? cause.message : 'Conversion failed.');
         } finally {

@@ -4,11 +4,12 @@ import type { PdfPageLayout } from '../../viewer/PdfPageCanvas';
 import { usePdfEditor } from '../hooks/usePdfEditor';
 import { boundsFromPoints } from '../utils/annotationUtils';
 import { createAnnotation } from '../utils/createAnnotation';
-import { clientPointToPdfPoint, pdfBoundsToViewport, pdfPointToViewport } from '../utils/coordinates';
+import { clampPdfPoint, clientPointToPdfPoint, pdfBoundsToViewport, pdfPageSize, pdfPointToViewport } from '../utils/coordinates';
 import { constrainBounds, resizeBounds, type ResizeHandle } from '../utils/touchGeometry';
 import type { PdfAnnotation, Point } from '../types/annotations';
 
 type Gesture = { mode: 'create' | 'move' | 'resize' | 'rotate'; start: Point; annotation: PdfAnnotation; handle?: ResizeHandle; moved: boolean };
+type HighlighterPointer = { x: number; y: number; touch: boolean };
 export function AnnotationOverlay({ pageId, layout }: { pageId: string; layout: PdfPageLayout }) {
     const { annotationsByPageId, activeTool, highlighterSettings, selectedIds, add, update, select, setTool, removeSelected, setFormValue, formValues, duplicate, remove, reorder } = usePdfEditor();
     const overlayRef = useRef<HTMLDivElement>(null);
@@ -19,11 +20,31 @@ export function AnnotationOverlay({ pageId, layout }: { pageId: string; layout: 
     const activePointerRef = useRef<number | null>(null);
     const [draft, setDraft] = useState<PdfAnnotation | null>(null);
     const [menuId, setMenuId] = useState<string | null>(null);
+    const [highlighterPointer, setHighlighterPointer] = useState<HighlighterPointer | null>(null);
     const annotations = annotationsByPageId[pageId] ?? [];
+    const pageSize = pdfPageSize(layout.viewport);
     useEffect(() => () => {
         cancelAnimationFrame(frameRef.current);
         if (longPressRef.current !== null) window.clearTimeout(longPressRef.current);
     }, []);
+    useEffect(() => {
+        const gesture = gestureRef.current;
+        if (!gesture) return;
+        const pending = pendingDraftRef.current;
+        if (gesture.mode === 'create' && pending && isPathAnnotation(pending) && pending.points.length > 1) add(pending);
+        const overlay = overlayRef.current;
+        const pointerId = activePointerRef.current;
+        if (overlay && pointerId !== null && overlay.hasPointerCapture(pointerId)) overlay.releasePointerCapture(pointerId);
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = 0;
+        gestureRef.current = null;
+        pendingDraftRef.current = null;
+        activePointerRef.current = null;
+        setDraft(null);
+    }, [activeTool, add]);
+    useEffect(() => {
+        if (activeTool !== 'highlight') setHighlighterPointer(null);
+    }, [activeTool]);
     useEffect(() => {
         const keydown = (event: KeyboardEvent) => {
             const target = event.target as HTMLElement | null;
@@ -35,7 +56,23 @@ export function AnnotationOverlay({ pageId, layout }: { pageId: string; layout: 
         return () => window.removeEventListener('keydown', keydown);
     }, [removeSelected, select, selectedIds.length, setTool]);
 
-    const getPoint = (event: PointerEvent<HTMLDivElement>) => overlayRef.current ? clientPointToPdfPoint(event, overlayRef.current, layout.viewport) : { x: 0, y: 0 };
+    const getPoint = (event: PointerEvent<HTMLDivElement> | globalThis.PointerEvent) => overlayRef.current ? clampPdfPoint(clientPointToPdfPoint(event, overlayRef.current, layout.viewport), pageSize.width, pageSize.height) : { x: 0, y: 0 };
+    const getStrokePoints = (event: PointerEvent<HTMLDivElement>) => {
+        const coalesced = event.nativeEvent.getCoalescedEvents?.() ?? [];
+        const samples = coalesced.length ? [...coalesced, event.nativeEvent] : [event.nativeEvent];
+        return samples.map(getPoint);
+    };
+    const isInsidePage = (event: PointerEvent<HTMLDivElement>) => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+    };
+    const updateHighlighterPointer = (event: PointerEvent<HTMLDivElement>) => {
+        if (activeTool !== 'highlight') return;
+        const rect = event.currentTarget.getBoundingClientRect();
+        setHighlighterPointer(event.pointerType === 'touch'
+            ? { x: 18, y: 18, touch: true }
+            : { x: Math.max(10, Math.min(rect.width - 10, event.clientX - rect.left)), y: Math.max(10, Math.min(rect.height - 10, event.clientY - rect.top)), touch: false });
+    };
     const cancelLongPress = () => { if (longPressRef.current !== null) window.clearTimeout(longPressRef.current); longPressRef.current = null; };
     const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
         if (event.pointerType === 'touch' && !event.isPrimary) {
@@ -43,6 +80,7 @@ export function AnnotationOverlay({ pageId, layout }: { pageId: string; layout: 
             if (activePointerRef.current !== null && event.currentTarget.hasPointerCapture(activePointerRef.current)) event.currentTarget.releasePointerCapture(activePointerRef.current);
             activePointerRef.current = null; return;
         }
+        updateHighlighterPointer(event);
         const point = getPoint(event);
         const selected = (event.target as HTMLElement).closest<HTMLElement>('[data-annotation-id]')?.dataset.annotationId;
         const handle = (event.target as HTMLElement).dataset.resizeHandle as ResizeHandle | undefined;
@@ -67,6 +105,7 @@ export function AnnotationOverlay({ pageId, layout }: { pageId: string; layout: 
         event.preventDefault(); select(annotation.id); setDraft(annotation); pendingDraftRef.current = annotation; gestureRef.current = { mode: 'create', start: point, annotation, moved: false }; activePointerRef.current = event.pointerId; event.currentTarget.setPointerCapture(event.pointerId);
     };
     const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+        updateHighlighterPointer(event);
         const gesture = gestureRef.current;
         if (!gesture) return;
         if (event.pointerType === 'touch' && !event.isPrimary) return;
@@ -74,33 +113,52 @@ export function AnnotationOverlay({ pageId, layout }: { pageId: string; layout: 
         const point = getPoint(event);
         const dx = point.x - gesture.start.x; const dy = point.y - gesture.start.y;
         if (Math.hypot(dx, dy) > 3) { gesture.moved = true; cancelLongPress(); }
+        const currentPath = pendingDraftRef.current && isPathAnnotation(pendingDraftRef.current) ? pendingDraftRef.current : isPathAnnotation(gesture.annotation) ? gesture.annotation : null;
         const next = gesture.mode === 'rotate'
             ? { ...gesture.annotation, rotation: rotationFromPointer(gesture.annotation, gesture.start, point), updatedAt: Date.now() }
             : gesture.mode === 'resize'
-            ? { ...gesture.annotation, ...constrainBounds(resizeBounds(gesture.annotation, dx, dy, gesture.handle ?? 'se'), layout.viewport.width / layout.viewport.scale, layout.viewport.height / layout.viewport.scale), updatedAt: Date.now() }
-            : (gesture.annotation.type === 'draw' || gesture.annotation.type === 'highlight') && gesture.mode === 'create'
-            ? { ...gesture.annotation, points: [...gesture.annotation.points, point], updatedAt: Date.now() }
+            ? { ...gesture.annotation, ...constrainBounds(resizeBounds(gesture.annotation, dx, dy, gesture.handle ?? 'se'), pageSize.width, pageSize.height), updatedAt: Date.now() }
+            : currentPath && gesture.mode === 'create'
+            ? { ...currentPath, points: appendDistinctPoints(currentPath.points, getStrokePoints(event)), updatedAt: Date.now() }
             : gesture.mode === 'move'
                 ? gesture.annotation.type === 'draw' || gesture.annotation.type === 'highlight'
-                    ? { ...gesture.annotation, points: movePointsWithinPage(gesture.annotation.points, dx, dy, layout.viewport.width / layout.viewport.scale, layout.viewport.height / layout.viewport.scale), updatedAt: Date.now() }
-                    : { ...gesture.annotation, ...constrainBounds({ ...gesture.annotation, x: gesture.annotation.x + dx, y: gesture.annotation.y + dy }, layout.viewport.width / layout.viewport.scale, layout.viewport.height / layout.viewport.scale), updatedAt: Date.now() }
+                    ? { ...gesture.annotation, points: movePointsWithinPage(gesture.annotation.points, dx, dy, pageSize.width, pageSize.height), updatedAt: Date.now() }
+                    : { ...gesture.annotation, ...constrainBounds({ ...gesture.annotation, x: gesture.annotation.x + dx, y: gesture.annotation.y + dy }, pageSize.width, pageSize.height), updatedAt: Date.now() }
                 : { ...gesture.annotation, ...boundsFromPoints(gesture.start, point), updatedAt: Date.now() };
         pendingDraftRef.current = next as PdfAnnotation;
+        if (gesture.mode === 'create' && currentPath && !isInsidePage(event)) {
+            completeGesture(event, false);
+            return;
+        }
         if (!frameRef.current) frameRef.current = requestAnimationFrame(() => { frameRef.current = 0; setDraft(pendingDraftRef.current); });
     };
-    const onPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    function completeGesture(event: PointerEvent<HTMLDivElement>, appendFinalPoint = true) {
         cancelLongPress();
         const gesture = gestureRef.current;
-        const latestDraft = pendingDraftRef.current ?? draft;
+        let latestDraft = pendingDraftRef.current ?? draft;
+        if (appendFinalPoint && gesture?.mode === 'create' && latestDraft && isPathAnnotation(latestDraft)) {
+            latestDraft = { ...latestDraft, points: appendDistinctPoints(latestDraft.points, [getPoint(event)]), updatedAt: Date.now() };
+        }
         if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
         if (!gesture || !latestDraft) { gestureRef.current = null; pendingDraftRef.current = null; activePointerRef.current = null; setDraft(null); return; }
-        if (gesture.mode === 'create') add(latestDraft); else if (gesture.moved) update(latestDraft.id, latestDraft);
+        const completedHighlight = gesture.mode === 'create' && latestDraft.type === 'highlight';
+        if (gesture.mode === 'create') {
+            if (!isPathAnnotation(latestDraft) || latestDraft.points.length > 1) add(latestDraft);
+        } else if (gesture.moved) update(latestDraft.id, latestDraft);
         gestureRef.current = null; pendingDraftRef.current = null; activePointerRef.current = null; cancelAnimationFrame(frameRef.current); frameRef.current = 0; setDraft(null);
-    };
+        if (completedHighlight) setTool('select');
+    }
+    const onPointerUp = (event: PointerEvent<HTMLDivElement>) => completeGesture(event);
     const cancelGesture = (event: PointerEvent<HTMLDivElement>) => { cancelLongPress(); if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); gestureRef.current = null; pendingDraftRef.current = null; activePointerRef.current = null; setDraft(null); };
+    const onPointerLeave = (event: PointerEvent<HTMLDivElement>) => {
+        const gesture = gestureRef.current;
+        if (gesture?.mode === 'create' && isPathAnnotation(gesture.annotation)) completeGesture(event);
+        else if (!gesture) setHighlighterPointer(null);
+    };
     const editText = (id: string) => { setMenuId(null); window.setTimeout(() => overlayRef.current?.querySelector<HTMLTextAreaElement>(`[data-annotation-id="${id}"] textarea`)?.focus(), 0); };
     const rendered = draft && !annotations.some((annotation) => annotation.id === draft.id) ? [...annotations, draft] : annotations.map((annotation) => annotation.id === draft?.id ? draft : annotation);
-    return <div ref={overlayRef} className={`annotation-overlay annotation-overlay--${activeTool}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={cancelGesture}>{rendered.map((annotation) => <AnnotationItem key={annotation.id} annotation={annotation} viewport={layout.viewport} selected={selectedIds.includes(annotation.id)} onUpdate={(patch) => update(annotation.id, patch)} onDuplicate={() => duplicate(annotation.id)} onDelete={() => remove(annotation.id)} onForward={() => reorder(annotation.id, 'forward')} onBackward={() => reorder(annotation.id, 'backward')} onEdit={() => editText(annotation.id)} formValues={formValues} onFormValue={setFormValue} />)}
+    return <div ref={overlayRef} className={`annotation-overlay annotation-overlay--${activeTool}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={cancelGesture} onPointerLeave={onPointerLeave}>{rendered.map((annotation) => <AnnotationItem key={annotation.id} annotation={annotation} viewport={layout.viewport} selected={selectedIds.includes(annotation.id)} onUpdate={(patch) => update(annotation.id, patch)} onDuplicate={() => duplicate(annotation.id)} onDelete={() => remove(annotation.id)} onForward={() => reorder(annotation.id, 'forward')} onBackward={() => reorder(annotation.id, 'backward')} onEdit={() => editText(annotation.id)} formValues={formValues} onFormValue={setFormValue} />)}
+        {activeTool === 'highlight' && <span className={`highlighter-pointer-indicator${highlighterPointer?.touch ? ' is-touch' : ''}`} style={{ left: highlighterPointer?.x ?? 18, top: highlighterPointer?.y ?? 18, backgroundColor: highlighterSettings.color }} aria-hidden="true" />}
         {menuId && <div className="mobile-object-menu" role="menu" aria-label="Object actions">{annotations.some((item) => item.id === menuId && item.type === 'text') && <button type="button" onClick={() => editText(menuId)}><Pencil size={17} />Edit</button>}<button type="button" onClick={() => { duplicate(menuId); setMenuId(null); }}><Copy size={17} />Duplicate</button><button type="button" onClick={() => { reorder(menuId, 'forward'); setMenuId(null); }}><ArrowUp size={17} />Bring Forward</button><button type="button" onClick={() => { reorder(menuId, 'backward'); setMenuId(null); }}><ArrowDown size={17} />Send Backward</button><button type="button" onClick={() => { remove(menuId); setMenuId(null); }}><Trash2 size={17} />Delete</button></div>}
     </div>;
 }
@@ -132,6 +190,17 @@ function movePointsWithinPage(points: Point[], dx: number, dy: number, pageWidth
     const minY = Math.min(...points.map((point) => point.y)); const maxY = Math.max(...points.map((point) => point.y));
     const safeDx = Math.max(-minX, Math.min(pageWidth - maxX, dx)); const safeDy = Math.max(-minY, Math.min(pageHeight - maxY, dy));
     return points.map((point) => ({ x: point.x + safeDx, y: point.y + safeDy }));
+}
+function isPathAnnotation(annotation: PdfAnnotation): annotation is Extract<PdfAnnotation, { type: 'draw' | 'highlight' }> {
+    return annotation.type === 'draw' || annotation.type === 'highlight';
+}
+function appendDistinctPoints(points: Point[], additions: Point[]) {
+    const output = [...points];
+    for (const point of additions) {
+        const last = output[output.length - 1];
+        if (!last || Math.hypot(point.x - last.x, point.y - last.y) > .1) output.push(point);
+    }
+    return output;
 }
 function rotationFromPointer(annotation: PdfAnnotation, start: Point, current: Point) {
     const center = { x: annotation.x + annotation.width / 2, y: annotation.y + annotation.height / 2 };

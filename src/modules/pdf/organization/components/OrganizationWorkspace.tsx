@@ -22,7 +22,7 @@ const blankPresets = {
 };
 
 export function OrganizationWorkspace() {
-    const { info } = usePdfEngine();
+    const { closeDocument, info } = usePdfEngine();
     const { annotationsByPageId } = usePdfEditor();
     const utilities = usePdfUtilities();
     const operations = usePdfPageOperations();
@@ -40,17 +40,20 @@ export function OrganizationWorkspace() {
     const exportPages = async (pages: WorkingPage[], suffix: string) => {
         if (!info || busyRef.current || !pages.length) return;
         busyRef.current = true;
+        let completed = false;
         setBusy(true);
         setMessage(null);
         try {
             await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile: operations.getSourceFile, filename: safePdfFilename(info.filename, suffix), utilities, sourceFilename: info.filename });
             notify('PDF downloaded successfully.');
+            completed = true;
         } catch {
             setMessage('The selected pages could not be exported. Check every source PDF and try again.');
         } finally {
             busyRef.current = false;
             setBusy(false);
         }
+        if (completed) closeDocument();
     };
     const insertBlank = () => {
         const dimensions = blankPresets[preset] ?? activeDimensions;
