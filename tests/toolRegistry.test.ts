@@ -11,7 +11,7 @@ describe('tool registry', () => {
     });
 
     it('keeps category filtering independent from search', () => {
-        expect(filterTools('Organize', '').every((tool) => tool.category === 'Organize')).toBe(true);
+        expect(filterTools('PDF management', '').every((tool) => tool.category === 'PDF management')).toBe(true);
     });
 
     it('does not expose removed tool categories', () => {
@@ -20,7 +20,10 @@ describe('tool registry', () => {
 
     it('contains only the approved fifteen tools', () => {
         expect(toolRegistry).toHaveLength(15);
-        expect(toolRegistry.map((tool) => tool.title)).not.toContain('Add Text');
-        expect(toolRegistry.map((tool) => tool.title)).not.toContain('Watermark');
+        expect(toolRegistry.map((tool) => tool.title)).toEqual([
+            'Merge PDF', 'Split PDF', 'Remove Pages from PDF', 'Extract Pages', 'Organize PDF', 'Compress PDF',
+            'JPG to PDF', 'Word to PDF', 'PPT to PDF', 'PDF to JPG', 'PDF to Word', 'PDF to PPT',
+            'Protect PDF', 'Sign PDF', 'Edit PDF',
+        ]);
     });
 });

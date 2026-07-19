@@ -9,6 +9,7 @@ import { PdfEngineProvider } from './modules/pdf/context/PdfEngineContext';
 import { PdfEditorProvider } from './modules/pdf/editor/context/PdfEditorProvider';
 import { PdfPageOperationsProvider } from './modules/pdf/organization/context/PdfPageOperationsProvider';
 import { PdfUtilitiesProvider } from './modules/pdf/utilities/context/PdfUtilitiesProvider';
+import { toolRoutesBySurface } from './config/toolRegistry';
 
 const WorkspacePage = lazy(() => import('./pages/WorkspacePage'));
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -18,9 +19,6 @@ const SimplePage = lazy(() => import('./pages/SimplePage'));
 const LegalPage = lazy(() => import('./pages/LegalPage'));
 const FaqPage = lazy(() => import('./pages/FaqPage'));
 const ConversionWorkspace = lazy(() => import('./modules/conversion/ConversionWorkspace'));
-const workspacePaths = ['/edit', '/sign-pdf', '/merge', '/split', '/organize', '/remove-pages', '/extract-pages'];
-const conversionPaths = ['/jpg-to-pdf', '/word-to-pdf', '/pdf-to-jpg', '/pdf-to-word', '/pdf-to-ppt'];
-const limitedPaths = ['/compress', '/protect-pdf', '/ppt-to-pdf'];
 
 export default function App() {
     if (!hasPdfBrowserSupport()) return <UnsupportedBrowser />;
@@ -29,9 +27,9 @@ export default function App() {
             <Routes>
                 <Route element={<PdfEngineProvider><PdfPageOperationsProvider><PdfEditorProvider><PdfUtilitiesProvider><AppLayout /></PdfUtilitiesProvider></PdfEditorProvider></PdfPageOperationsProvider></PdfEngineProvider>}>
                     <Route path="/" element={<HomePage />} />
-                    {workspacePaths.map((path) => <Route key={path} path={path} element={<WorkspacePage />} />)}
-                    {conversionPaths.map((path) => <Route key={path} path={path} element={<ConversionWorkspace />} />)}
-                    {limitedPaths.map((path) => <Route key={path} path={path} element={<ToolInfoPage />} />)}
+                    {toolRoutesBySurface['pdf-workspace'].map((path) => <Route key={path} path={path} element={<WorkspacePage />} />)}
+                    {toolRoutesBySurface['conversion-workspace'].map((path) => <Route key={path} path={path} element={<ConversionWorkspace />} />)}
+                    {toolRoutesBySurface['tool-info'].map((path) => <Route key={path} path={path} element={<ToolInfoPage />} />)}
                     <Route path="contact" element={<SimplePage />} />
                     <Route path="support" element={<SimplePage />} />
                     <Route path="privacy" element={<LegalPage kind="privacy" />} />

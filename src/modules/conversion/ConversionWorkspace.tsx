@@ -3,22 +3,11 @@ import { ArrowLeft, Download, FileUp, GripVertical, Home, ShieldCheck, Trash2, X
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { useShell } from '../../contexts/ShellContext';
-import { activeConversionLimits, conversionAccept } from './conversionConfig';
+import { findToolByRoute } from '../../config/toolRegistry';
+import { activeConversionLimits, conversionAccept, type ConversionToolKey } from './conversionConfig';
 import { docxToHtml, htmlToPdf, imagesToPdf, loadPdf, pdfToJpg, pdfToPpt, pdfToWord, releaseLoadedPdf, renderPageToBlob, type CancelSignal } from './conversionServices';
 import { validateImageFile } from '../../utils/imageFiles';
 import { resetCompletedToolSource } from '../../utils/toolReset';
-
-type ToolKey = 'jpg-to-pdf' | 'pdf-to-jpg' | 'pdf-to-ppt' | 'pdf-to-word' | 'word-to-pdf' | 'ppt-to-pdf';
-const titles: Record<ToolKey, string> = {
-    'jpg-to-pdf': 'JPG to PDF', 'pdf-to-jpg': 'PDF to JPG', 'pdf-to-ppt': 'PDF to PowerPoint',
-    'pdf-to-word': 'PDF to Word', 'word-to-pdf': 'Word to PDF', 'ppt-to-pdf': 'PPT to PDF · Beta',
-};
-const notices: Partial<Record<ToolKey, string>> = {
-    'pdf-to-ppt': 'Each PDF page will be inserted as an image on a PowerPoint slide. Text and page elements will not be individually editable.',
-    'pdf-to-word': 'Basic conversion extracts editable text. Complex formatting, tables, columns, and images may not be preserved accurately.',
-    'word-to-pdf': 'Basic browser conversion. Complex layouts, custom fonts, headers, footers, floating elements, and exact pagination may change.',
-    'ppt-to-pdf': 'Beta conversion supports basic PPTX text, images, and simple layouts. Complex formatting may not be preserved.',
-};
 
 function downloadBlob(blob: Blob, name: string) {
     const url = URL.createObjectURL(blob);
@@ -32,7 +21,8 @@ function downloadBlob(blob: Blob, name: string) {
 
 export default function ConversionWorkspace() {
     const location = useLocation();
-    const tool = location.pathname.slice(1) as ToolKey;
+    const tool = location.pathname.slice(1) as ConversionToolKey;
+    const definition = findToolByRoute(location.pathname);
     const { requestNavigation } = useShell();
     const input = useRef<HTMLInputElement>(null);
     const preview = useRef<HTMLDivElement>(null);
@@ -138,7 +128,6 @@ export default function ConversionWorkspace() {
                 }
                 return;
             }
-            if (tool === 'ppt-to-pdf') { setFiles([file]); return; }
             setFiles([file]); busyRef.current = true; setBusy(true);
             pdf = await loadPdf(file);
             if (!isCurrent()) return;
@@ -224,7 +213,7 @@ export default function ConversionWorkspace() {
             } else if (tool === 'word-to-pdf') {
                 if (!preview.current) throw new Error('The document preview is not ready.');
                 blob = await htmlToPdf(preview.current, update, operationSignal); name = 'converted.pdf';
-            } else throw new Error('Basic PPT to PDF conversion is under development.');
+            } else throw new Error('This conversion route is not available.');
             if (!blob.size) throw new Error('Conversion produced an empty output and was stopped.');
             if (isCurrent()) {
                 setOutput({ blob, name });
@@ -241,19 +230,19 @@ export default function ConversionWorkspace() {
     };
 
     const allSelected = pageCount > 0 && selected.length === pageCount;
-    const canConvert = files.length > 0 && !busy && tool !== 'ppt-to-pdf' && (tool !== 'word-to-pdf' || Boolean(html));
-    return <section className="conversion-page" aria-label={`${titles[tool]} conversion workspace`}>
+    const canConvert = files.length > 0 && !busy && (tool !== 'word-to-pdf' || Boolean(html));
+    const title = definition?.title ?? 'PDF conversion';
+    return <section className="conversion-page" aria-label={`${title} conversion workspace`}>
         <div className="conversion-heading">
-            <div><p>100% local browser conversion</p><h1>{titles[tool]}</h1></div>
+            <div><p>100% local browser conversion</p><h1>{title}</h1></div>
             <div><Link to="/" onClick={(event) => { event.preventDefault(); clear(); requestNavigation('back'); }}><ArrowLeft size={16} />Back</Link><Link to="/" onClick={(event) => { event.preventDefault(); clear(); requestNavigation('/'); }}><Home size={16} />Home</Link></div>
         </div>
-        {notices[tool] && <div className="conversion-notice" role="note">{notices[tool]}</div>}
-        {tool === 'ppt-to-pdf' && <div className="conversion-disabled"><h2>Basic PPT to PDF conversion is under development.</h2><p>Reliable reconstruction of PPTX slides is not available in this browser-only build, so conversion is intentionally disabled.</p></div>}
+        {definition?.limitations.length ? <div className="conversion-notice" role="note"><strong>{definition.badge ?? 'Limitation'}:</strong> {definition.limitations.join(' ')}</div> : null}
         <div className="conversion-grid">
             <section className="conversion-card conversion-upload">
                 <div className="conversion-card__title"><div><span>1</span><h2>Files</h2></div>{files.length > 0 && <Button variant="ghost" onClick={clear}>Remove {multiple ? 'all' : 'file'}</Button>}</div>
                 <input ref={input} className="sr-only" type="file" multiple={multiple} accept={conversionAccept[tool]} disabled={busy} onChange={(event) => { const next = Array.from(event.target.files ?? []); event.target.value = ''; void inspectFiles(next); }} />
-                {!files.length ? <button className="conversion-drop" type="button" disabled={busy || tool === 'ppt-to-pdf'} onClick={() => input.current?.click()}><FileUp /><strong>Choose {multiple ? 'images' : 'a file'}</strong><span>{multiple ? 'JPG, JPEG, PNG or WebP' : conversionAccept[tool].split(',')[0]}</span><small><ShieldCheck size={14} /> Nothing leaves this device</small></button> :
+                {!files.length ? <button className="conversion-drop" type="button" disabled={busy} onClick={() => input.current?.click()}><FileUp /><strong>Choose {multiple ? 'images' : 'a file'}</strong><span>{multiple ? 'JPG, JPEG, PNG or WebP' : conversionAccept[tool].split(',')[0]}</span><small><ShieldCheck size={14} /> Nothing leaves this device</small></button> :
                     <div className="file-summary"><strong>{multiple ? `${files.length} images` : files[0].name}</strong><span>{(files.reduce((sum, file) => sum + file.size, 0) / 1024 / 1024).toFixed(2)} MB</span><Button variant="secondary" disabled={busy} onClick={() => input.current?.click()}>Replace File</Button></div>}
                 {multiple && files.length > 0 && <div className="image-order">{files.map((file, index) => <article key={`${file.name}-${file.lastModified}`} draggable={!busy} onDragStart={(event) => { if (!busyRef.current) event.dataTransfer.setData('text/plain', String(index)); }} onDragOver={(event) => event.preventDefault()} onDrop={(event) => reorder(Number(event.dataTransfer.getData('text/plain')), index)}><GripVertical aria-hidden="true" /><img src={thumbs[index]} alt="" /><span>{index + 1}. {file.name}</span><button type="button" disabled={busy} aria-label={`Remove ${file.name}`} onClick={() => void inspectFiles(files.filter((_, item) => item !== index))}><Trash2 size={15} /></button></article>)}</div>}
             </section>

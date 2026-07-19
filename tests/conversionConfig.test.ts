@@ -10,11 +10,11 @@ describe('browser conversion configuration', () => {
         expect(conversionLimits.mobile.docxBytes).toBeLessThan(conversionLimits.desktop.docxBytes);
     });
 
-    it('accepts every promised image input and rejects legacy Word/PPT formats', () => {
+    it('accepts promised formats without exposing an input for Coming Soon conversion', () => {
         expect(conversionAccept['jpg-to-pdf']).toContain('.webp');
         expect(conversionAccept['jpg-to-pdf']).toContain('.png');
         expect(conversionAccept['word-to-pdf']).toContain('.docx');
         expect(conversionAccept['word-to-pdf']).not.toMatch(/\.doc(?:,|$)/);
-        expect(conversionAccept['ppt-to-pdf']).toContain('.pptx');
+        expect('ppt-to-pdf' in conversionAccept).toBe(false);
     });
 });
