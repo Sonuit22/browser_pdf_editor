@@ -34,8 +34,27 @@ export function PdfEditorProvider({ children }: { children: ReactNode }) {
     const copy = useCallback((id: string) => { for (const annotations of Object.values(stateRef.current.present.annotationsByPageId)) { const source = annotations.find((annotation) => annotation.id === id); if (source) dispatch({ type: 'clipboard', annotation: source }); } }, []);
     const paste = useCallback((pageId: string) => { const clipboard = stateRef.current.present.clipboard; if (clipboard) add({ ...cloneAnnotation(clipboard, pageId), x: clipboard.x + 16, y: clipboard.y - 16 }); }, [add]);
     const reorder = useCallback((id: string, direction: 'forward' | 'backward') => { const present = stateRef.current.present; const annotationsByPageId = Object.fromEntries(Object.entries(present.annotationsByPageId).map(([page, annotations]) => { const index = annotations.findIndex((annotation) => annotation.id === id); if (index < 0) return [page, annotations]; const target = Math.max(0, Math.min(annotations.length - 1, index + (direction === 'forward' ? 1 : -1))); const next = [...annotations]; [next[index], next[target]] = [next[target], next[index]]; return [page, next.map((annotation, zIndex) => ({ ...annotation, zIndex, updatedAt: annotation.id === id ? Date.now() : annotation.updatedAt }))]; })); commit({ ...present, annotationsByPageId }); }, [commit]);
-    const removeSelected = useCallback(() => { for (const id of [...stateRef.current.present.selectedIds]) remove(id); }, [remove]);
-    const duplicateSelected = useCallback(() => { for (const id of stateRef.current.present.selectedIds) duplicate(id); }, [duplicate]);
+    const removeSelected = useCallback(() => {
+        const present = stateRef.current.present;
+        if (!present.selectedIds.length) return;
+        const selected = new Set(present.selectedIds);
+        const annotationsByPageId = Object.fromEntries(Object.entries(present.annotationsByPageId).map(([page, annotations]) => [page, annotations.filter((annotation) => !selected.has(annotation.id))]));
+        commit({ ...present, annotationsByPageId, selectedId: null, selectedIds: [] });
+    }, [commit]);
+    const duplicateSelected = useCallback(() => {
+        const present = stateRef.current.present;
+        if (!present.selectedIds.length) return;
+        const selected = new Set(present.selectedIds);
+        const duplicates: PdfAnnotation[] = [];
+        const annotationsByPageId = Object.fromEntries(Object.entries(present.annotationsByPageId).map(([pageId, annotations]) => {
+            const copies = annotations.filter((annotation) => selected.has(annotation.id)).map((annotation) => ({ ...cloneAnnotation(annotation), x: annotation.x + 12, y: annotation.y - 12 }));
+            duplicates.push(...copies);
+            return [pageId, [...annotations, ...copies]];
+        }));
+        if (!duplicates.length) return;
+        const selectedIds = duplicates.map((annotation) => annotation.id);
+        commit({ ...present, annotationsByPageId, selectedId: selectedIds[selectedIds.length - 1], selectedIds });
+    }, [commit]);
     const alignSelected = useCallback((alignment: Alignment) => { const present = stateRef.current.present; const selected = Object.values(present.annotationsByPageId).flat().filter((annotation) => present.selectedIds.includes(annotation.id)); if (selected.length < 2) return; const changed = new Map(alignAnnotations(selected, alignment).map((annotation) => [annotation.id, annotation])); commit({ ...present, annotationsByPageId: Object.fromEntries(Object.entries(present.annotationsByPageId).map(([pageId, annotations]) => [pageId, annotations.map((annotation) => changed.get(annotation.id) ?? annotation)])) }); }, [commit]);
     const updateLayout = useCallback((patch: Partial<EditorPresent['layout']>) => { const present = stateRef.current.present; commit({ ...present, layout: { ...present.layout, ...patch } }); }, [commit]);
     const setFormValue = useCallback((name: string, value: string | boolean | string[]) => { const present = stateRef.current.present; commit({ ...present, formValues: { ...present.formValues, [name]: value } }); }, [commit]);

@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, degrees, rgb, type PDFPage } from 'pdf-lib';
 import type { WorkingPage } from '../../organization/types/pages';
-import type { PdfAnnotation } from '../types/annotations';
+import type { PdfAnnotation, Point } from '../types/annotations';
 import { safePdfFilename } from '../../organization/utils/pageUtils';
 import { downloadPdf } from '../../organization/utils/pdfDownload';
 import type { HeaderFooterSettings, UtilitySettings } from '../../utilities/types/utilities';
@@ -31,18 +31,35 @@ function fontName(annotation: Extract<PdfAnnotation, { type: 'text' }>) {
     return annotation.bold ? StandardFonts.HelveticaBold : StandardFonts.Helvetica;
 }
 
+export function rotatePdfPoint(point: Point, center: Point, rotation: number): Point {
+    if (rotation % 360 === 0) return point;
+    const radians = rotation * Math.PI / 180;
+    const cosine = Math.cos(radians);
+    const sine = Math.sin(radians);
+    const dx = point.x - center.x;
+    const dy = point.y - center.y;
+    return { x: center.x + dx * cosine - dy * sine, y: center.y + dx * sine + dy * cosine };
+}
+
+function annotationCenter(annotation: PdfAnnotation): Point {
+    return { x: annotation.x + annotation.width / 2, y: annotation.y + annotation.height / 2 };
+}
+
 async function drawAnnotations(pdf: PDFDocument, page: PDFPage, annotations: PdfAnnotation[]) {
     for (const annotation of annotations) {
         const shared = { opacity: annotation.opacity, rotate: degrees(annotation.rotation) };
+        const center = annotationCenter(annotation);
+        const rotatedOrigin = rotatePdfPoint({ x: annotation.x, y: annotation.y }, center, annotation.rotation);
         if (annotation.type === 'text') {
             const font = await pdf.embedFont(fontName(annotation));
             if (annotation.backgroundOpacity > 0 || annotation.borderWidth > 0) page.drawRectangle({
-                x: annotation.x, y: annotation.y, width: annotation.width, height: annotation.height,
+                x: rotatedOrigin.x, y: rotatedOrigin.y, width: annotation.width, height: annotation.height,
                 ...(annotation.backgroundOpacity > 0 ? { color: color(annotation.backgroundColor), opacity: annotation.backgroundOpacity * annotation.opacity } : {}),
                 ...(annotation.borderWidth > 0 ? { borderColor: color(annotation.borderColor), borderWidth: annotation.borderWidth } : {}),
                 rotate: degrees(annotation.rotation),
             });
-            page.drawText(annotation.text, { x: annotation.x + annotation.padding, y: annotation.y + annotation.height - annotation.padding - annotation.fontSize, size: annotation.fontSize, lineHeight: annotation.fontSize * annotation.lineHeight, maxWidth: Math.max(10, annotation.width - annotation.padding * 2), font, color: color(annotation.color), ...shared });
+            const textOrigin = rotatePdfPoint({ x: annotation.x + annotation.padding, y: annotation.y + annotation.height - annotation.padding - annotation.fontSize }, center, annotation.rotation);
+            page.drawText(annotation.text, { x: textOrigin.x, y: textOrigin.y, size: annotation.fontSize, lineHeight: annotation.fontSize * annotation.lineHeight, maxWidth: Math.max(10, annotation.width - annotation.padding * 2), font, color: color(annotation.color), ...shared });
         } else if (annotation.type === 'highlight') {
             for (let point = 1; point < annotation.points.length; point += 1) page.drawLine({ start: annotation.points[point - 1], end: annotation.points[point], color: color(annotation.color), thickness: annotation.strokeWidth, opacity: annotation.opacity });
         } else if (annotation.type === 'draw') {
@@ -50,22 +67,32 @@ async function drawAnnotations(pdf: PDFDocument, page: PDFPage, annotations: Pdf
                 page.drawLine({ start: annotation.points[point - 1], end: annotation.points[point], color: color(annotation.color), thickness: annotation.strokeWidth, opacity: annotation.opacity });
             }
         } else if (annotation.type === 'rectangle' || annotation.type === 'rounded-rectangle') {
-            page.drawRectangle({ x: annotation.x, y: annotation.y, width: annotation.width, height: annotation.height, borderColor: color(annotation.strokeColor), borderWidth: annotation.strokeWidth, ...(annotation.fillColor === 'transparent' ? {} : { color: color(annotation.fillColor) }), ...shared });
+            page.drawRectangle({ x: rotatedOrigin.x, y: rotatedOrigin.y, width: annotation.width, height: annotation.height, borderColor: color(annotation.strokeColor), borderWidth: annotation.strokeWidth, ...(annotation.fillColor === 'transparent' ? {} : { color: color(annotation.fillColor) }), ...shared });
         } else if (annotation.type === 'ellipse') {
             page.drawEllipse({ x: annotation.x + annotation.width / 2, y: annotation.y + annotation.height / 2, xScale: annotation.width / 2, yScale: annotation.height / 2, borderColor: color(annotation.strokeColor), borderWidth: annotation.strokeWidth, ...(annotation.fillColor === 'transparent' ? {} : { color: color(annotation.fillColor) }), ...shared });
         } else if (annotation.type === 'line' || annotation.type === 'arrow') {
-            page.drawLine({ start: { x: annotation.x, y: annotation.y }, end: { x: annotation.x + annotation.width, y: annotation.y + annotation.height }, color: color(annotation.strokeColor), thickness: annotation.strokeWidth, opacity: annotation.opacity });
+            const start = rotatePdfPoint({ x: annotation.x, y: annotation.y }, center, annotation.rotation);
+            const end = rotatePdfPoint({ x: annotation.x + annotation.width, y: annotation.y + annotation.height }, center, annotation.rotation);
+            page.drawLine({ start, end, color: color(annotation.strokeColor), thickness: annotation.strokeWidth, opacity: annotation.opacity });
+            if (annotation.type === 'arrow') {
+                const arrowSize = Math.max(4, Math.min(10, annotation.width / 3, annotation.height / 3));
+                const first = rotatePdfPoint({ x: annotation.x + annotation.width - arrowSize, y: annotation.y + annotation.height - 2 }, center, annotation.rotation);
+                const second = rotatePdfPoint({ x: annotation.x + annotation.width - 2, y: annotation.y + annotation.height - arrowSize }, center, annotation.rotation);
+                page.drawLine({ start: end, end: first, color: color(annotation.strokeColor), thickness: annotation.strokeWidth, opacity: annotation.opacity });
+                page.drawLine({ start: end, end: second, color: color(annotation.strokeColor), thickness: annotation.strokeWidth, opacity: annotation.opacity });
+            }
         } else if (annotation.type === 'triangle') {
-            const points = [{ x: annotation.x + annotation.width / 2, y: annotation.y + annotation.height }, { x: annotation.x + annotation.width, y: annotation.y }, { x: annotation.x, y: annotation.y }];
+            const points = [{ x: annotation.x + annotation.width / 2, y: annotation.y + annotation.height }, { x: annotation.x + annotation.width, y: annotation.y }, { x: annotation.x, y: annotation.y }].map((point) => rotatePdfPoint(point, center, annotation.rotation));
             for (let index = 0; index < 3; index += 1) page.drawLine({ start: points[index], end: points[(index + 1) % 3], color: color(annotation.strokeColor), thickness: annotation.strokeWidth, opacity: annotation.opacity });
         } else if (annotation.type === 'image' || annotation.type === 'signature') {
             const bytes = await fetch(annotation.source).then((response) => response.arrayBuffer());
             const isPng = annotation.type === 'image' ? annotation.mimeType === 'image/png' : annotation.source.startsWith('data:image/png');
             const image = isPng ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
-            page.drawImage(image, { x: annotation.x, y: annotation.y, width: annotation.width, height: annotation.height, ...shared });
+            page.drawImage(image, { x: rotatedOrigin.x, y: rotatedOrigin.y, width: annotation.width, height: annotation.height, ...shared });
         } else if (annotation.type === 'stamp') {
-            page.drawRectangle({ x: annotation.x, y: annotation.y, width: annotation.width, height: annotation.height, borderColor: color(annotation.color), borderWidth: 2, ...shared });
-            page.drawText(annotation.text, { x: annotation.x + 8, y: annotation.y + annotation.height / 2 - 7, size: Math.min(18, annotation.height / 2), color: color(annotation.color), ...shared });
+            page.drawRectangle({ x: rotatedOrigin.x, y: rotatedOrigin.y, width: annotation.width, height: annotation.height, borderColor: color(annotation.color), borderWidth: 2, ...shared });
+            const textOrigin = rotatePdfPoint({ x: annotation.x + 8, y: annotation.y + annotation.height / 2 - 7 }, center, annotation.rotation);
+            page.drawText(annotation.text, { x: textOrigin.x, y: textOrigin.y, size: Math.min(18, annotation.height / 2), color: color(annotation.color), ...shared });
         } else if (annotation.type === 'form-text' || annotation.type === 'form-signature') {
             const field = pdf.getForm().createTextField(annotation.name);
             if (annotation.required) field.enableRequired();
