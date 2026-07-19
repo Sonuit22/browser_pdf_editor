@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowDown, ArrowUp, Copy, Pencil, RotateCw, Trash2 } from 'lucide-react';
 import type { PdfPageLayout } from '../../viewer/PdfPageCanvas';
 import { usePdfEditor } from '../hooks/usePdfEditor';
@@ -9,7 +10,7 @@ import { constrainBounds, resizeBounds, type ResizeHandle } from '../utils/touch
 import type { PdfAnnotation, Point } from '../types/annotations';
 
 type Gesture = { mode: 'create' | 'move' | 'resize' | 'rotate'; start: Point; annotation: PdfAnnotation; handle?: ResizeHandle; moved: boolean };
-type HighlighterPointer = { x: number; y: number; touch: boolean };
+type CursorPosition = { clientX: number; clientY: number; pointerType: string };
 export function AnnotationOverlay({ pageId, layout }: { pageId: string; layout: PdfPageLayout }) {
     const { annotationsByPageId, activeTool, highlighterSettings, selectedIds, add, update, select, setTool, removeSelected, setFormValue, formValues, duplicate, remove, reorder } = usePdfEditor();
     const overlayRef = useRef<HTMLDivElement>(null);
@@ -20,7 +21,12 @@ export function AnnotationOverlay({ pageId, layout }: { pageId: string; layout: 
     const activePointerRef = useRef<number | null>(null);
     const [draft, setDraft] = useState<PdfAnnotation | null>(null);
     const [menuId, setMenuId] = useState<string | null>(null);
-    const [highlighterPointer, setHighlighterPointer] = useState<HighlighterPointer | null>(null);
+    const [cursorPosition, setCursorPosition] = useState<CursorPosition | null>(null);
+    const [isCursorOverPdf, setCursorOverPdf] = useState(false);
+    const [isHighlightStrokeActive, setHighlightStrokeActive] = useState(false);
+    const isHighlighterActive = activeTool === 'highlight';
+    const highlighterColor = highlighterSettings.color;
+    const highlighterSize = highlighterSettings.strokeWidth;
     const annotations = annotationsByPageId[pageId] ?? [];
     const pageSize = pdfPageSize(layout.viewport);
     useEffect(() => () => {
@@ -43,8 +49,12 @@ export function AnnotationOverlay({ pageId, layout }: { pageId: string; layout: 
         setDraft(null);
     }, [activeTool, add]);
     useEffect(() => {
-        if (activeTool !== 'highlight') setHighlighterPointer(null);
-    }, [activeTool]);
+        if (!isHighlighterActive) {
+            setCursorPosition(null);
+            setCursorOverPdf(false);
+            setHighlightStrokeActive(false);
+        }
+    }, [isHighlighterActive]);
     useEffect(() => {
         const keydown = (event: KeyboardEvent) => {
             const target = event.target as HTMLElement | null;
@@ -66,12 +76,16 @@ export function AnnotationOverlay({ pageId, layout }: { pageId: string; layout: 
         const rect = event.currentTarget.getBoundingClientRect();
         return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
     };
-    const updateHighlighterPointer = (event: PointerEvent<HTMLDivElement>) => {
-        if (activeTool !== 'highlight') return;
-        const rect = event.currentTarget.getBoundingClientRect();
-        setHighlighterPointer(event.pointerType === 'touch'
-            ? { x: 18, y: 18, touch: true }
-            : { x: Math.max(10, Math.min(rect.width - 10, event.clientX - rect.left)), y: Math.max(10, Math.min(rect.height - 10, event.clientY - rect.top)), touch: false });
+    const updateCursorPosition = (event: PointerEvent<HTMLDivElement>) => {
+        if (!isHighlighterActive) return;
+        if (event.pointerType === 'touch' && !(gestureRef.current?.mode === 'create' && gestureRef.current.annotation.type === 'highlight')) return;
+        setCursorPosition({ clientX: event.clientX, clientY: event.clientY, pointerType: event.pointerType });
+        setCursorOverPdf(true);
+    };
+    const onPointerEnter = (event: PointerEvent<HTMLDivElement>) => {
+        if (!isHighlighterActive || event.pointerType === 'touch') return;
+        setCursorPosition({ clientX: event.clientX, clientY: event.clientY, pointerType: event.pointerType });
+        setCursorOverPdf(true);
     };
     const cancelLongPress = () => { if (longPressRef.current !== null) window.clearTimeout(longPressRef.current); longPressRef.current = null; };
     const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -80,7 +94,11 @@ export function AnnotationOverlay({ pageId, layout }: { pageId: string; layout: 
             if (activePointerRef.current !== null && event.currentTarget.hasPointerCapture(activePointerRef.current)) event.currentTarget.releasePointerCapture(activePointerRef.current);
             activePointerRef.current = null; return;
         }
-        updateHighlighterPointer(event);
+        if (isHighlighterActive) {
+            setCursorPosition({ clientX: event.clientX, clientY: event.clientY, pointerType: event.pointerType });
+            setCursorOverPdf(true);
+            setHighlightStrokeActive(true);
+        }
         const point = getPoint(event);
         const selected = (event.target as HTMLElement).closest<HTMLElement>('[data-annotation-id]')?.dataset.annotationId;
         const handle = (event.target as HTMLElement).dataset.resizeHandle as ResizeHandle | undefined;
@@ -105,7 +123,7 @@ export function AnnotationOverlay({ pageId, layout }: { pageId: string; layout: 
         event.preventDefault(); select(annotation.id); setDraft(annotation); pendingDraftRef.current = annotation; gestureRef.current = { mode: 'create', start: point, annotation, moved: false }; activePointerRef.current = event.pointerId; event.currentTarget.setPointerCapture(event.pointerId);
     };
     const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-        updateHighlighterPointer(event);
+        updateCursorPosition(event);
         const gesture = gestureRef.current;
         if (!gesture) return;
         if (event.pointerType === 'touch' && !event.isPrimary) return;
@@ -146,21 +164,44 @@ export function AnnotationOverlay({ pageId, layout }: { pageId: string; layout: 
             if (!isPathAnnotation(latestDraft) || latestDraft.points.length > 1) add(latestDraft);
         } else if (gesture.moved) update(latestDraft.id, latestDraft);
         gestureRef.current = null; pendingDraftRef.current = null; activePointerRef.current = null; cancelAnimationFrame(frameRef.current); frameRef.current = 0; setDraft(null);
-        if (completedHighlight) setTool('select');
+        if (completedHighlight) {
+            setCursorPosition(null);
+            setCursorOverPdf(false);
+            setHighlightStrokeActive(false);
+            setTool('select');
+        }
     }
     const onPointerUp = (event: PointerEvent<HTMLDivElement>) => completeGesture(event);
-    const cancelGesture = (event: PointerEvent<HTMLDivElement>) => { cancelLongPress(); if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); gestureRef.current = null; pendingDraftRef.current = null; activePointerRef.current = null; setDraft(null); };
+    const cancelGesture = (event: PointerEvent<HTMLDivElement>) => {
+        const cancelledHighlight = gestureRef.current?.mode === 'create' && gestureRef.current.annotation.type === 'highlight';
+        cancelLongPress();
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+        gestureRef.current = null; pendingDraftRef.current = null; activePointerRef.current = null; cancelAnimationFrame(frameRef.current); frameRef.current = 0; setDraft(null);
+        if (cancelledHighlight) {
+            setCursorPosition(null);
+            setCursorOverPdf(false);
+            setHighlightStrokeActive(false);
+            setTool('select');
+        }
+    };
     const onPointerLeave = (event: PointerEvent<HTMLDivElement>) => {
         const gesture = gestureRef.current;
         if (gesture?.mode === 'create' && isPathAnnotation(gesture.annotation)) completeGesture(event);
-        else if (!gesture) setHighlighterPointer(null);
+        else if (!gesture) {
+            setCursorPosition(null);
+            setCursorOverPdf(false);
+        }
     };
     const editText = (id: string) => { setMenuId(null); window.setTimeout(() => overlayRef.current?.querySelector<HTMLTextAreaElement>(`[data-annotation-id="${id}"] textarea`)?.focus(), 0); };
     const rendered = draft && !annotations.some((annotation) => annotation.id === draft.id) ? [...annotations, draft] : annotations.map((annotation) => annotation.id === draft?.id ? draft : annotation);
-    return <div ref={overlayRef} className={`annotation-overlay annotation-overlay--${activeTool}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={cancelGesture} onPointerLeave={onPointerLeave}>{rendered.map((annotation) => <AnnotationItem key={annotation.id} annotation={annotation} viewport={layout.viewport} selected={selectedIds.includes(annotation.id)} onUpdate={(patch) => update(annotation.id, patch)} onDuplicate={() => duplicate(annotation.id)} onDelete={() => remove(annotation.id)} onForward={() => reorder(annotation.id, 'forward')} onBackward={() => reorder(annotation.id, 'backward')} onEdit={() => editText(annotation.id)} formValues={formValues} onFormValue={setFormValue} />)}
-        {activeTool === 'highlight' && <span className={`highlighter-pointer-indicator${highlighterPointer?.touch ? ' is-touch' : ''}`} style={{ left: highlighterPointer?.x ?? 18, top: highlighterPointer?.y ?? 18, backgroundColor: highlighterSettings.color }} aria-hidden="true" />}
+    const showHighlighterCursor = isHighlighterActive && isCursorOverPdf && cursorPosition && (cursorPosition.pointerType !== 'touch' || isHighlightStrokeActive);
+    const cursorDiameter = Math.max(12, Math.min(56, highlighterSize * layout.viewport.scale));
+    const highlighterCursor = showHighlighterCursor && typeof document !== 'undefined'
+        ? createPortal(<span className={`highlighter-pointer-indicator${cursorPosition.pointerType === 'touch' ? ' is-touch' : ''}`} style={{ left: cursorPosition.clientX, top: cursorPosition.clientY, width: cursorDiameter, height: cursorDiameter, backgroundColor: highlighterColor }} aria-hidden="true" />, document.body)
+        : null;
+    return <><div ref={overlayRef} className={`annotation-overlay annotation-overlay--${activeTool}${showHighlighterCursor && cursorPosition.pointerType !== 'touch' ? ' annotation-overlay--custom-highlighter-cursor' : ''}${isHighlightStrokeActive ? ' annotation-overlay--highlighting' : ''}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={cancelGesture} onPointerEnter={onPointerEnter} onPointerLeave={onPointerLeave}>{rendered.map((annotation) => <AnnotationItem key={annotation.id} annotation={annotation} viewport={layout.viewport} selected={selectedIds.includes(annotation.id)} onUpdate={(patch) => update(annotation.id, patch)} onDuplicate={() => duplicate(annotation.id)} onDelete={() => remove(annotation.id)} onForward={() => reorder(annotation.id, 'forward')} onBackward={() => reorder(annotation.id, 'backward')} onEdit={() => editText(annotation.id)} formValues={formValues} onFormValue={setFormValue} />)}
         {menuId && <div className="mobile-object-menu" role="menu" aria-label="Object actions">{annotations.some((item) => item.id === menuId && item.type === 'text') && <button type="button" onClick={() => editText(menuId)}><Pencil size={17} />Edit</button>}<button type="button" onClick={() => { duplicate(menuId); setMenuId(null); }}><Copy size={17} />Duplicate</button><button type="button" onClick={() => { reorder(menuId, 'forward'); setMenuId(null); }}><ArrowUp size={17} />Bring Forward</button><button type="button" onClick={() => { reorder(menuId, 'backward'); setMenuId(null); }}><ArrowDown size={17} />Send Backward</button><button type="button" onClick={() => { remove(menuId); setMenuId(null); }}><Trash2 size={17} />Delete</button></div>}
-    </div>;
+    </div>{highlighterCursor}</>;
 }
 
 function AnnotationItem({ annotation, viewport, selected, onUpdate, onDuplicate, onDelete, onForward, onBackward, onEdit, formValues, onFormValue }: { annotation: PdfAnnotation; viewport: PdfPageLayout['viewport']; selected: boolean; onUpdate: (patch: Partial<PdfAnnotation>) => void; onDuplicate: () => void; onDelete: () => void; onForward: () => void; onBackward: () => void; onEdit: () => void; formValues: Record<string, string | boolean | string[]>; onFormValue: (name: string, value: string | boolean | string[]) => void }) {
