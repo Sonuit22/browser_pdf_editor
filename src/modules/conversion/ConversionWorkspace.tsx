@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Download, FileUp, GripVertical, Home, ShieldCheck, Trash2, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { useShell } from '../../contexts/ShellContext';
 import { activeConversionLimits, conversionAccept } from './conversionConfig';
 import { docxToHtml, htmlToPdf, imagesToPdf, loadPdf, pdfToJpg, pdfToPpt, pdfToWord, releaseLoadedPdf, renderPageToBlob, type CancelSignal } from './conversionServices';
+import { validateImageFile } from '../../utils/imageFiles';
 
 type ToolKey = 'jpg-to-pdf' | 'pdf-to-jpg' | 'pdf-to-ppt' | 'pdf-to-word' | 'word-to-pdf' | 'ppt-to-pdf';
 const titles: Record<ToolKey, string> = {
@@ -21,7 +22,10 @@ const notices: Partial<Record<ToolKey, string>> = {
 function downloadBlob(blob: Blob, name: string) {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
-    anchor.href = url; anchor.download = name; anchor.click();
+    anchor.href = url; anchor.download = name; anchor.style.display = 'none';
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
@@ -32,6 +36,9 @@ export default function ConversionWorkspace() {
     const input = useRef<HTMLInputElement>(null);
     const preview = useRef<HTMLDivElement>(null);
     const signal = useRef<CancelSignal>({ cancelled: false });
+    const operationRef = useRef(0);
+    const busyRef = useRef(false);
+    const thumbsRef = useRef<string[]>([]);
     const [files, setFiles] = useState<File[]>([]);
     const [thumbs, setThumbs] = useState<string[]>([]);
     const [pageCount, setPageCount] = useState(0);
@@ -50,24 +57,58 @@ export default function ConversionWorkspace() {
     const limits = useMemo(activeConversionLimits, []);
     const multiple = tool === 'jpg-to-pdf';
 
-    const clear = () => {
+    const revokeThumbnails = useCallback(() => {
+        thumbsRef.current.forEach((url) => URL.revokeObjectURL(url));
+        thumbsRef.current = [];
+    }, []);
+    const updateThumbnails = useCallback((urls: string[]) => {
+        thumbsRef.current = urls;
+        setThumbs(urls);
+    }, []);
+    const clear = useCallback(() => {
+        operationRef.current += 1;
         signal.current.cancelled = true;
-        thumbs.forEach(URL.revokeObjectURL);
+        busyRef.current = false;
+        revokeThumbnails();
         setFiles([]); setThumbs([]); setPageCount(0); setSelected([]); setHtml(''); setWarnings([]);
         setError(''); setBusy(false); setProgress({ current: 0, total: 0, label: '' }); setOutput(null);
-    };
-    useEffect(() => clear, [tool]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [revokeThumbnails]);
+    useEffect(() => {
+        clear();
+        return () => {
+            operationRef.current += 1;
+            signal.current.cancelled = true;
+            busyRef.current = false;
+            revokeThumbnails();
+        };
+    }, [clear, revokeThumbnails, tool]);
 
     const inspectFiles = async (next: File[]) => {
+        if (busyRef.current) return;
         clear();
-        signal.current = { cancelled: false };
+        const operation = ++operationRef.current;
+        const operationSignal: CancelSignal = { cancelled: false };
+        signal.current = operationSignal;
+        const isCurrent = () => operationRef.current === operation && !operationSignal.cancelled;
+        let pdf: Awaited<ReturnType<typeof loadPdf>> | null = null;
         try {
             if (!next.length) return;
             if (tool === 'jpg-to-pdf') {
                 if (next.length > limits.images) throw new Error(`This device supports up to ${limits.images} images per job.`);
-                const valid = next.filter((file) => /^image\/(jpeg|png|webp)$/.test(file.type) || /\.(jpe?g|png|webp)$/i.test(file.name));
-                if (valid.length !== next.length || valid.some((file) => !file.size)) throw new Error('Choose non-empty JPG, JPEG, PNG, or WebP images.');
-                setFiles(valid); setThumbs(valid.map(URL.createObjectURL));
+                next.forEach(validateImageFile);
+                const urls: string[] = [];
+                try {
+                    for (const file of next) urls.push(URL.createObjectURL(file));
+                } catch (error) {
+                    urls.forEach((url) => URL.revokeObjectURL(url));
+                    throw error;
+                }
+                if (!isCurrent()) {
+                    urls.forEach((url) => URL.revokeObjectURL(url));
+                    return;
+                }
+                setFiles(next);
+                updateThumbnails(urls);
                 return;
             }
             const file = next[0];
@@ -76,64 +117,111 @@ export default function ConversionWorkspace() {
                 if (/\.doc$/i.test(file.name)) throw new Error('Old .doc files are not supported. Save it as .docx first.');
                 if (!/\.docx$/i.test(file.name)) throw new Error('Choose a .docx file.');
                 if (file.size > limits.docxBytes) throw new Error(`DOCX files are limited to ${Math.round(limits.docxBytes / 1024 / 1024)} MB on this device.`);
-                setFiles([file]); setBusy(true);
+                setFiles([file]); busyRef.current = true; setBusy(true);
                 const converted = await docxToHtml(file);
-                setHtml(converted.html); setWarnings(converted.warnings); setBusy(false);
+                if (isCurrent()) {
+                    setHtml(converted.html);
+                    setWarnings(converted.warnings);
+                }
                 return;
             }
             if (tool === 'ppt-to-pdf') { setFiles([file]); return; }
-            if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') throw new Error('Choose a PDF file.');
-            setFiles([file]); setBusy(true);
-            const pdf = await loadPdf(file);
+            setFiles([file]); busyRef.current = true; setBusy(true);
+            pdf = await loadPdf(file);
+            if (!isCurrent()) return;
             if (pdf.numPages > limits.pdfPages) throw new Error(`This device supports PDFs up to ${limits.pdfPages} pages for conversion.`);
             setPageCount(pdf.numPages); setSelected(Array.from({ length: pdf.numPages }, (_, index) => index + 1));
             const urls: string[] = [];
             for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-                if (signal.current.cancelled) break;
+                if (!isCurrent()) break;
                 setProgress({ current: pageNumber, total: pdf.numPages, label: `Preparing page ${pageNumber}` });
                 const page = await pdf.getPage(pageNumber);
                 const { blob } = await renderPageToBlob(page, .22, .65);
-                urls.push(URL.createObjectURL(blob)); setThumbs([...urls]);
+                if (!isCurrent()) break;
+                urls.push(URL.createObjectURL(blob));
+                updateThumbnails([...urls]);
             }
-            await releaseLoadedPdf(pdf); setBusy(false);
         } catch (cause) {
-            setBusy(false); setError(cause instanceof Error ? cause.message : 'The file could not be opened.');
+            if (isCurrent()) {
+                if (tool.startsWith('pdf-')) {
+                    revokeThumbnails();
+                    setThumbs([]);
+                    setFiles([]);
+                    setPageCount(0);
+                    setSelected([]);
+                }
+                setError(cause instanceof Error ? cause.message : 'The file could not be opened.');
+            }
+        } finally {
+            if (pdf) await releaseLoadedPdf(pdf);
+            if (operationRef.current === operation) {
+                if (operationSignal.cancelled) {
+                    revokeThumbnails();
+                    setThumbs([]);
+                    setFiles([]);
+                    setPageCount(0);
+                    setSelected([]);
+                    setError('File preparation was cancelled.');
+                }
+                busyRef.current = false;
+                setBusy(false);
+            }
         }
     };
 
     const reorder = (from: number, to: number) => {
+        if (busyRef.current || !Number.isInteger(from) || from < 0 || from >= files.length || to < 0 || to >= files.length) return;
         const nextFiles = [...files]; const [movedFile] = nextFiles.splice(from, 1); nextFiles.splice(to, 0, movedFile);
         const nextThumbs = [...thumbs]; const [movedThumb] = nextThumbs.splice(from, 1); nextThumbs.splice(to, 0, movedThumb);
-        setFiles(nextFiles); setThumbs(nextThumbs); setOutput(null);
+        setFiles(nextFiles); updateThumbnails(nextThumbs); setOutput(null); setError('');
+    };
+    const invalidateOutput = () => {
+        if (!busyRef.current) {
+            setOutput(null);
+            setError('');
+        }
     };
 
     const convert = async () => {
-        setError(''); setOutput(null); setBusy(true); signal.current = { cancelled: false };
-        const update = (current: number, total: number, label: string) => setProgress({ current, total, label });
+        if (busyRef.current) return;
+        busyRef.current = true;
+        const operation = ++operationRef.current;
+        const operationSignal: CancelSignal = { cancelled: false };
+        signal.current = operationSignal;
+        const isCurrent = () => operationRef.current === operation && !operationSignal.cancelled;
+        setError(''); setOutput(null); setBusy(true);
+        const update = (current: number, total: number, label: string) => {
+            if (isCurrent()) setProgress({ current, total, label });
+        };
         try {
             let blob: Blob; let name: string;
             if (tool === 'jpg-to-pdf') {
-                blob = await imagesToPdf(files, { pageSize, orientation, margin, quality: imageQuality }, update, signal.current);
+                blob = await imagesToPdf(files, { pageSize, orientation, margin, quality: imageQuality }, update, operationSignal);
                 name = 'images.pdf';
             } else if (tool === 'pdf-to-jpg') {
                 if (!selected.length) throw new Error('Select at least one page.');
                 const scales = { standard: 1.25, high: 2, maximum: 3 };
-                blob = await pdfToJpg(files[0], selected, scales[renderQuality], imageQuality, update, signal.current);
+                blob = await pdfToJpg(files[0], selected, scales[renderQuality], imageQuality, update, operationSignal);
                 name = selected.length === 1 ? `page-${selected[0]}.jpg` : 'pdf-pages.zip';
             } else if (tool === 'pdf-to-ppt') {
                 if (!selected.length) throw new Error('Select at least one page.');
-                blob = await pdfToPpt(files[0], selected, update, signal.current); name = 'converted.pptx';
+                blob = await pdfToPpt(files[0], selected, update, operationSignal); name = 'converted.pptx';
             } else if (tool === 'pdf-to-word') {
-                blob = await pdfToWord(files[0], update, signal.current); name = 'converted.docx';
+                blob = await pdfToWord(files[0], update, operationSignal); name = 'converted.docx';
             } else if (tool === 'word-to-pdf') {
                 if (!preview.current) throw new Error('The document preview is not ready.');
-                blob = await htmlToPdf(preview.current, update, signal.current); name = 'converted.pdf';
+                blob = await htmlToPdf(preview.current, update, operationSignal); name = 'converted.pdf';
             } else throw new Error('Basic PPT to PDF conversion is under development.');
             if (!blob.size) throw new Error('Conversion produced an empty output and was stopped.');
-            setOutput({ blob, name });
+            if (isCurrent()) setOutput({ blob, name });
         } catch (cause) {
-            if (!(cause instanceof DOMException && cause.name === 'AbortError')) setError(cause instanceof Error ? cause.message : 'Conversion failed.');
-        } finally { setBusy(false); }
+            if (isCurrent() && !(cause instanceof DOMException && cause.name === 'AbortError')) setError(cause instanceof Error ? cause.message : 'Conversion failed.');
+        } finally {
+            if (operationRef.current === operation) {
+                busyRef.current = false;
+                setBusy(false);
+            }
+        }
     };
 
     const allSelected = pageCount > 0 && selected.length === pageCount;
@@ -148,17 +236,17 @@ export default function ConversionWorkspace() {
         <div className="conversion-grid">
             <section className="conversion-card conversion-upload">
                 <div className="conversion-card__title"><div><span>1</span><h2>Files</h2></div>{files.length > 0 && <Button variant="ghost" onClick={clear}>Remove {multiple ? 'all' : 'file'}</Button>}</div>
-                <input ref={input} className="sr-only" type="file" multiple={multiple} accept={conversionAccept[tool]} onChange={(event) => void inspectFiles(Array.from(event.target.files ?? []))} />
-                {!files.length ? <button className="conversion-drop" type="button" disabled={tool === 'ppt-to-pdf'} onClick={() => input.current?.click()}><FileUp /><strong>Choose {multiple ? 'images' : 'a file'}</strong><span>{multiple ? 'JPG, JPEG, PNG or WebP' : conversionAccept[tool].split(',')[0]}</span><small><ShieldCheck size={14} /> Nothing leaves this device</small></button> :
-                    <div className="file-summary"><strong>{multiple ? `${files.length} images` : files[0].name}</strong><span>{(files.reduce((sum, file) => sum + file.size, 0) / 1024 / 1024).toFixed(2)} MB</span><Button variant="secondary" onClick={() => input.current?.click()}>Replace File</Button></div>}
-                {multiple && files.length > 0 && <div className="image-order">{files.map((file, index) => <article key={`${file.name}-${file.lastModified}`} draggable onDragStart={(event) => event.dataTransfer.setData('text/plain', String(index))} onDragOver={(event) => event.preventDefault()} onDrop={(event) => reorder(Number(event.dataTransfer.getData('text/plain')), index)}><GripVertical aria-hidden="true" /><img src={thumbs[index]} alt="" /><span>{index + 1}. {file.name}</span><button aria-label={`Remove ${file.name}`} onClick={() => void inspectFiles(files.filter((_, item) => item !== index))}><Trash2 size={15} /></button></article>)}</div>}
+                <input ref={input} className="sr-only" type="file" multiple={multiple} accept={conversionAccept[tool]} disabled={busy} onChange={(event) => { const next = Array.from(event.target.files ?? []); event.target.value = ''; void inspectFiles(next); }} />
+                {!files.length ? <button className="conversion-drop" type="button" disabled={busy || tool === 'ppt-to-pdf'} onClick={() => input.current?.click()}><FileUp /><strong>Choose {multiple ? 'images' : 'a file'}</strong><span>{multiple ? 'JPG, JPEG, PNG or WebP' : conversionAccept[tool].split(',')[0]}</span><small><ShieldCheck size={14} /> Nothing leaves this device</small></button> :
+                    <div className="file-summary"><strong>{multiple ? `${files.length} images` : files[0].name}</strong><span>{(files.reduce((sum, file) => sum + file.size, 0) / 1024 / 1024).toFixed(2)} MB</span><Button variant="secondary" disabled={busy} onClick={() => input.current?.click()}>Replace File</Button></div>}
+                {multiple && files.length > 0 && <div className="image-order">{files.map((file, index) => <article key={`${file.name}-${file.lastModified}`} draggable={!busy} onDragStart={(event) => { if (!busyRef.current) event.dataTransfer.setData('text/plain', String(index)); }} onDragOver={(event) => event.preventDefault()} onDrop={(event) => reorder(Number(event.dataTransfer.getData('text/plain')), index)}><GripVertical aria-hidden="true" /><img src={thumbs[index]} alt="" /><span>{index + 1}. {file.name}</span><button type="button" disabled={busy} aria-label={`Remove ${file.name}`} onClick={() => void inspectFiles(files.filter((_, item) => item !== index))}><Trash2 size={15} /></button></article>)}</div>}
             </section>
             <section className="conversion-card">
                 <div className="conversion-card__title"><div><span>2</span><h2>Options</h2></div></div>
-                {tool === 'jpg-to-pdf' && <div className="conversion-options"><label>Page size<select value={pageSize} onChange={(event) => setPageSize(event.target.value as typeof pageSize)}><option value="a4">A4</option><option value="letter">Letter</option><option value="fit">Fit image</option></select></label><label>Orientation<select value={orientation} onChange={(event) => setOrientation(event.target.value as typeof orientation)}><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></label><label>Margins <output>{margin} pt</output><input type="range" min="0" max="72" value={margin} onChange={(event) => setMargin(Number(event.target.value))} /></label><Quality value={imageQuality} setValue={setImageQuality} /></div>}
-                {tool === 'pdf-to-jpg' && <div className="conversion-options"><label>Render quality<select value={renderQuality} onChange={(event) => setRenderQuality(event.target.value as typeof renderQuality)}><option value="standard">Standard</option><option value="high">High</option><option value="maximum">Maximum</option></select></label><Quality value={imageQuality} setValue={setImageQuality} /></div>}
+                {tool === 'jpg-to-pdf' && <div className="conversion-options"><label>Page size<select value={pageSize} disabled={busy} onChange={(event) => { setPageSize(event.target.value as typeof pageSize); invalidateOutput(); }}><option value="a4">A4</option><option value="letter">Letter</option><option value="fit">Fit image</option></select></label><label>Orientation<select value={orientation} disabled={busy} onChange={(event) => { setOrientation(event.target.value as typeof orientation); invalidateOutput(); }}><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></label><label>Margins <output>{margin} pt</output><input type="range" min="0" max="72" value={margin} disabled={busy} onChange={(event) => { setMargin(Number(event.target.value)); invalidateOutput(); }} /></label><Quality value={imageQuality} setValue={(value) => { setImageQuality(value); invalidateOutput(); }} disabled={busy} /></div>}
+                {tool === 'pdf-to-jpg' && <div className="conversion-options"><label>Render quality<select value={renderQuality} disabled={busy} onChange={(event) => { setRenderQuality(event.target.value as typeof renderQuality); invalidateOutput(); }}><option value="standard">Standard</option><option value="high">High</option><option value="maximum">Maximum</option></select></label><Quality value={imageQuality} setValue={(value) => { setImageQuality(value); invalidateOutput(); }} disabled={busy} /></div>}
                 {(tool === 'pdf-to-ppt' || tool === 'pdf-to-word' || tool === 'word-to-pdf') && <p className="conversion-basic">{tool === 'pdf-to-ppt' ? 'Visual page-to-slide conversion' : tool === 'pdf-to-word' ? 'Editable text extraction' : 'Preview-based PDF conversion'}</p>}
-                {pageCount > 0 && tool !== 'pdf-to-word' && <div className="page-selection"><div><strong>Pages</strong><button onClick={() => setSelected(allSelected ? [] : Array.from({ length: pageCount }, (_, index) => index + 1))}>{allSelected ? 'Clear all' : 'Select all'}</button></div><div>{thumbs.map((url, index) => { const page = index + 1; return <label key={url} className={selected.includes(page) ? 'is-selected' : ''}><img src={url} alt={`Page ${page}`} /><input type="checkbox" checked={selected.includes(page)} onChange={() => setSelected((current) => current.includes(page) ? current.filter((item) => item !== page) : [...current, page].sort((a, b) => a - b))} /><span>Page {page}</span></label>; })}</div></div>}
+                {pageCount > 0 && tool !== 'pdf-to-word' && <div className="page-selection"><div><strong>Pages</strong><button type="button" disabled={busy} onClick={() => { setSelected(allSelected ? [] : Array.from({ length: pageCount }, (_, index) => index + 1)); invalidateOutput(); }}>{allSelected ? 'Clear all' : 'Select all'}</button></div><div>{thumbs.map((url, index) => { const page = index + 1; return <label key={url} className={selected.includes(page) ? 'is-selected' : ''}><img src={url} alt={`Page ${page}`} /><input type="checkbox" disabled={busy} checked={selected.includes(page)} onChange={() => { setSelected((current) => current.includes(page) ? current.filter((item) => item !== page) : [...current, page].sort((a, b) => a - b)); invalidateOutput(); }} /><span>Page {page}</span></label>; })}</div></div>}
             </section>
             <section className="conversion-card conversion-preview-card">
                 <div className="conversion-card__title"><div><span>3</span><h2>Preview & convert</h2></div></div>
@@ -166,12 +254,13 @@ export default function ConversionWorkspace() {
                 {warnings.length > 0 && <details><summary>{warnings.length} document warning(s)</summary><ul>{warnings.slice(0, 5).map((warning) => <li key={warning}>{warning}</li>)}</ul></details>}
                 {busy && <div className="conversion-progress" role="status"><div><span>{progress.label || 'Preparing file'}</span><strong>{progress.total ? `${progress.current} / ${progress.total}` : 'Working…'}</strong></div><progress max={Math.max(1, progress.total)} value={progress.current} /><Button variant="secondary" onClick={() => { signal.current.cancelled = true; }}>Cancel</Button></div>}
                 {error && <div className="conversion-error" role="alert"><X size={17} />{error}</div>}
+                {output && <p className="operation-message" role="status">Conversion complete. The output is ready to download.</p>}
                 <div className="conversion-actions"><Button disabled={!canConvert} onClick={() => void convert()}>Convert</Button>{output && <Button variant="secondary" onClick={() => downloadBlob(output.blob, output.name)}><Download size={17} />Download {output.name}</Button>}</div>
             </section>
         </div>
     </section>;
 }
 
-function Quality({ value, setValue }: { value: number; setValue: (value: number) => void }) {
-    return <label>JPG quality <output>{Math.round(value * 100)}%</output><input type="range" min="40" max="100" value={Math.round(value * 100)} onChange={(event) => setValue(Number(event.target.value) / 100)} /></label>;
+function Quality({ value, setValue, disabled = false }: { value: number; setValue: (value: number) => void; disabled?: boolean }) {
+    return <label>JPG quality <output>{Math.round(value * 100)}%</output><input type="range" min="40" max="100" value={Math.round(value * 100)} disabled={disabled} onChange={(event) => setValue(Number(event.target.value) / 100)} /></label>;
 }

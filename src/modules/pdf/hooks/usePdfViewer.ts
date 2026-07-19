@@ -27,17 +27,19 @@ export function usePdfViewer() {
     const openFile = useCallback(async (file: File) => {
         const request = ++requestRef.current;
         await dispose();
+        if (!mountedRef.current || request !== requestRef.current) return;
         setLastFile(file);
-        if (!mountedRef.current) return;
         setState({ ...initialState, phase: 'loading', progress: 1 });
+        let task: PDFDocumentLoadingTask | null = null;
+        let document: PDFDocumentProxy | null = null;
         try {
             const data = await validatePdfFile(file);
             if (request !== requestRef.current) return;
-            const task = createDocumentLoadingTask(data, (progress) => {
+            task = createDocumentLoadingTask(data, (progress) => {
                 if (mountedRef.current && request === requestRef.current) setState((current) => ({ ...current, progress }));
             });
             taskRef.current = task;
-            const document = await task.promise;
+            document = await task.promise;
             if (request !== requestRef.current) { await task.destroy(); return; }
             documentRef.current = document;
             const info = await getPdfDocumentInfo(document, file);
@@ -49,6 +51,7 @@ export function usePdfViewer() {
             if (mountedRef.current && request === requestRef.current) {
                 taskRef.current = null;
                 documentRef.current = null;
+                await releasePdfDocument(task, document);
                 setState({ ...initialState, phase: 'error', error: getPdfErrorMessage(error) });
             }
         }

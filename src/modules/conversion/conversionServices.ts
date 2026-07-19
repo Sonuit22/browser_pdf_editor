@@ -1,15 +1,19 @@
 import { configurePdfWorker } from '../pdf/workers/pdfWorker';
+import { validatePdfFileSelection } from '../pdf/services/pdfValidationService';
+import { validateImageFile } from '../../utils/imageFiles';
 
 export type Progress = (current: number, total: number, label: string) => void;
 export type CancelSignal = { cancelled: boolean };
 
 export async function loadPdf(file: File) {
+    validatePdfFileSelection(file);
     configurePdfWorker();
     const { getDocument } = await import('pdfjs-dist');
-    if (!file.size) throw new Error('The selected file is empty.');
+    const task = getDocument({ data: new Uint8Array(await file.arrayBuffer()), stopAtErrors: true });
     try {
-        return await getDocument({ data: new Uint8Array(await file.arrayBuffer()), stopAtErrors: true }).promise;
+        return await task.promise;
     } catch (error) {
+        await task.destroy().catch(() => undefined);
         const message = error instanceof Error ? error.message : '';
         if (/password/i.test(message)) throw new Error('Password-protected PDFs are not supported. Remove the password and try again.');
         throw new Error('This PDF is corrupted, invalid, or cannot be read.');
@@ -27,37 +31,49 @@ export async function renderPageToBlob(page: Awaited<ReturnType<Awaited<ReturnTy
     const canvas = document.createElement('canvas');
     canvas.width = Math.ceil(viewport.width);
     canvas.height = Math.ceil(viewport.height);
-    const context = canvas.getContext('2d', { alpha: false });
-    if (!context) throw new Error('Canvas rendering is unavailable in this browser.');
-    await page.render({ canvas, canvasContext: context, viewport }).promise;
-    const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((value) => value ? resolve(value) : reject(new Error('Could not encode this page.')), 'image/jpeg', quality));
-    canvas.width = 0;
-    canvas.height = 0;
-    page.cleanup();
-    return { blob, width: viewport.width, height: viewport.height };
+    try {
+        const context = canvas.getContext('2d', { alpha: false });
+        if (!context) throw new Error('Canvas rendering is unavailable in this browser.');
+        await page.render({ canvas, canvasContext: context, viewport }).promise;
+        const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((value) => value ? resolve(value) : reject(new Error('Could not encode this page.')), 'image/jpeg', quality));
+        return { blob, width: viewport.width, height: viewport.height };
+    } finally {
+        canvas.width = 0;
+        canvas.height = 0;
+        page.cleanup();
+    }
 }
 
 async function normalizeImage(file: File, quality: number) {
-    const bitmap = await createImageBitmap(file);
-    const width = bitmap.width;
-    const height = bitmap.height;
+    validateImageFile(file);
+    let bitmap: ImageBitmap | null = null;
     const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const context = canvas.getContext('2d');
-    if (context) {
+    try {
+        bitmap = await createImageBitmap(file);
+        const width = bitmap.width;
+        const height = bitmap.height;
+        if (!width || !height) throw new Error('The image has invalid dimensions.');
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext('2d');
+        if (!context) throw new Error('Canvas image conversion is unavailable in this browser.');
         context.fillStyle = '#ffffff';
         context.fillRect(0, 0, width, height);
         context.drawImage(bitmap, 0, 0);
+        const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((value) => value ? resolve(value) : reject(new Error(`Could not process ${file.name}.`)), 'image/jpeg', quality));
+        return { bytes: new Uint8Array(await blob.arrayBuffer()), width, height };
+    } catch (error) {
+        if (error instanceof Error && /limited|dimensions|Canvas/.test(error.message)) throw error;
+        throw new Error(`${file.name} is corrupted or cannot be decoded as an image.`);
+    } finally {
+        bitmap?.close();
+        canvas.width = 0;
+        canvas.height = 0;
     }
-    bitmap.close();
-    const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((value) => value ? resolve(value) : reject(new Error(`Could not process ${file.name}.`)), 'image/jpeg', quality));
-    canvas.width = 0;
-    canvas.height = 0;
-    return { bytes: new Uint8Array(await blob.arrayBuffer()), width, height };
 }
 
 export async function imagesToPdf(files: File[], options: { pageSize: 'a4' | 'letter' | 'fit'; orientation: 'portrait' | 'landscape'; margin: number; quality: number }, progress: Progress, signal: CancelSignal) {
+    if (!files.length) throw new Error('Choose at least one image before converting.');
     const { PDFDocument } = await import('pdf-lib');
     const pdf = await PDFDocument.create();
     for (let index = 0; index < files.length; index += 1) {
@@ -102,15 +118,20 @@ export async function pdfToJpg(file: File, pages: number[], scale: number, quali
 
 export async function pdfToPpt(file: File, pages: number[], progress: Progress, signal: CancelSignal) {
     const pdf = await loadPdf(file);
-    const PptxGenJS = (await import('pptxgenjs')).default;
-    const pptx = new PptxGenJS();
-    const first = await pdf.getPage(pages[0]);
-    const view = first.getViewport({ scale: 1 });
-    first.cleanup();
-    const wide = view.width >= view.height;
-    pptx.defineLayout({ name: 'PDF_PAGE', width: wide ? 13.333 : 7.5, height: wide ? 7.5 : 10 });
-    pptx.layout = 'PDF_PAGE';
     try {
+        if (!pages.length) throw new Error('Select at least one page.');
+        const PptxGenJS = (await import('pptxgenjs')).default;
+        const pptx = new PptxGenJS();
+        const first = await pdf.getPage(pages[0]);
+        let wide: boolean;
+        try {
+            const view = first.getViewport({ scale: 1 });
+            wide = view.width >= view.height;
+        } finally {
+            first.cleanup();
+        }
+        pptx.defineLayout({ name: 'PDF_PAGE', width: wide ? 13.333 : 7.5, height: wide ? 7.5 : 10 });
+        pptx.layout = 'PDF_PAGE';
         for (let index = 0; index < pages.length; index += 1) {
             if (signal.cancelled) throw new DOMException('Conversion cancelled.', 'AbortError');
             progress(index + 1, pages.length, `Creating slide ${index + 1}`);
@@ -120,9 +141,11 @@ export async function pdfToPpt(file: File, pages: number[], progress: Progress, 
             const slide = pptx.addSlide();
             slide.addImage({ data, x: 0, y: 0, w: wide ? 13.333 : 7.5, h: wide ? 7.5 : 10 });
         }
-    } finally { await releaseLoadedPdf(pdf); }
-    const result = await pptx.write({ outputType: 'blob' });
-    return result as Blob;
+        const result = await pptx.write({ outputType: 'blob' });
+        return result as Blob;
+    } finally {
+        await releaseLoadedPdf(pdf);
+    }
 }
 
 function linesFromText(items: Array<{ str?: string; transform?: number[] }>) {
@@ -147,9 +170,12 @@ export async function pdfToWord(file: File, progress: Progress, signal: CancelSi
             if (signal.cancelled) throw new DOMException('Conversion cancelled.', 'AbortError');
             progress(pageNumber, pdf.numPages, `Extracting page ${pageNumber}`);
             const page = await pdf.getPage(pageNumber);
-            const content = await page.getTextContent();
-            linesFromText(content.items as Array<{ str?: string; transform?: number[] }>).forEach((text, index) => children.push(new Paragraph({ text, pageBreakBefore: pageNumber > 1 && index === 0 })));
-            page.cleanup();
+            try {
+                const content = await page.getTextContent();
+                linesFromText(content.items as Array<{ str?: string; transform?: number[] }>).forEach((text, index) => children.push(new Paragraph({ text, pageBreakBefore: pageNumber > 1 && index === 0 })));
+            } finally {
+                page.cleanup();
+            }
         }
     } finally { await releaseLoadedPdf(pdf); }
     if (!children.length) throw new Error('No extractable text was found in this PDF.');
@@ -173,27 +199,31 @@ export async function htmlToPdf(element: HTMLElement, progress: Progress, signal
     const html2canvas = (await import('html2canvas')).default;
     const { jsPDF } = await import('jspdf');
     const canvas = await html2canvas(element, { scale: 1.6, useCORS: true, backgroundColor: '#ffffff', logging: false });
-    const pdf = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' });
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const imageHeight = canvas.height * pageWidth / canvas.width;
-    const image = canvas.toDataURL('image/jpeg', .92);
-    for (let y = 0, page = 0; y < imageHeight; y += pageHeight, page += 1) {
-        if (signal.cancelled) throw new DOMException('Conversion cancelled.', 'AbortError');
-        if (page) pdf.addPage();
-        pdf.addImage(image, 'JPEG', 0, -y, pageWidth, imageHeight);
+    try {
+        const pdf = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' });
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imageHeight = canvas.height * pageWidth / canvas.width;
+        const image = canvas.toDataURL('image/jpeg', .92);
+        for (let y = 0, page = 0; y < imageHeight; y += pageHeight, page += 1) {
+            if (signal.cancelled) throw new DOMException('Conversion cancelled.', 'AbortError');
+            if (page) pdf.addPage();
+            pdf.addImage(image, 'JPEG', 0, -y, pageWidth, imageHeight);
+        }
+        progress(2, 2, 'Creating PDF');
+        return pdf.output('blob');
+    } finally {
+        canvas.width = 0;
+        canvas.height = 0;
     }
-    canvas.width = 0;
-    canvas.height = 0;
-    progress(2, 2, 'Creating PDF');
-    return pdf.output('blob');
 }
 
 export function blobToDataUrl(blob: Blob) {
     return new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(String(reader.result));
-        reader.onerror = () => reject(reader.error);
+        reader.onerror = () => reject(reader.error ?? new Error('The generated file could not be read.'));
+        reader.onabort = () => reject(new DOMException('File reading was cancelled.', 'AbortError'));
         reader.readAsDataURL(blob);
     });
 }

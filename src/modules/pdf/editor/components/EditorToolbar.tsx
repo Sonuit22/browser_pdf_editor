@@ -5,6 +5,7 @@ import { usePdfPageOperations } from '../../organization/hooks/usePdfPageOperati
 import { createAnnotationId } from '../utils/annotationUtils';
 import type { EditorTool, ImageAnnotation } from '../types/annotations';
 import { notify } from '../../../../components/feedback/notifications';
+import { readBrowserImage } from '../../../../utils/imageFiles';
 
 const mainTools: Array<[EditorTool, string, typeof Pencil]> = [
     ['select', 'Select objects', MousePointer2], ['text', 'Add Text', Pencil], ['image', 'Add Image', ImagePlus],
@@ -21,25 +22,32 @@ export function EditorToolbar({ onExport, exporting }: { onExport: () => void; e
     const selected = Object.values(editor.annotationsByPageId).flat().find((item) => item.id === editor.selectedId);
     const selectedHighlight = selected?.type === 'highlight' ? selected : null;
     const visibleHighlighter = selectedHighlight ?? editor.highlighterSettings;
-    const chooseTool = (tool: EditorTool) => tool === 'image' ? imageInput.current?.click() : editor.setTool(tool);
+    const chooseTool = (tool: EditorTool) => {
+        if (tool === 'image') {
+            if (!imageBusy) imageInput.current?.click();
+        } else {
+            editor.setTool(tool);
+        }
+    };
     const addImage = async (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]; event.target.value = '';
-        if (!file || !activePage) return;
+        if (!file || !activePage || imageBusy) return;
         setImageBusy(true);
         try {
-            const source = await readCompatibleImage(file);
-            const dimensions = await imageDimensions(source);
-            const maxWidth = Math.min(activePage.width * .45, dimensions.width);
+            const source = await readBrowserImage(file);
+            const maxWidth = Math.min(activePage.width * .45, source.width);
             const width = Math.max(80, maxWidth);
-            const height = width / (dimensions.width / dimensions.height);
+            const height = width / (source.width / source.height);
             const now = Date.now();
             const annotation: ImageAnnotation = {
                 id: createAnnotationId(), pageId: activePage.id, type: 'image', source: source.data, mimeType: source.mimeType,
-                aspectRatio: dimensions.width / dimensions.height, x: (activePage.width - width) / 2, y: (activePage.height - height) / 2,
+                aspectRatio: source.width / source.height, x: (activePage.width - width) / 2, y: (activePage.height - height) / 2,
                 width, height, zIndex: now, opacity: 1, rotation: 0, strokeColor: '#178a49', strokeWidth: 0, fillColor: 'transparent', createdAt: now, updatedAt: now,
             };
             editor.add(annotation); editor.setTool('select'); notify('Image added to the current page.');
-        } catch { notify('The image could not be loaded. Choose a valid JPG, PNG, or WebP file.', 'error'); }
+        } catch (error) {
+            notify(error instanceof Error ? error.message : 'The image could not be loaded. Choose a valid JPG, PNG, or WebP file.', 'error');
+        }
         finally { setImageBusy(false); }
     };
     const updateHighlighter = (patch: Partial<typeof editor.highlighterSettings>) => {
@@ -49,7 +57,7 @@ export function EditorToolbar({ onExport, exporting }: { onExport: () => void; e
     return <div className="editor-toolbar" aria-label="PDF editing controls">
         <input ref={imageInput} className="sr-only" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" onChange={(event) => void addImage(event)} />
         <div className="editor-toolbar__row" role="toolbar" aria-label="Editing tools">
-            <div className="editor-toolbar__tools">{mainTools.map(([tool, label, Icon]) => <button key={tool} className={`editor-tool${editor.activeTool === tool ? ' is-active' : ''}`} type="button" onClick={() => chooseTool(tool)} aria-label={label} aria-pressed={editor.activeTool === tool} title={label}><Icon size={18} aria-hidden="true" /><span>{tool === 'image' && imageBusy ? 'Loading…' : label}</span></button>)}</div>
+            <div className="editor-toolbar__tools">{mainTools.map(([tool, label, Icon]) => <button key={tool} className={`editor-tool${editor.activeTool === tool ? ' is-active' : ''}`} type="button" disabled={tool === 'image' && imageBusy} onClick={() => chooseTool(tool)} aria-label={label} aria-pressed={editor.activeTool === tool} title={label}><Icon size={18} aria-hidden="true" /><span>{tool === 'image' && imageBusy ? 'Loading…' : label}</span></button>)}</div>
             <div className="editor-toolbar__actions">
                 <button className="icon-button" type="button" onClick={editor.undo} disabled={!editor.canUndo} aria-label="Undo" title="Undo"><Undo2 size={18} /></button>
                 <button className="icon-button" type="button" onClick={editor.redo} disabled={!editor.canRedo} aria-label="Redo" title="Redo"><Redo2 size={18} /></button>
@@ -70,14 +78,6 @@ export function EditorToolbar({ onExport, exporting }: { onExport: () => void; e
     </div>;
 }
 
-async function readCompatibleImage(file: File): Promise<{ data: string; mimeType: 'image/png' | 'image/jpeg' }> {
-    const data = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = reject; reader.readAsDataURL(file); });
-    if (file.type !== 'image/webp') return { data, mimeType: file.type === 'image/png' ? 'image/png' : 'image/jpeg' };
-    const img = await loadImage(data); const canvas = document.createElement('canvas'); canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
-    canvas.getContext('2d')?.drawImage(img, 0, 0); return { data: canvas.toDataURL('image/png'), mimeType: 'image/png' };
-}
-const loadImage = (source: string) => new Promise<HTMLImageElement>((resolve, reject) => { const image = new Image(); image.onload = () => resolve(image); image.onerror = reject; image.src = source; });
-async function imageDimensions(source: { data: string }) { const image = await loadImage(source.data); return { width: image.naturalWidth, height: image.naturalHeight }; }
 function rgba(hex: string, opacity: number) {
     const value = hex.replace('#', '');
     const full = value.length === 3 ? value.split('').map((part) => part + part).join('') : value;

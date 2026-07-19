@@ -26,8 +26,12 @@ function insertionIndex(pages: WorkingPage[], activePageId: PageId | null, inser
 
 async function readPageDimensions(document: PDFDocumentProxy, index: number) {
     const page = await document.getPage(index + 1);
-    const viewport = page.getViewport({ scale: 1, rotation: 0 });
-    return { width: viewport.width, height: viewport.height };
+    try {
+        const viewport = page.getViewport({ scale: 1, rotation: 0 });
+        return { width: viewport.width, height: viewport.height };
+    } finally {
+        page.cleanup();
+    }
 }
 
 async function buildSourcePages(document: PDFDocumentProxy, sourceDocumentId: string): Promise<WorkingPage[]> {
@@ -40,14 +44,16 @@ async function buildSourcePages(document: PDFDocumentProxy, sourceDocumentId: st
 }
 
 export function PdfPageOperationsProvider({ children }: { children: ReactNode }) {
-    const { document: rootDocument, sourceFile } = usePdfEngine();
+    const { document: rootDocument, sourceFile, failViewer } = usePdfEngine();
     const [state, dispatch] = useReducer(pageOrganizationReducer, initialPageOrganizationState);
     const [isInitializing, setIsInitializing] = useState(false);
     const sourcesRef = useRef(new Map<string, SourceRecord>());
+    const sourceGenerationRef = useRef(0);
     const stateRef = useRef(state);
     stateRef.current = state;
 
     const releaseImportedSources = useCallback(() => {
+        sourceGenerationRef.current += 1;
         for (const source of sourcesRef.current.values()) {
             if (!source.root) void releasePdfDocument(source.loadingTask, source.document);
         }
@@ -69,6 +75,8 @@ export function PdfPageOperationsProvider({ children }: { children: ReactNode })
             try {
                 const pages = await buildSourcePages(rootDocument, sourceId);
                 if (!cancelled) dispatch({ type: 'reset', documentId: sourceId, pages });
+            } catch {
+                if (!cancelled) failViewer('The document pages could not be prepared safely. Please retry the PDF.');
             } finally {
                 if (!cancelled) {
                     setIsInitializing(false);
@@ -77,7 +85,7 @@ export function PdfPageOperationsProvider({ children }: { children: ReactNode })
         };
         void initialize();
         return () => { cancelled = true; };
-    }, [releaseImportedSources, rootDocument, sourceFile]);
+    }, [failViewer, releaseImportedSources, rootDocument, sourceFile]);
 
     useEffect(() => () => releaseImportedSources(), [releaseImportedSources]);
 
@@ -143,23 +151,45 @@ export function PdfPageOperationsProvider({ children }: { children: ReactNode })
     }, [commit]);
 
     const importPages = useCallback(async (file: File, pageIndices: number[], insertion: PageInsertion) => {
+        const generation = sourceGenerationRef.current;
         const present = stateRef.current.present;
         const existing = [...sourcesRef.current.values()].find((source) => source.file.name === file.name && source.file.size === file.size && source.file.lastModified === file.lastModified);
         let source = existing;
+        let createdSource: SourceRecord | null = null;
         if (!source) {
             const data = await validatePdfFile(file);
             const task = createDocumentLoadingTask(data, () => undefined);
-            const document = await task.promise;
+            let document: PDFDocumentProxy | null = null;
+            try {
+                document = await task.promise;
+            } catch (error) {
+                await releasePdfDocument(task, document);
+                throw error;
+            }
+            if (generation !== sourceGenerationRef.current) {
+                await releasePdfDocument(task, document);
+                throw new Error('The open document changed before the imported pages were ready.');
+            }
             const id = `import-${fileDocumentId(file)}-${createPageId()}`;
             source = { id, file, pageCount: document.numPages, document, loadingTask: task, root: false };
+            createdSource = source;
             sourcesRef.current.set(id, source);
         }
-        const requestedIndices = pageIndices.length ? pageIndices : Array.from({ length: source.pageCount }, (_, index) => index);
-        const uniqueIndices = [...new Set(requestedIndices)].filter((index) => Number.isInteger(index) && index >= 0 && index < source.pageCount);
-        if (!uniqueIndices.length) return;
-        const imported: WorkingPage[] = await Promise.all(uniqueIndices.map(async (sourcePageIndex) => ({ id: createPageId(), kind: 'source' as const, sourceDocumentId: source.id, sourcePageIndex, ...(await readPageDimensions(source.document, sourcePageIndex)), rotation: 0 as const, duplicatedFromPageId: null })));
-        const index = insertionIndex(present.pages, present.activePageId, insertion);
-        commit({ ...present, pages: [...present.pages.slice(0, index), ...imported, ...present.pages.slice(index)], selectedPageIds: imported.map((page) => page.id), activePageId: imported[0]?.id ?? present.activePageId });
+        try {
+            const requestedIndices = pageIndices.length ? pageIndices : Array.from({ length: source.pageCount }, (_, index) => index);
+            const uniqueIndices = [...new Set(requestedIndices)].filter((index) => Number.isInteger(index) && index >= 0 && index < source.pageCount);
+            if (!uniqueIndices.length) throw new Error('The imported PDF does not contain any usable pages.');
+            const imported: WorkingPage[] = await Promise.all(uniqueIndices.map(async (sourcePageIndex) => ({ id: createPageId(), kind: 'source' as const, sourceDocumentId: source.id, sourcePageIndex, ...(await readPageDimensions(source.document, sourcePageIndex)), rotation: 0 as const, duplicatedFromPageId: null })));
+            if (generation !== sourceGenerationRef.current) throw new Error('The open document changed before the imported pages were ready.');
+            const index = insertionIndex(present.pages, present.activePageId, insertion);
+            commit({ ...present, pages: [...present.pages.slice(0, index), ...imported, ...present.pages.slice(index)], selectedPageIds: imported.map((page) => page.id), activePageId: imported[0]?.id ?? present.activePageId });
+        } catch (error) {
+            if (createdSource) {
+                sourcesRef.current.delete(createdSource.id);
+                await releasePdfDocument(createdSource.loadingTask, createdSource.document);
+            }
+            throw error;
+        }
     }, [commit]);
 
     const getPage = useCallback(async (page: WorkingPage): Promise<PDFPageProxy> => {

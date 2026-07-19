@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, RotateCw, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { usePdfEngine } from '../hooks/usePdfEngine';
@@ -33,6 +33,7 @@ export function PdfViewer() {
     const [exportProgress, setExportProgress] = useState(0);
     const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
     const [documentToolsOpen, setDocumentToolsOpen] = useState(false);
+    const exportingRef = useRef(false);
     const currentPage = Math.max(1, pages.findIndex((page) => page.id === activePageId) + 1);
     const pageCount = pages.length;
 
@@ -53,7 +54,8 @@ export function PdfViewer() {
     if (!info || isInitializing || !activePage || !pageCount) return <div className="pdf-loading" role="status">Preparing document pages...</div>;
 
     const exportDocument = async () => {
-        if (exporting) return;
+        if (exportingRef.current) return;
+        exportingRef.current = true;
         setExporting(true);
         setExportProgress(0);
         setExportError(null);
@@ -65,6 +67,7 @@ export function PdfViewer() {
             setExportError(message);
             notify(message, 'error');
         } finally {
+            exportingRef.current = false;
             setExporting(false);
         }
     };
@@ -81,8 +84,8 @@ export function PdfViewer() {
                 <div className="pdf-toolbar__group pdf-toolbar__group--settings">
                     <label className="toolbar-select"><span>Zoom</span><select value={String(zoom)} onChange={(event) => setZoom((event.target.value === 'fit-width' || event.target.value === 'fit-page' ? event.target.value : Number(event.target.value)) as ZoomPreset)}>{zoomOptions.map(([label, value]) => <option key={String(value)} value={String(value)}>{label}</option>)}</select></label>
                     <label className="toolbar-select"><RotateCw size={16} aria-hidden="true" /><span className="sr-only">Temporary view rotation</span><select value={rotation} onChange={(event) => setRotation(Number(event.target.value) as PdfRotation)}>{rotationOptions.map((value) => <option key={value} value={value}>{value} degrees</option>)}</select></label>
-                    <Button variant="secondary" size="compact" type="button" onClick={() => dirty ? setCloseConfirmOpen(true) : closeDocument()} title={dirty ? 'Closing will discard unsaved edits' : 'Close document'}><X size={16} aria-hidden="true" />Close</Button>
-                    <button className="icon-button" type="button" onClick={() => setDocumentToolsOpen(true)} aria-label="Open document tools" title="Document tools"><SlidersHorizontal size={16} aria-hidden="true" /></button>
+                    <Button variant="secondary" size="compact" type="button" disabled={exporting} onClick={() => dirty ? setCloseConfirmOpen(true) : closeDocument()} title={dirty ? 'Closing will discard unsaved edits' : 'Close document'}><X size={16} aria-hidden="true" />Close</Button>
+                    <button className="icon-button" type="button" disabled={exporting} onClick={() => setDocumentToolsOpen(true)} aria-label="Open document tools" title="Document tools"><SlidersHorizontal size={16} aria-hidden="true" /></button>
                 </div>
             </div>
             {pathname === '/sign-pdf' ? <SigningToolbar onExport={() => void exportDocument()} exporting={exporting} /> : <EditorToolbar onExport={() => void exportDocument()} exporting={exporting} />}

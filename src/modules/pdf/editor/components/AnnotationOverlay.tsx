@@ -20,7 +20,10 @@ export function AnnotationOverlay({ pageId, layout }: { pageId: string; layout: 
     const [draft, setDraft] = useState<PdfAnnotation | null>(null);
     const [menuId, setMenuId] = useState<string | null>(null);
     const annotations = annotationsByPageId[pageId] ?? [];
-    useEffect(() => () => cancelAnimationFrame(frameRef.current), []);
+    useEffect(() => () => {
+        cancelAnimationFrame(frameRef.current);
+        if (longPressRef.current !== null) window.clearTimeout(longPressRef.current);
+    }, []);
     useEffect(() => {
         const keydown = (event: KeyboardEvent) => {
             const target = event.target as HTMLElement | null;

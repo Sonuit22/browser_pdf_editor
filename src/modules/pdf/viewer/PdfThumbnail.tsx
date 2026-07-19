@@ -25,7 +25,9 @@ export function PdfThumbnail({ page, pageNumber, active, rotation, getPage, onSe
         if (!visible) return;
         let cancelled = false;
         let renderTask: ReturnType<PDFPageProxy['render']> | null = null;
+        const effectCanvas = canvasRef.current;
         const render = async () => {
+            let source: PDFPageProxy | null = null;
             try {
                 const canvas = canvasRef.current;
                 const context = canvas?.getContext('2d');
@@ -43,7 +45,7 @@ export function PdfThumbnail({ page, pageNumber, active, rotation, getPage, onSe
                     context.fillRect(0, 0, canvas.width, canvas.height);
                     return;
                 }
-                const source = await getPage(page);
+                source = await getPage(page);
                 const viewport = source.getViewport({ scale: 1, rotation: effectiveRotation });
                 const scale = 112 / viewport.width;
                 const thumbnail = source.getViewport({ scale, rotation: effectiveRotation });
@@ -55,9 +57,17 @@ export function PdfThumbnail({ page, pageNumber, active, rotation, getPage, onSe
                 renderTask = source.render({ canvas, canvasContext: context, viewport: thumbnail, transform: [pixelRatio, 0, 0, pixelRatio, 0, 0] });
                 await renderTask.promise;
             } catch { /* A thumbnail failure must not interrupt the viewer. */ }
+            finally { source?.cleanup(); }
         };
         void render();
-        return () => { cancelled = true; renderTask?.cancel(); };
+        return () => {
+            cancelled = true;
+            renderTask?.cancel();
+            if (effectCanvas) {
+                effectCanvas.width = 0;
+                effectCanvas.height = 0;
+            }
+        };
     }, [getPage, page, rotation, visible]);
 
     return <button ref={buttonRef} className={`pdf-thumbnail${active ? ' is-active' : ''}`} type="button" onClick={(event) => onSelect(page.id, event)} aria-label={`Go to page ${pageNumber}`} aria-current={active ? 'page' : undefined}><canvas ref={canvasRef} /><span>{pageNumber}</span></button>;

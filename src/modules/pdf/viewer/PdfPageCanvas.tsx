@@ -59,10 +59,13 @@ export function PdfPageCanvas({ page, pageNumber, getPage, zoom, rotation, onRen
     useEffect(() => {
         let cancelled = false;
         let renderTask: ReturnType<PDFPageProxy['render']> | null = null;
+        const effectCanvas = canvasRef.current;
         const render = async () => {
+            let sourcePage: PDFPageProxy | null = null;
             try {
+                setLayout(null);
                 const effectiveRotation = normalizePageRotation(page.rotation + rotation);
-                const sourcePage = page.kind === 'source' ? await getPage(page) : null;
+                sourcePage = page.kind === 'source' ? await getPage(page) : null;
                 const baseViewport = sourcePage ? sourcePage.getViewport({ scale: 1, rotation: effectiveRotation }) : blankViewport(page, 1, effectiveRotation);
                 const padding = 32;
                 const scale = typeof zoom === 'number'
@@ -88,10 +91,19 @@ export function PdfPageCanvas({ page, pageNumber, getPage, zoom, rotation, onRen
                 await renderTask.promise;
             } catch {
                 if (!cancelled) onRenderError();
+            } finally {
+                sourcePage?.cleanup();
             }
         };
         if (size.width && size.height) void render();
-        return () => { cancelled = true; renderTask?.cancel(); };
+        return () => {
+            cancelled = true;
+            renderTask?.cancel();
+            if (effectCanvas) {
+                effectCanvas.width = 0;
+                effectCanvas.height = 0;
+            }
+        };
     }, [getPage, onRenderError, page, rotation, size.height, size.width, zoom]);
 
     return <div ref={containerRef} className="pdf-canvas-stage"><div className="pdf-page-frame" style={layout ? { width: layout.width, height: layout.height } : undefined}><canvas ref={canvasRef} aria-label={`PDF page ${pageNumber}`} />{layout && children?.(layout)}</div></div>;

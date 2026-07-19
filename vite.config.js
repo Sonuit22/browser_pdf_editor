@@ -5,7 +5,7 @@ import { defineConfig } from 'vite';
 
 function copyRootAssets() {
     const rootFiles = ['manifest.json', 'robots.txt', 'sitemap.xml'];
-    const assetFolders = ['assets/icons', 'assets/images'];
+    const assetFolders = ['assets/icons', 'assets/images', 'pages'];
 
     return {
         name: 'copy-root-assets',

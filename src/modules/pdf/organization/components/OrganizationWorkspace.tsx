@@ -3,7 +3,7 @@ import { ArrowDown, ArrowUp, Copy, Download, FilePlus2, FolderInput, Redo2, Rota
 import { Button } from '../../../../components/ui/Button';
 import { Modal } from '../../../../components/ui/Modal';
 import { usePdfEditor } from '../../editor/hooks/usePdfEditor';
-import { editedFilename, exportWorkingPdf } from '../../editor/services/pdfExportService';
+import { exportWorkingPdf } from '../../editor/services/pdfExportService';
 import { usePdfEngine } from '../../hooks/usePdfEngine';
 import { PdfThumbnail } from '../../viewer/PdfThumbnail';
 import { usePdfPageOperations } from '../hooks/usePdfPageOperations';
@@ -32,19 +32,23 @@ export function OrganizationWorkspace() {
     const [busy, setBusy] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
     const importInputRef = useRef<HTMLInputElement>(null);
+    const busyRef = useRef(false);
     const selectedIds = operations.selectedPageIds.length ? operations.selectedPageIds : operations.activePageId ? [operations.activePageId] : [];
     const selectedPages = operations.pages.filter((page) => selectedIds.includes(page.id));
     const activeDimensions = operations.activePage ? { width: operations.activePage.width, height: operations.activePage.height } : A4_PORTRAIT;
 
     const exportPages = async (pages: WorkingPage[], suffix: string) => {
-        if (!info || busy || !pages.length) return;
+        if (!info || busyRef.current || !pages.length) return;
+        busyRef.current = true;
         setBusy(true);
         setMessage(null);
         try {
             await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile: operations.getSourceFile, filename: safePdfFilename(info.filename, suffix), utilities, sourceFilename: info.filename });
+            notify('PDF downloaded successfully.');
         } catch {
             setMessage('The selected pages could not be exported. Check every source PDF and try again.');
         } finally {
+            busyRef.current = false;
             setBusy(false);
         }
     };
@@ -59,14 +63,17 @@ export function OrganizationWorkspace() {
     const importFile = async (event: ChangeEvent<HTMLInputElement>) => {
         const [file] = Array.from(event.target.files ?? []);
         event.target.value = '';
-        if (!file) return;
+        if (!file || busyRef.current) return;
+        busyRef.current = true;
         setBusy(true);
         setMessage(null);
         try {
             await operations.importPages(file, [], importPosition);
+            notify('PDF pages imported successfully.');
         } catch (error) {
             setMessage(error instanceof Error ? error.message : 'The pages could not be imported.');
         } finally {
+            busyRef.current = false;
             setBusy(false);
         }
     };
@@ -86,13 +93,13 @@ export function OrganizationWorkspace() {
                     <button className="icon-button" type="button" onClick={insertBlank} aria-label="Insert blank page after active page" title="Insert blank page"><FilePlus2 size={17} aria-hidden="true" /></button>
                     <label className="toolbar-select"><span className="sr-only">Imported-page position</span><select value={importPosition} onChange={(event) => setImportPosition(event.target.value as typeof importPosition)}><option value="before-active">Before active</option><option value="after-active">After active</option><option value="beginning">At beginning</option><option value="end">At end</option></select></label>
                     <button className="icon-button" type="button" onClick={() => importInputRef.current?.click()} disabled={busy} aria-label="Import pages from another PDF" title="Import pages"><FolderInput size={17} aria-hidden="true" /></button>
-                    <input ref={importInputRef} className="sr-only" type="file" accept="application/pdf,.pdf" onChange={(event) => void importFile(event)} />
+                    <input ref={importInputRef} className="sr-only" type="file" accept="application/pdf,.pdf" disabled={busy} onChange={(event) => void importFile(event)} />
                 </div>
                 <div className="organize-toolbar__group organize-toolbar__group--actions">
                     <button className="icon-button" type="button" onClick={operations.undo} disabled={!operations.canUndo} aria-label="Undo page operation" title="Undo"><Undo2 size={17} aria-hidden="true" /></button>
                     <button className="icon-button" type="button" onClick={operations.redo} disabled={!operations.canRedo} aria-label="Redo page operation" title="Redo"><Redo2 size={17} aria-hidden="true" /></button>
                     <Button variant="secondary" size="compact" type="button" onClick={() => void exportPages(selectedPages, `pages-${selectedPages.map((page) => operations.getPageNumber(page.id)).join('-')}`)} disabled={!selectedPages.length || busy}><Scissors size={16} aria-hidden="true" />Extract</Button>
-                    <Button variant="primary" size="compact" type="button" onClick={() => void exportPages(operations.pages, editedFilename(info?.filename ?? 'document'))} disabled={busy}><Download size={16} aria-hidden="true" />{busy ? 'Working' : 'Export'}</Button>
+                    <Button variant="primary" size="compact" type="button" onClick={() => void exportPages(operations.pages, 'edited')} disabled={busy}><Download size={16} aria-hidden="true" />{busy ? 'Working' : 'Export'}</Button>
                 </div>
             </div>
             <div className="organize-selection" role="status" aria-live="polite"><span>{selectedIds.length} selected</span><button type="button" onClick={operations.selectAll}>Select all</button><button type="button" onClick={operations.clearSelection}>Clear</button><button type="button" onClick={operations.invertSelection}>Invert</button><button type="button" onClick={() => operations.rotateAll(90)}>Rotate all</button></div>

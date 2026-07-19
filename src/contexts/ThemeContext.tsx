@@ -2,7 +2,13 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ThemeContext, type Theme } from './themeStore';
 
 function getInitialTheme(): Theme {
-    const savedTheme = window.localStorage.getItem('pdf-editor-theme');
+    let savedTheme: string | null = null;
+
+    try {
+        savedTheme = window.localStorage.getItem('pdf-editor-theme');
+    } catch {
+        // Storage can be unavailable in privacy modes; system preference remains a safe fallback.
+    }
 
     if (savedTheme === 'light' || savedTheme === 'dark') {
         return savedTheme;
@@ -17,7 +23,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         document.documentElement.dataset.theme = theme;
         document.documentElement.style.colorScheme = theme;
-        window.localStorage.setItem('pdf-editor-theme', theme);
+        try {
+            window.localStorage.setItem('pdf-editor-theme', theme);
+        } catch {
+            // Theme selection still works for the current session when storage is unavailable.
+        }
     }, [theme]);
 
     const value = useMemo(

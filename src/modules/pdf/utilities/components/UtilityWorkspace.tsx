@@ -8,6 +8,7 @@ import type { CropApplicationMode, CropBox, UtilityApplicationMode, UtilityPosit
 import { cropApplicationModeLabel, resolveCropTarget, resolveUtilityTarget, type ResolvedUtilityTarget } from '../utils/utilityTargeting';
 import { projectCropMargins } from '../utils/cropCoordinates';
 import { notify } from '../../../../components/feedback/notifications';
+import { readBrowserImage } from '../../../../utils/imageFiles';
 
 const positions: Array<[string, UtilityPosition]> = [['Top left', 'top-left'], ['Top center', 'top-center'], ['Top right', 'top-right'], ['Center', 'center'], ['Bottom left', 'bottom-left'], ['Bottom center', 'bottom-center'], ['Bottom right', 'bottom-right'], ['Custom', 'custom']];
 const numberPositions = positions.filter(([, value]) => value !== 'center' && value !== 'custom') as Array<[string, Exclude<UtilityPosition, 'center' | 'custom'>]>;
@@ -39,9 +40,14 @@ export function UtilityWorkspace() {
     const updateImage = async (event: ChangeEvent<HTMLInputElement>) => {
         const [file] = Array.from(event.target.files ?? []);
         event.target.value = '';
-        if (!file || !['image/png', 'image/jpeg'].includes(file.type)) return;
-        const source = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(reader.error); reader.readAsDataURL(file); });
-        utilities.updateWatermark({ kind: 'image', imageSource: source });
+        if (!file) return;
+        try {
+            if ((file.type && !['image/png', 'image/jpeg'].includes(file.type)) || !/\.(png|jpe?g)$/i.test(file.name)) throw new Error('Choose a PNG or JPEG watermark image.');
+            const image = await readBrowserImage(file);
+            utilities.updateWatermark({ kind: 'image', imageSource: image.data });
+        } catch (error) {
+            notify(error instanceof Error ? error.message : 'The watermark image could not be loaded.', 'error');
+        }
     };
     return <section className="utility-workspace" aria-label="PDF utility tools">
         <div className="utility-workspace__intro"><div><p className="eyebrow">Free daily-use tools</p><h2>Document utilities</h2><p>Settings are previewed for the open document and exported entirely in this browser.</p></div></div>
