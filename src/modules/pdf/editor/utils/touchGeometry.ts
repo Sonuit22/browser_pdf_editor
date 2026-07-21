@@ -25,8 +25,9 @@ export function resizeBounds(annotation: PdfAnnotation, dx: number, dy: number, 
         x = handle.includes('w') ? anchorX - width : anchorX;
         y = handle.includes('s') ? anchorY - height : anchorY;
     } else {
-        const minWidth = annotation.type === 'text' ? 80 : 20;
-        const minHeight = annotation.type === 'text' ? 36 : 20;
+        const isPath = annotation.type === 'draw' || annotation.type === 'highlight';
+        const minWidth = annotation.type === 'text' ? 80 : isPath ? 2 : 20;
+        const minHeight = annotation.type === 'text' ? 36 : isPath ? 2 : 20;
         if (width < minWidth) {
             if (handle.includes('w')) x = annotation.x + annotation.width - minWidth;
             width = minWidth;

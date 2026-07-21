@@ -1,10 +1,10 @@
-import { copyFile, cp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, cp, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 function copyRootAssets() {
-    const rootFiles = ['manifest.json', 'robots.txt', 'sitemap.xml'];
+    const rootFiles = ['manifest.json', 'manifest.webmanifest', 'robots.txt', 'sitemap.xml'];
     const assetFolders = ['assets/icons', 'assets/images', 'pages'];
 
     return {
@@ -17,18 +17,6 @@ function copyRootAssets() {
                 ...assetFolders.map((folder) => cp(folder, path.join('dist', folder), { recursive: true })),
             ]);
 
-            await Promise.all(
-                ['index.html'].map(async (file) => {
-                    const outputPath = path.join('dist', file);
-                    const html = await readFile(outputPath, 'utf8');
-                    const normalized = html
-                        .replace(/href="\/assets\/manifest-[^"]+\.json"/g, 'href="/manifest.json"')
-                        .replace(/href="\/assets\/logo-32-[^"]+\.png"/g, 'href="/logo-32.png"')
-                        .replace(/href="\/assets\/logo-192-[^"]+\.png"/g, 'href="/logo-192.png"');
-
-                    await writeFile(outputPath, normalized);
-                })
-            );
         },
     };
 }

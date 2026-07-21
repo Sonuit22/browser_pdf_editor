@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { constrainAnnotationBounds, constrainBounds, resizeBounds, resizeHandleForPageRotation } from '../src/modules/pdf/editor/utils/touchGeometry';
 import { clampPdfPoint, clientPointToPdfPoint } from '../src/modules/pdf/editor/utils/coordinates';
-import type { ImageAnnotation, SignatureAnnotation, TextAnnotation } from '../src/modules/pdf/editor/types/annotations';
+import { pathBounds, resizePathPoints } from '../src/modules/pdf/editor/utils/annotationUtils';
+import type { DrawAnnotation, ImageAnnotation, SignatureAnnotation, TextAnnotation } from '../src/modules/pdf/editor/types/annotations';
 import type { PageViewport } from 'pdfjs-dist';
 
 const base = { id: 'object-1', pageId: 'page-1', x: 100, y: 100, width: 200, height: 100, rotation: 0, opacity: 1, zIndex: 1, strokeColor: '#000', strokeWidth: 0, fillColor: 'transparent', createdAt: 1, updatedAt: 1 };
@@ -55,6 +56,20 @@ describe('mobile object gestures', () => {
     it('clamps free-draw points to the active PDF page', () => {
         expect(clampPdfPoint({ x: -20, y: 840 }, 612, 792)).toEqual({ x: 0, y: 792 });
         expect(clampPdfPoint({ x: 310, y: 420 }, 612, 792)).toEqual({ x: 310, y: 420 });
+    });
+
+    it('derives stable PDF bounds from path points for selection and handles', () => {
+        expect(pathBounds([{ x: 80, y: 200 }, { x: 240, y: 170 }, { x: 150, y: 220 }])).toEqual({ x: 80, y: 170, width: 160, height: 50 });
+    });
+
+    it('resizes freehand points using PDF bounds instead of client coordinates', () => {
+        const points = [{ x: 100, y: 100 }, { x: 200, y: 150 }];
+        expect(resizePathPoints(points, pathBounds(points), { x: 50, y: 80, width: 300, height: 140 })).toEqual([{ x: 50, y: 80 }, { x: 350, y: 220 }]);
+    });
+
+    it('preserves thin path dimensions when resizing a single axis', () => {
+        const drawing: DrawAnnotation = { ...base, type: 'draw', color: '#178a49', points: [{ x: 100, y: 100 }, { x: 200, y: 102 }], height: 2 };
+        expect(resizeBounds(drawing, 100, 0, 'e')).toMatchObject({ width: 300, height: 2 });
     });
 
     it('converts client coordinates through the page rectangle and PDF viewport', () => {

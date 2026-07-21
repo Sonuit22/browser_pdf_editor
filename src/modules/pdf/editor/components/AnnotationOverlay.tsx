@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { ArrowDown, ArrowUp, Copy, Pencil, RotateCw, Trash2 } from 'lucide-react';
 import type { PdfPageLayout } from '../../viewer/PdfPageCanvas';
 import { usePdfEditor } from '../hooks/usePdfEditor';
-import { boundsFromPoints } from '../utils/annotationUtils';
+import { boundsFromPoints, pathBounds, resizePathPoints } from '../utils/annotationUtils';
 import { createAnnotation } from '../utils/createAnnotation';
 import { clampPdfPoint, clientPointToPdfPoint, pdfBoundsToViewport, pdfPageSize, pdfPointToViewport } from '../utils/coordinates';
 import { constrainAnnotationBounds, constrainBounds, resizeBounds, resizeHandleForPageRotation, type ResizeHandle } from '../utils/touchGeometry';
@@ -11,6 +11,7 @@ import type { PdfAnnotation, Point } from '../types/annotations';
 import { appendDistinctPathPoints, hexToRgb, normalizeHighlighterSettings, pathCommandsToSvg, pathPaint, smoothPathCommands } from '../utils/annotationRendering';
 
 type Gesture = { mode: 'create' | 'move' | 'resize' | 'rotate'; start: Point; startClient: Point; annotation: PdfAnnotation; handle?: ResizeHandle; moved: boolean };
+type InteractionState = Pick<Gesture, 'mode'> & { annotationType: PdfAnnotation['type'] };
 type CursorPosition = { clientX: number; clientY: number; pointerType: string };
 type AnnotationOverlayProps = { pageId: string; layout: PdfPageLayout; onPreviewChange?: (annotation: PdfAnnotation | null) => void };
 const PREVIEW_INTERVAL_MS = 100;
@@ -50,8 +51,7 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
     const [cursorPosition, setCursorPosition] = useState<CursorPosition | null>(null);
     const [isCursorOverPdf, setCursorOverPdf] = useState(false);
     const [activePointerType, setActivePointerType] = useState<string | null>(null);
-    const [isHighlighting, setIsHighlighting] = useState(false);
-    const [isObjectGestureActive, setObjectGestureActive] = useState(false);
+    const [interaction, setInteraction] = useState<InteractionState | null>(null);
     const isHighlighterActive = activeTool === 'highlight';
     const normalizedHighlighter = normalizeHighlighterSettings(highlighterSettings);
     const highlighterColor = normalizedHighlighter.color;
@@ -100,7 +100,7 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
         cancelAnimationFrame(frameRef.current);
         if (longPressRef.current !== null) window.clearTimeout(longPressRef.current);
         safelyReleasePointer(overlayRef.current, activePointerRef.current);
-        overlayRef.current?.classList.remove('annotation-overlay--path-gesture');
+        overlayRef.current?.classList.remove('annotation-overlay--active-interaction');
         gestureRef.current = null;
         pendingDraftRef.current = null;
         activePointerRef.current = null;
@@ -117,14 +117,14 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
         }
         const overlay = overlayRef.current;
         const pointerId = activePointerRef.current;
-        safelyReleasePointer(overlay, pointerId);
-        overlay?.classList.remove('annotation-overlay--path-gesture');
-        cancelAnimationFrame(frameRef.current);
-        frameRef.current = 0;
         gestureRef.current = null;
         pendingDraftRef.current = null;
         activePointerRef.current = null;
-        setObjectGestureActive(false);
+        setInteraction(null);
+        safelyReleasePointer(overlay, pointerId);
+        overlay?.classList.remove('annotation-overlay--active-interaction');
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = 0;
         setDraft(null);
         clearPreview(true);
     }, [activeTool, add, clearPreview, publishPreview]);
@@ -134,7 +134,7 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
             setCursorPosition(null);
             setCursorOverPdf(false);
             setActivePointerType(null);
-            setIsHighlighting(false);
+            setInteraction(null);
         }
     }, [isHighlighterActive]);
     useEffect(() => {
@@ -182,9 +182,9 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
     const cancelLongPress = () => { if (longPressRef.current !== null) window.clearTimeout(longPressRef.current); longPressRef.current = null; };
     const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
         if (event.pointerType === 'touch' && !event.isPrimary) {
-            cancelLongPress(); gestureRef.current = null; pendingDraftRef.current = null; cancelAnimationFrame(frameRef.current); frameRef.current = 0; setObjectGestureActive(false); setDraft(null);
+            cancelLongPress(); gestureRef.current = null; pendingDraftRef.current = null; cancelAnimationFrame(frameRef.current); frameRef.current = 0; setInteraction(null); setDraft(null);
             safelyReleasePointer(event.currentTarget, activePointerRef.current);
-            event.currentTarget.classList.remove('annotation-overlay--path-gesture');
+            event.currentTarget.classList.remove('annotation-overlay--active-interaction');
             activePointerRef.current = null; clearPreview(); return;
         }
         if (isHighlighterActive) {
@@ -193,7 +193,6 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
             setActivePointerType(event.pointerType);
             setCursorPosition(position);
             setCursorOverPdf(true);
-            setIsHighlighting(true);
         }
         const point = getPoint(event);
         const selected = (event.target as HTMLElement).closest<HTMLElement>('[data-annotation-id]')?.dataset.annotationId;
@@ -205,22 +204,25 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
                 select(annotation.id, event.shiftKey);
                 if (annotation.locked) return;
                 event.preventDefault();
-                const gesture: Gesture = { mode: rotate ? 'rotate' : handle ? 'resize' : 'move', start: point, startClient: { x: event.clientX, y: event.clientY }, annotation, handle, moved: false };
-                gestureRef.current = gesture; pendingDraftRef.current = annotation; setDraft(annotation);
-                setObjectGestureActive(true);
+                const gestureAnnotation = isPathAnnotation(annotation) ? { ...annotation, ...pathBounds(annotation.points) } : annotation;
+                const gesture: Gesture = { mode: rotate ? 'rotate' : handle ? 'resize' : 'move', start: point, startClient: { x: event.clientX, y: event.clientY }, annotation: gestureAnnotation, handle, moved: false };
+                gestureRef.current = gesture; pendingDraftRef.current = gestureAnnotation; setDraft(gestureAnnotation);
+                setInteraction({ mode: gesture.mode, annotationType: annotation.type });
+                event.currentTarget.classList.add('annotation-overlay--active-interaction');
                 activePointerRef.current = event.pointerId; safelyCapturePointer(event.currentTarget, event.pointerId);
                 if (!handle && !rotate && event.pointerType === 'touch') {
                     const overlay = event.currentTarget;
                     const pointerId = event.pointerId;
                     longPressRef.current = window.setTimeout(() => {
                         if (gestureRef.current?.moved) return;
-                        safelyReleasePointer(overlay, pointerId);
-                        cancelAnimationFrame(frameRef.current);
-                        frameRef.current = 0;
                         gestureRef.current = null;
                         pendingDraftRef.current = null;
                         activePointerRef.current = null;
-                        setObjectGestureActive(false);
+                        safelyReleasePointer(overlay, pointerId);
+                        cancelAnimationFrame(frameRef.current);
+                        frameRef.current = 0;
+                        setInteraction(null);
+                        overlay.classList.remove('annotation-overlay--active-interaction');
                         setDraft(null);
                         clearPreview();
                         setMenuId(annotation.id);
@@ -233,8 +235,8 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
         const annotation = createAnnotation(activeTool, pageId, point, normalizedHighlighter, layout.viewport.scale);
         if (!annotation) return;
         if (annotation.type === 'text') { add(annotation); setTool('select'); return; }
-        if (isPathAnnotation(annotation)) event.currentTarget.classList.add('annotation-overlay--path-gesture');
-        event.preventDefault(); select(annotation.id); setDraft(annotation); pendingDraftRef.current = annotation; gestureRef.current = { mode: 'create', start: point, startClient: { x: event.clientX, y: event.clientY }, annotation, moved: false }; activePointerRef.current = event.pointerId; safelyCapturePointer(event.currentTarget, event.pointerId);
+        event.currentTarget.classList.add('annotation-overlay--active-interaction');
+        event.preventDefault(); select(annotation.id); setDraft(annotation); pendingDraftRef.current = annotation; gestureRef.current = { mode: 'create', start: point, startClient: { x: event.clientX, y: event.clientY }, annotation, moved: false }; setInteraction({ mode: 'create', annotationType: annotation.type }); activePointerRef.current = event.pointerId; safelyCapturePointer(event.currentTarget, event.pointerId);
     };
     const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
         updateCursorPosition(event);
@@ -250,12 +252,12 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
         const next = gesture.mode === 'rotate'
             ? { ...gesture.annotation, rotation: rotationFromPointer(gesture.annotation, gesture.start, point), updatedAt: Date.now() }
             : gesture.mode === 'resize'
-            ? { ...gesture.annotation, ...constrainAnnotationBounds(gesture.annotation, resizeBounds(gesture.annotation, dx, dy, resizeHandleForPageRotation(gesture.handle ?? 'se', layout.viewport.rotation)), pageSize.width, pageSize.height), updatedAt: Date.now() }
+            ? resizeAnnotation(gesture.annotation, dx, dy, resizeHandleForPageRotation(gesture.handle ?? 'se', layout.viewport.rotation), pageSize.width, pageSize.height)
             : currentPath && gesture.mode === 'create'
-            ? { ...currentPath, points: appendDistinctPathPoints(currentPath.points, getStrokePoints(event), 0.75 / Math.max(0.01, layout.viewport.scale)), updatedAt: Date.now() }
+            ? withPathBounds({ ...currentPath, points: appendDistinctPathPoints(currentPath.points, getStrokePoints(event), 0.75 / Math.max(0.01, layout.viewport.scale)), updatedAt: Date.now() })
             : gesture.mode === 'move'
                 ? gesture.annotation.type === 'draw' || gesture.annotation.type === 'highlight'
-                    ? { ...gesture.annotation, points: movePointsWithinPage(gesture.annotation.points, dx, dy, pageSize.width, pageSize.height), updatedAt: Date.now() }
+                    ? withPathBounds({ ...gesture.annotation, points: movePointsWithinPage(gesture.annotation.points, dx, dy, pageSize.width, pageSize.height), updatedAt: Date.now() })
                     : { ...gesture.annotation, ...constrainBounds({ ...gesture.annotation, x: gesture.annotation.x + dx, y: gesture.annotation.y + dy }, pageSize.width, pageSize.height), updatedAt: Date.now() }
                 : { ...gesture.annotation, ...boundsFromPoints(gesture.start, point), updatedAt: Date.now() };
         pendingDraftRef.current = next as PdfAnnotation;
@@ -276,11 +278,9 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
         const gesture = gestureRef.current;
         let latestDraft = pendingDraftRef.current ?? draft;
         if (appendFinalPoint && gesture?.mode === 'create' && latestDraft && isPathAnnotation(latestDraft)) {
-            latestDraft = { ...latestDraft, points: appendDistinctPathPoints(latestDraft.points, [getPoint(event)], 0.75 / Math.max(0.01, layout.viewport.scale)), updatedAt: Date.now() };
+            latestDraft = withPathBounds({ ...latestDraft, points: appendDistinctPathPoints(latestDraft.points, [getPoint(event)], 0.75 / Math.max(0.01, layout.viewport.scale)), updatedAt: Date.now() });
         }
-        safelyReleasePointer(event.currentTarget, event.pointerId);
-        event.currentTarget.classList.remove('annotation-overlay--path-gesture');
-        if (!gesture || !latestDraft) { gestureRef.current = null; pendingDraftRef.current = null; activePointerRef.current = null; setObjectGestureActive(false); setDraft(null); clearPreview(); return; }
+        if (!gesture || !latestDraft) { gestureRef.current = null; pendingDraftRef.current = null; activePointerRef.current = null; setInteraction(null); event.currentTarget.classList.remove('annotation-overlay--active-interaction'); safelyReleasePointer(event.currentTarget, event.pointerId); setDraft(null); clearPreview(); return; }
         const completedHighlight = gesture.mode === 'create' && latestDraft.type === 'highlight';
         let committed = false;
         if (gesture.mode === 'create') {
@@ -294,14 +294,15 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
             update(latestDraft.id, latestDraft);
             committed = true;
         }
-        gestureRef.current = null; pendingDraftRef.current = null; activePointerRef.current = null; cancelAnimationFrame(frameRef.current); frameRef.current = 0; setObjectGestureActive(false); setDraft(null);
+        gestureRef.current = null; pendingDraftRef.current = null; activePointerRef.current = null; cancelAnimationFrame(frameRef.current); frameRef.current = 0; setInteraction(null); event.currentTarget.classList.remove('annotation-overlay--active-interaction'); safelyReleasePointer(event.currentTarget, event.pointerId); setDraft(null);
         clearPreview(committed);
         if (completedHighlight) {
             cursorPositionRef.current = null;
             setCursorPosition(null);
             setCursorOverPdf(false);
             setActivePointerType(null);
-            setIsHighlighting(false);
+            setTool('select');
+        } else if (gesture.mode === 'create' && !isPathAnnotation(latestDraft) && committed) {
             setTool('select');
         }
     }
@@ -314,10 +315,12 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
             return;
         }
         cancelLongPress();
-        safelyReleasePointer(event.currentTarget, event.pointerId);
-        event.currentTarget.classList.remove('annotation-overlay--path-gesture');
-        gestureRef.current = null; pendingDraftRef.current = null; activePointerRef.current = null; cancelAnimationFrame(frameRef.current); frameRef.current = 0; setObjectGestureActive(false); setDraft(null);
+        gestureRef.current = null; pendingDraftRef.current = null; activePointerRef.current = null; cancelAnimationFrame(frameRef.current); frameRef.current = 0; setInteraction(null); event.currentTarget.classList.remove('annotation-overlay--active-interaction'); safelyReleasePointer(event.currentTarget, event.pointerId); setDraft(null);
         clearPreview();
+    };
+    const onLostPointerCapture = (event: PointerEvent<HTMLDivElement>) => {
+        if (activePointerRef.current !== event.pointerId || !gestureRef.current) return;
+        completeGesture(event, false);
     };
     const onPointerLeave = (event: PointerEvent<HTMLDivElement>) => {
         const gesture = gestureRef.current;
@@ -331,15 +334,15 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
     };
     const editText = (id: string) => { setMenuId(null); window.setTimeout(() => overlayRef.current?.querySelector<HTMLTextAreaElement>(`[data-annotation-id="${id}"] textarea`)?.focus(), 0); };
     const rendered = draft && !annotations.some((annotation) => annotation.id === draft.id) ? [...annotations, draft] : annotations.map((annotation) => annotation.id === draft?.id ? draft : annotation);
+    const isHighlighting = interaction?.mode === 'create' && interaction.annotationType === 'highlight';
     const showHighlighterCursor = isHighlighterActive && isCursorOverPdf && cursorPosition && (activePointerType === 'mouse' || isHighlighting);
     const liveCursorPosition = cursorPositionRef.current ?? cursorPosition;
     const cursorDiameter = highlighterSize;
     const cursorColor = hexToRgb(highlighterColor, '#ffe066');
-    const isPathGestureActive = gestureRef.current?.mode === 'create' && isPathAnnotation(gestureRef.current.annotation);
     const highlighterCursor = showHighlighterCursor && typeof document !== 'undefined'
         ? createPortal(<span ref={cursorIndicatorRef} className={`highlighter-pointer-indicator${liveCursorPosition?.pointerType === 'touch' ? ' is-touch' : ''}`} style={{ left: liveCursorPosition?.clientX, top: liveCursorPosition?.clientY, width: cursorDiameter, height: cursorDiameter, backgroundColor: `rgba(${cursorColor.r}, ${cursorColor.g}, ${cursorColor.b}, ${normalizedHighlighter.opacity})` }} aria-hidden="true" />, document.body)
         : null;
-    return <><div ref={overlayRef} className={`annotation-overlay annotation-overlay--${activeTool}${showHighlighterCursor && activePointerType === 'mouse' ? ' annotation-overlay--custom-highlighter-cursor' : ''}${isHighlighting && activePointerType !== 'mouse' ? ' annotation-overlay--highlighting' : ''}${isObjectGestureActive ? ' annotation-overlay--object-gesture' : ''}${isPathGestureActive ? ' annotation-overlay--path-gesture' : ''}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={cancelGesture} onPointerEnter={onPointerEnter} onPointerLeave={onPointerLeave}>{rendered.map((annotation) => <AnnotationItem key={annotation.id} annotation={annotation} viewport={layout.viewport} selected={selectedIds.includes(annotation.id)} onUpdate={(patch) => update(annotation.id, patch)} onDuplicate={() => duplicate(annotation.id)} onDelete={() => remove(annotation.id)} onForward={() => reorder(annotation.id, 'forward')} onBackward={() => reorder(annotation.id, 'backward')} onEdit={() => editText(annotation.id)} formValues={formValues} onFormValue={setFormValue} />)}
+    return <><div ref={overlayRef} className={`annotation-overlay annotation-overlay--${activeTool}${showHighlighterCursor && activePointerType === 'mouse' ? ' annotation-overlay--custom-highlighter-cursor' : ''}${isHighlighting && activePointerType !== 'mouse' ? ' annotation-overlay--highlighting' : ''}${interaction && interaction.mode !== 'create' ? ' annotation-overlay--object-gesture' : ''}${interaction ? ' annotation-overlay--active-interaction' : ''}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={cancelGesture} onLostPointerCapture={onLostPointerCapture} onPointerEnter={onPointerEnter} onPointerLeave={onPointerLeave}>{rendered.map((annotation) => <AnnotationItem key={annotation.id} annotation={annotation} viewport={layout.viewport} selected={selectedIds.includes(annotation.id)} onUpdate={(patch) => update(annotation.id, patch)} onDuplicate={() => duplicate(annotation.id)} onDelete={() => remove(annotation.id)} onForward={() => reorder(annotation.id, 'forward')} onBackward={() => reorder(annotation.id, 'backward')} onEdit={() => editText(annotation.id)} formValues={formValues} onFormValue={setFormValue} />)}
         {menuId && <div className="mobile-object-menu" role="menu" aria-label="Object actions">{annotations.some((item) => item.id === menuId && item.type === 'text') && <button type="button" onClick={() => editText(menuId)}><Pencil size={17} />Edit</button>}<button type="button" onClick={() => { duplicate(menuId); setMenuId(null); }}><Copy size={17} />Duplicate</button><button type="button" onClick={() => { reorder(menuId, 'forward'); setMenuId(null); }}><ArrowUp size={17} />Bring Forward</button><button type="button" onClick={() => { reorder(menuId, 'backward'); setMenuId(null); }}><ArrowDown size={17} />Send Backward</button><button type="button" onClick={() => { remove(menuId); setMenuId(null); }}><Trash2 size={17} />Delete</button></div>}
     </div>{highlighterCursor}</>;
 }
@@ -354,14 +357,15 @@ function AnnotationItem({ annotation, viewport, selected, onUpdate, onDuplicate,
         const points = annotation.points.map((point) => pdfPointToViewport(point, viewport));
         const path = pathCommandsToSvg(smoothPathCommands(points));
         const paint = pathPaint(annotation, viewport.scale);
-        return <svg className={`annotation-item annotation-path${annotation.type === 'highlight' ? ' annotation-highlight-path' : ''}`} style={{ ...style, left: 0, top: 0, width: '100%', height: '100%', opacity: 1 }}><path data-annotation-id={annotation.id} d={path} fill="none" stroke="transparent" strokeWidth={Math.max(22, paint.width + 12)} strokeLinecap="round" strokeLinejoin="round" />{selected && <path d={path} fill="none" pointerEvents="none" stroke="#178a49" strokeWidth={paint.width + 8} strokeDasharray="5 5" strokeOpacity=".9" strokeLinecap="round" strokeLinejoin="round" />}<path d={path} fill="none" pointerEvents="none" stroke={paint.color} strokeOpacity={paint.opacity} strokeWidth={paint.width} strokeLinecap={paint.lineCap} strokeLinejoin={paint.lineJoin} /></svg>;
+        const pathSelectionBox = pdfBoundsToViewport(pathBounds(annotation.points), viewport);
+        return <><svg className={`annotation-item annotation-path${annotation.type === 'highlight' ? ' annotation-highlight-path' : ''}`} style={{ ...style, left: 0, top: 0, width: '100%', height: '100%', opacity: 1 }}><path data-annotation-id={annotation.id} d={path} fill="none" stroke="transparent" strokeWidth={Math.max(22, paint.width + 12)} strokeLinecap="round" strokeLinejoin="round" /><path d={path} fill="none" pointerEvents="none" stroke={paint.color} strokeOpacity={paint.opacity} strokeWidth={paint.width} strokeLinecap={paint.lineCap} strokeLinejoin={paint.lineJoin} /></svg>{selected && <div data-annotation-id={annotation.id} className="annotation-path-selection annotation-item--selected" style={{ left: pathSelectionBox.left, top: pathSelectionBox.top, width: pathSelectionBox.width, height: pathSelectionBox.height, zIndex: 2_147_480_000 }}><ResizeHandles />{controls}</div>}</>;
     }
     if (annotation.type === 'text') return <div data-annotation-id={annotation.id} className={`annotation-item annotation-text${selectedClass}`} style={{ ...style, padding: annotation.padding, border: `${annotation.borderWidth}px solid ${annotation.borderColor}`, background: hexWithOpacity(annotation.backgroundColor, annotation.backgroundOpacity) }}><EditableText annotation={annotation} scale={viewport.scale} selected={selected} onUpdate={onUpdate} />{selectionHandles}</div>;
     if (annotation.type === 'image' || annotation.type === 'signature') return <div data-annotation-id={annotation.id} className={`annotation-item annotation-image-wrap${selectedClass}`} style={style}><img className="annotation-image" src={annotation.source} alt={annotation.type === 'image' ? 'Added annotation' : annotation.signatureKind === 'date' ? 'Added date' : annotation.signatureKind === 'checkmark' ? 'Added checkmark' : 'Visual signature'} draggable={false} />{selectionHandles}</div>;
     if (annotation.type === 'stamp') return <div data-annotation-id={annotation.id} className={`annotation-item annotation-stamp${selectedClass}`} style={{ ...style, color: annotation.color, borderColor: annotation.color }}>{annotation.text}</div>;
     if (annotation.type === 'form-text' || annotation.type === 'form-signature') return <input data-annotation-id={annotation.id} className={`annotation-item annotation-form${selectedClass}`} style={style} aria-label={annotation.name} placeholder={annotation.type === 'form-signature' ? 'Signature' : annotation.name} value={String(formValues[annotation.name] ?? annotation.defaultValue)} onChange={(event) => onFormValue(annotation.name, event.target.value)} />;
     if (annotation.type === 'form-checkbox') return <input data-annotation-id={annotation.id} className={`annotation-item annotation-checkbox${selectedClass}`} style={style} aria-label={annotation.name} type="checkbox" checked={Boolean(formValues[annotation.name] ?? annotation.defaultValue)} onChange={(event) => onFormValue(annotation.name, event.target.checked)} />;
-    return <div data-annotation-id={annotation.id} className={`annotation-item annotation-shape-wrap${selectedClass}`} style={style}><svg className="annotation-shape" viewBox={`0 0 ${Math.max(2, box.width)} ${Math.max(2, box.height)}`}><Shape annotation={annotation} width={box.width} height={box.height} /></svg>{selectionHandles}</div>;
+    return <div data-annotation-id={annotation.id} className={`annotation-item annotation-shape-wrap${selectedClass}`} style={style}><svg className="annotation-shape" viewBox={`0 0 ${Math.max(2, box.width)} ${Math.max(2, box.height)}`}><Shape annotation={annotation} width={box.width} height={box.height} scale={viewport.scale} /></svg>{selectionHandles}</div>;
 }
 
 function ResizeHandles() { return <>{(['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'] as const).map((handle) => <i key={handle} className={`resize-handle resize-handle--${handle}`} data-resize-handle={handle} aria-hidden="true" />)}</>; }
@@ -387,6 +391,14 @@ function movePointsWithinPage(points: Point[], dx: number, dy: number, pageWidth
 function isPathAnnotation(annotation: PdfAnnotation): annotation is Extract<PdfAnnotation, { type: 'draw' | 'highlight' }> {
     return annotation.type === 'draw' || annotation.type === 'highlight';
 }
+function withPathBounds<T extends Extract<PdfAnnotation, { type: 'draw' | 'highlight' }>>(annotation: T): T {
+    return { ...annotation, ...pathBounds(annotation.points) };
+}
+function resizeAnnotation(annotation: PdfAnnotation, dx: number, dy: number, handle: ResizeHandle, pageWidth: number, pageHeight: number): PdfAnnotation {
+    const bounds = constrainAnnotationBounds(annotation, resizeBounds(annotation, dx, dy, handle), pageWidth, pageHeight);
+    if (!isPathAnnotation(annotation)) return { ...annotation, ...bounds, updatedAt: Date.now() };
+    return withPathBounds({ ...annotation, points: resizePathPoints(annotation.points, pathBounds(annotation.points), bounds), updatedAt: Date.now() });
+}
 function rotationFromPointer(annotation: PdfAnnotation, start: Point, current: Point) {
     const center = { x: annotation.x + annotation.width / 2, y: annotation.y + annotation.height / 2 };
     const startAngle = Math.atan2(start.y - center.y, start.x - center.x);
@@ -400,8 +412,8 @@ function hexWithOpacity(hex: string, opacity: number) {
     return `rgba(${Number.parseInt(full.slice(0, 2), 16)},${Number.parseInt(full.slice(2, 4), 16)},${Number.parseInt(full.slice(4, 6), 16)},${opacity})`;
 }
 
-function Shape({ annotation, width, height }: { annotation: Extract<PdfAnnotation, { type: 'rectangle' | 'rounded-rectangle' | 'ellipse' | 'line' | 'arrow' | 'triangle' }>; width: number; height: number }) {
-    const common = { stroke: annotation.strokeColor, strokeWidth: annotation.strokeWidth, fill: ['rectangle', 'rounded-rectangle', 'ellipse', 'triangle'].includes(annotation.type) ? annotation.fillColor : 'none' };
+function Shape({ annotation, width, height, scale }: { annotation: Extract<PdfAnnotation, { type: 'rectangle' | 'rounded-rectangle' | 'ellipse' | 'line' | 'arrow' | 'triangle' }>; width: number; height: number; scale: number }) {
+    const common = { stroke: annotation.strokeColor, strokeWidth: annotation.strokeWidth * scale, fill: ['rectangle', 'rounded-rectangle', 'ellipse', 'triangle'].includes(annotation.type) ? annotation.fillColor : 'none' };
     if (annotation.type === 'ellipse') return <ellipse cx={width / 2} cy={height / 2} rx={Math.max(1, width / 2 - 1)} ry={Math.max(1, height / 2 - 1)} {...common} />;
     if (annotation.type === 'rectangle' || annotation.type === 'rounded-rectangle') return <rect x="1" y="1" rx={annotation.type === 'rounded-rectangle' ? 10 : 0} width={Math.max(1, width - 2)} height={Math.max(1, height - 2)} {...common} />;
     if (annotation.type === 'triangle') return <polygon points={`${width / 2},1 ${width - 1},${height - 1} 1,${height - 1}`} {...common} />;
