@@ -1,4 +1,4 @@
-# 🎉 PDF Editor by ib — Step 3 Complete!
+# 🎉 PDF by ib — Step 3 Complete!
 
 ## Project Status: Foundation Complete ✅
 

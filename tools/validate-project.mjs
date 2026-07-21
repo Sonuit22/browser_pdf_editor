@@ -95,7 +95,9 @@ async function validateHtml(relativePath) {
     const links = [...html.matchAll(/\s(?:href|src)="([^"]+)"/g)].map((match) => match[1]);
     for (const link of links) {
         const target = localTargetFromUrl(link, relativePath);
-        if (target && !(await exists(target))) {
+        const existsAtRoot = target ? await exists(target) : true;
+        const existsInPublic = target && link.startsWith('/') ? await exists(path.join('public', target)) : false;
+        if (target && !existsAtRoot && !existsInPublic) {
             errors.push(`${relativePath}: missing linked asset ${link}`);
         }
     }

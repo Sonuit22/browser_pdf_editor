@@ -1,6 +1,6 @@
 # 📚 Git & GitHub Documentation Index
 
-**For PDF Editor by ib - Complete Setup Guides**
+**For PDF by ib - Complete Setup Guides**
 
 ---
 

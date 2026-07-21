@@ -1,4 +1,4 @@
-# Git & GitHub Setup Guide - PDF Editor by ib
+# Git & GitHub Setup Guide - PDF by ib
 
 ## Current Status ✅
 

@@ -1,4 +1,4 @@
-# Architecture Guide - PDF Editor by ib
+# Architecture Guide - PDF by ib
 
 Complete architecture and design patterns for the project.
 

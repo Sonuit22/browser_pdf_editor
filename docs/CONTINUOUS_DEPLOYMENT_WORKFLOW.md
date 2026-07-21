@@ -1,6 +1,6 @@
 # Continuous Deployment Workflow
 
-**PDF Editor by ib** - Daily Development & Deployment
+**PDF by ib** - Daily Development & Deployment
 
 ---
 

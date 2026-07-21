@@ -1,5 +1,5 @@
 /**
- * Main JavaScript Entry Point for PDF Editor by ib
+ * Main JavaScript Entry Point for PDF by ib
  * 
  * This file serves as the primary JavaScript entry point.
  * It handles:

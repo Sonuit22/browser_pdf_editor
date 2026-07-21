@@ -1,5 +1,5 @@
 /**
- * Service Worker for PDF Editor by ib
+ * Service Worker for PDF by ib
  * 
  * This service worker provides:
  * - Installation and activation lifecycle management
@@ -20,8 +20,10 @@ const CORE_ASSETS = [
     '/manifest.json',
     '/assets/css/style.css',
     '/assets/js/main.js',
-    '/assets/icons/favicon.svg',
-    '/assets/icons/app-icon.svg',
+    '/logo-32.png',
+    '/logo-64.png',
+    '/logo-192.png',
+    '/logo-512.png',
 ];
 
 /**

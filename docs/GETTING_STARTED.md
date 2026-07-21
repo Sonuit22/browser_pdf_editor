@@ -1,4 +1,4 @@
-# Getting Started with PDF Editor by ib
+# Getting Started with PDF by ib
 
 Quick start guide for developers setting up the project locally.
 
@@ -59,7 +59,7 @@ php -S localhost:8000
 ### In Browser
 
 1. **Visit http://localhost:8000**
-   - Should see "PDF Editor by ib" title
+   - Should see "PDF by ib" title
    - Should see "Coming Soon" message
    - Links to Privacy and Terms should work
 
@@ -78,7 +78,7 @@ php -S localhost:8000
    - Go to "Console" tab
    - Should see messages:
      ```
-     [App] Initializing PDF Editor by ib
+     [App] Initializing PDF by ib
      [ServiceWorker] Registration successful
      [App] Initialization complete
      ```
@@ -103,7 +103,7 @@ php -S localhost:8000
 
 1. Open `index.html` in your editor
 2. Find the line: `<p>Coming Soon</p>`
-3. Change to: `<p>Welcome to PDF Editor by ib 👋</p>`
+3. Change to: `<p>Welcome to PDF by ib 👋</p>`
 4. Save file (Ctrl+S)
 5. Refresh browser
 6. Should see your change immediately

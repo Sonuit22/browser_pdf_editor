@@ -1,6 +1,6 @@
 # 📚 Vercel Deployment Documentation Index
 
-**PDF Editor by ib** - Complete Deployment Guides
+**PDF by ib** - Complete Deployment Guides
 
 ---
 

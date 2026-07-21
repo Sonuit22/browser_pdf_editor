@@ -6,7 +6,7 @@ function decoded(link: string) { return decodeURIComponent(link); }
 describe('footer destinations', () => {
     it('uses the configured support address and complete support template', () => {
         expect(supportEmailLink).toContain(`mailto:${contactEmail}`);
-        expect(decoded(supportEmailLink)).toContain('Support Request - PDF Editor by ib');
+        expect(decoded(supportEmailLink)).toContain('Support Request - PDF by ib');
         expect(decoded(supportEmailLink)).toContain('Browser:');
         expect(decoded(supportEmailLink)).toContain('Device:');
     });

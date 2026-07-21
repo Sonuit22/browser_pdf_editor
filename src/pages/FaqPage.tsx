@@ -3,13 +3,13 @@ import { ArrowLeft, ChevronDown, CircleHelp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const faqs = [
-    ['Is PDF Editor by ib free?', 'Yes. Most PDF tools are free and run entirely in your browser.'],
+    ['Is PDF by ib free?', 'Yes. Most PDF tools are free and run entirely in your browser.'],
     ['Are my files uploaded?', 'No. Files remain on your device whenever browser-based processing is supported.'],
     ['Is my data secure?', 'Yes. We never store or upload your documents.'],
     ['Which file types are supported?', 'PDF, JPG, PNG, JPEG, DOCX and PPTX are supported, although tool availability may vary.'],
     ['Why does a tool say “Coming Soon”?', 'It is currently under development and will be available in a future update.'],
     ['Why is a tool labelled “Basic”?', 'The feature works but may not preserve complex formatting.'],
-    ['Does it work on mobile?', 'Yes. PDF Editor by ib is optimized for desktop, tablet, and mobile devices.'],
+    ['Does it work on mobile?', 'Yes. PDF by ib is optimized for desktop, tablet, and mobile devices.'],
     ['Do I need to create an account?', 'No. No registration is required.'],
 ] as const;
 

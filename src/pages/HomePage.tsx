@@ -3,7 +3,6 @@ import {
     BadgeDollarSign,
     Bolt,
     CheckCircle2,
-    CloudOff,
     MonitorSmartphone,
     ShieldCheck,
     UploadCloud,
@@ -97,16 +96,16 @@ export default function HomePage() {
         <section className="landing-hero" aria-labelledby="landing-title">
             <div className="landing-hero__content">
                 <span className="landing-privacy-pill"><ShieldCheck size={16} aria-hidden="true" />Private by design</span>
-                <h1 id="landing-title">PDF Editor by ib</h1>
-                <p className="landing-hero__tagline">Edit PDFs securely in your browser. No uploads. No servers. Your files stay on your device.</p>
+                <h1 id="landing-title">PDF by ib</h1>
+                <p className="landing-hero__tagline">
+                    <span>Edit PDFs securely in your browser.</span>
+                    <span>No uploads.</span>
+                    <span>No servers.</span>
+                    <span>Your files stay on your device.</span>
+                </p>
                 <div className="landing-hero__actions">
-                    <button className="button button--primary landing-cta" type="button" onClick={choosePdf} disabled={isLoading}>
-                        <UploadCloud size={18} aria-hidden="true" />
-                        {isLoading ? 'Opening PDF…' : 'Upload PDF'}
-                    </button>
                     <a className="button button--secondary landing-cta" href="#tools">View All Tools</a>
                 </div>
-                <p className="landing-local-note"><CloudOff size={16} aria-hidden="true" />Processing stays on this device.</p>
             </div>
 
             <section

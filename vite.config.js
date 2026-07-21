@@ -23,8 +23,8 @@ function copyRootAssets() {
                     const html = await readFile(outputPath, 'utf8');
                     const normalized = html
                         .replace(/href="\/assets\/manifest-[^"]+\.json"/g, 'href="/manifest.json"')
-                        .replace(/href="\/assets\/favicon-[^"]+\.svg"/g, 'href="/assets/icons/favicon.svg"')
-                        .replace(/href="\/assets\/app-icon-[^"]+\.svg"/g, 'href="/assets/icons/app-icon.svg"');
+                        .replace(/href="\/assets\/logo-32-[^"]+\.png"/g, 'href="/logo-32.png"')
+                        .replace(/href="\/assets\/logo-192-[^"]+\.png"/g, 'href="/logo-192.png"');
 
                     await writeFile(outputPath, normalized);
                 })

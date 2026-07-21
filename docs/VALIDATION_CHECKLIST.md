@@ -1,4 +1,4 @@
-# Git & GitHub Validation Checklist - PDF Editor by ib
+# Git & GitHub Validation Checklist - PDF by ib
 
 ## ✅ Pre-Setup Verification
 

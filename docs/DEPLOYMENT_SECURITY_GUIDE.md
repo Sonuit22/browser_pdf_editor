@@ -1,6 +1,6 @@
 # Vercel Deployment Security & Future Compatibility
 
-**PDF Editor by ib** - Security Best Practices & Architecture Future-Proofing
+**PDF by ib** - Security Best Practices & Architecture Future-Proofing
 
 ---
 

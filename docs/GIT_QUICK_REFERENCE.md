@@ -1,4 +1,4 @@
-# Git & GitHub Quick Reference - PDF Editor by ib
+# Git & GitHub Quick Reference - PDF by ib
 
 ## 🚀 The 5-Minute Workflow
 

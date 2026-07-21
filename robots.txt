@@ -1,4 +1,4 @@
-# robots.txt for PDF Editor by ib
+# robots.txt for PDF by ib
 # SEO-friendly robots configuration for search engine crawlers
 
 # Allow all crawlers by default

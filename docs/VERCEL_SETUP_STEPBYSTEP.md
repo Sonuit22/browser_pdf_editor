@@ -217,7 +217,7 @@ Visit Production: https://browser-pdf-editor.vercel.app
 
 Open the URL in your browser.
 
-You should see your **PDF Editor by ib** homepage!
+You should see your **PDF by ib** homepage!
 
 ---
 

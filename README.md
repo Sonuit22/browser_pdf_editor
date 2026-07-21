@@ -1,4 +1,4 @@
-# PDF Editor by ib
+# PDF by ib
 
 A **production-ready, browser-based PDF editor** built with modern web standards. No backend required. No installation needed. 100% client-side processing.
 
@@ -24,7 +24,7 @@ A **production-ready, browser-based PDF editor** built with modern web standards
 
 ## Project Overview
 
-**PDF Editor by ib** is a lightweight, feature-rich PDF manipulation tool that runs entirely in the browser. All PDF processing happens client-side, ensuring:
+**PDF by ib** is a lightweight, feature-rich PDF manipulation tool that runs entirely in the browser. All PDF processing happens client-side, ensuring:
 
 - **Privacy**: Your PDFs never leave your device
 - **Speed**: No server overhead or latency

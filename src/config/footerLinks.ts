@@ -6,7 +6,7 @@ function emailLink(subject: string, body: string) {
     return `mailto:${contactEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-export const supportEmailLink = emailLink('Support Request - PDF Editor by ib', `Hello,
+export const supportEmailLink = emailLink('Support Request - PDF by ib', `Hello,
 
 I need help with:
 
@@ -20,7 +20,7 @@ Description:
 
 Thank you.`);
 
-export const bugReportEmailLink = emailLink('Bug Report - PDF Editor by ib', `Please describe the issue.
+export const bugReportEmailLink = emailLink('Bug Report - PDF by ib', `Please describe the issue.
 
 Tool:
 
@@ -36,7 +36,7 @@ Actual result:
 
 Attachment (optional):`);
 
-export const featureRequestEmailLink = emailLink('Feature Request - PDF Editor by ib', `Feature title:
+export const featureRequestEmailLink = emailLink('Feature Request - PDF by ib', `Feature title:
 
 Description:
 

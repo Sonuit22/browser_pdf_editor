@@ -2,7 +2,7 @@
 
 ## 🎯 Objective
 
-Configure automatic production deployment for PDF Editor by ib using Vercel with GitHub integration.
+Configure automatic production deployment for PDF by ib using Vercel with GitHub integration.
 
 ---
 

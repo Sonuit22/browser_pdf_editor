@@ -1,4 +1,4 @@
-import { ArrowLeft, FileText, Home, Menu, Search, X } from 'lucide-react';
+import { ArrowLeft, Home, Menu, Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { toolRegistry } from '../config/toolRegistry';
@@ -12,7 +12,7 @@ export function Header({ isSidebarOpen, onMenuToggle, onNavigateRequest }: { isS
     const leaveSearch = () => { setQuery(''); setMobileSearch(false); };
     return <header className="app-header"><div className="app-header__inner">
         <button className="icon-button menu-button" type="button" onClick={onMenuToggle} aria-label="Toggle PDF tools" aria-controls="tool-sidebar" aria-expanded={isSidebarOpen} title="PDF tools"><Menu size={21} aria-hidden="true" /></button>
-        <Link className="header-brand" to="/" onClick={(event) => { event.preventDefault(); leaveSearch(); onNavigateRequest('/'); }}><FileText size={24} aria-hidden="true" /><span>PDF Editor <small>by ib</small></span></Link>
+        <Link className="header-brand" to="/" aria-label="PDF by ib home" onClick={(event) => { event.preventDefault(); leaveSearch(); onNavigateRequest('/'); }}><img className="header-brand__logo" src="/logo-64.png" width="36" height="36" alt="" aria-hidden="true" /><span>PDF by ib</span></Link>
         <nav className="header-history" aria-label="Page navigation">
             <Link className="icon-button" to="/" onClick={(event) => { event.preventDefault(); onNavigateRequest('/'); }} aria-label="Home" title="Home"><Home size={19} aria-hidden="true" /></Link>
             {location.pathname !== '/' && <button className="icon-button" type="button" onClick={() => onNavigateRequest('back')} aria-label="Back" title="Back"><ArrowLeft size={19} aria-hidden="true" /></button>}

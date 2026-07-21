@@ -1,6 +1,6 @@
 # Vercel Deployment Verification Checklist
 
-**PDF Editor by ib** - Complete Deployment Validation
+**PDF by ib** - Complete Deployment Validation
 
 ---
 
@@ -90,7 +90,7 @@ Before importing into Vercel, verify:
 - [ ] Page loads in browser
 - [ ] No 404 errors
 - [ ] No console errors (F12 → Console)
-- [ ] Title shows: "PDF Editor by ib"
+- [ ] Title shows: "PDF by ib"
 - [ ] All text is visible
 - [ ] CSS is applied (layout looks correct)
 - [ ] No white flash or unstyled content

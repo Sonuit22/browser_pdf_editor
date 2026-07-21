@@ -4,9 +4,9 @@ import { Link } from 'react-router-dom';
 const pages = {
     privacy: {
         title: 'Privacy Policy',
-        description: 'How PDF Editor by ib protects your documents and personal information.',
+        description: 'How PDF by ib protects your documents and personal information.',
         icon: ShieldCheck,
-        intro: 'PDF Editor by ib is designed around local browser processing and data minimization.',
+        intro: 'PDF by ib is designed around local browser processing and data minimization.',
         items: [
             'Files are processed locally in your browser whenever the selected tool supports browser-based processing.',
             'We do not permanently store documents you open or create with the application.',
@@ -19,7 +19,7 @@ const pages = {
         title: 'Terms of Service',
         description: 'Practical terms for using the browser-based PDF tools.',
         icon: ScrollText,
-        intro: 'By using PDF Editor by ib, you agree to use the application responsibly and review generated files before relying on them.',
+        intro: 'By using PDF by ib, you agree to use the application responsibly and review generated files before relying on them.',
         items: [
             'You are responsible for the documents you open, edit, convert, and download.',
             'Browser processing speed and capacity may vary depending on your device, browser, and available memory.',
@@ -34,7 +34,7 @@ export default function LegalPage({ kind }: { kind: keyof typeof pages }) {
     const page = pages[kind]; const Icon = page.icon;
     return <main className="info-page legal-page">
         <Link className="back-link" to="/"><ArrowLeft size={17} aria-hidden="true" />Home</Link>
-        <header><Icon size={29} aria-hidden="true" /><p>PDF Editor by ib</p><h1>{page.title}</h1><span>{page.description}</span></header>
+        <header><Icon size={29} aria-hidden="true" /><p>PDF by ib</p><h1>{page.title}</h1><span>{page.description}</span></header>
         <article><p>{page.intro}</p><ul>{page.items.map((item) => <li key={item}><ShieldCheck size={17} aria-hidden="true" /><span>{item}</span></li>)}</ul><p className="legal-contact">Questions about this policy can be sent to <a href="mailto:pdfeditorbyib@gmail.com">pdfeditorbyib@gmail.com</a>.</p></article>
     </main>;
 }

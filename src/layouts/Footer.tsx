@@ -3,7 +3,6 @@ import {
     Bug,
     Check,
     CircleHelp,
-    FileText,
     Github,
     Home,
     Lightbulb,
@@ -26,15 +25,15 @@ import {
 export function Footer() {
     return <footer className="app-footer">
         <div className="footer-main">
-            <section className="footer-brand" aria-label="PDF Editor by ib">
-                <Link to="/" className="footer-logo"><FileText size={23} aria-hidden="true" /><span>PDF Editor <small>by ib</small></span></Link>
+            <section className="footer-brand" aria-label="PDF by ib">
+                <Link to="/" className="footer-logo"><img src="/logo-64.png" width="32" height="32" alt="" aria-hidden="true" /><span>PDF by ib</span></Link>
                 <p>Fast <b>•</b> Secure <b>•</b> 100% browser-based PDF tools</p>
                 <a className="footer-email" href={`mailto:${contactEmail}`} aria-label={`Email ${contactEmail}`}><Mail size={15} aria-hidden="true" />{contactEmail}</a>
             </section>
             <nav className="footer-links" aria-label="Quick links">
                 <h2>Quick Links</h2>
                 <Link to="/" aria-label="Home"><Home size={14} aria-hidden="true" />Home</Link>
-                <Link to="/#tools" aria-label="All PDF tools"><FileText size={14} aria-hidden="true" />All Tools</Link>
+                <Link to="/#tools" aria-label="All PDF tools"><img className="footer-link-logo" src="/logo-32.png" width="14" height="14" alt="" aria-hidden="true" />All Tools</Link>
                 <Link to="/faq" aria-label="Frequently Asked Questions"><CircleHelp size={14} aria-hidden="true" />FAQ</Link>
                 <Link to="/privacy" aria-label="Privacy Policy"><ShieldCheck size={14} aria-hidden="true" />Privacy</Link>
                 <Link to="/terms" aria-label="Terms of Service"><ScrollText size={14} aria-hidden="true" />Terms</Link>
@@ -44,7 +43,7 @@ export function Footer() {
                 <a href={supportEmailLink} aria-label="Email support"><MessageCircle size={14} aria-hidden="true" />Support</a>
                 <a href={bugReportEmailLink} aria-label="Report a bug by email"><Bug size={14} aria-hidden="true" />Report a Bug</a>
                 <a href={featureRequestEmailLink} aria-label="Send a feature request by email"><Lightbulb size={14} aria-hidden="true" />Feature Request</a>
-                <a href={githubRepositoryUrl} target="_blank" rel="noreferrer" aria-label="View PDF Editor by ib on GitHub"><Github size={14} aria-hidden="true" />GitHub</a>
+                <a href={githubRepositoryUrl} target="_blank" rel="noreferrer" aria-label="View PDF by ib on GitHub"><Github size={14} aria-hidden="true" />GitHub</a>
             </nav>
             <section className="footer-trust" aria-labelledby="trust-title">
                 <h2 id="trust-title">Private by design</h2>
@@ -56,6 +55,6 @@ export function Footer() {
                 <p>All PDF processing happens locally in your browser. Your files are never uploaded to any server.</p>
             </section>
         </div>
-        <div className="footer-bottom"><small>© {new Date().getFullYear()} PDF Editor by ib. All rights reserved. <span aria-label={`Version ${appVersion}`}>Version {appVersion}</span></small></div>
+        <div className="footer-bottom"><small>© {new Date().getFullYear()} PDF by ib. All rights reserved. <span aria-label={`Version ${appVersion}`}>Version {appVersion}</span></small></div>
     </footer>;
 }

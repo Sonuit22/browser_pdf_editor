@@ -261,7 +261,7 @@ If these all show green ✅, you're good!
 2. Check you see all your files
 3. Check the "Initial project foundation" commit
 4. Click on `Actions` tab - should show green checkmark
-5. Visit your Vercel URL - should show "PDF Editor by ib"
+5. Visit your Vercel URL - should show "PDF by ib"
 
 ---
 
