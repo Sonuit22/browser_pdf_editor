@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, RotateCw, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { usePdfEngine } from '../hooks/usePdfEngine';
@@ -18,6 +18,7 @@ import { Modal } from '../../../components/ui/Modal';
 import { RightPanel } from '../../../layouts/RightPanel';
 import { SigningToolbar } from '../editor/components/SigningToolbar';
 import { useLocation } from 'react-router-dom';
+import type { PdfAnnotation } from '../editor/types/annotations';
 
 const zoomOptions: Array<[string, ZoomPreset]> = [['Fit width', 'fit-width'], ['Fit page', 'fit-page'], ['25%', 25], ['50%', 50], ['75%', 75], ['100%', 100], ['125%', 125], ['150%', 150], ['200%', 200], ['300%', 300]];
 const rotationOptions: PdfRotation[] = [0, 90, 180, 270, 360];
@@ -25,7 +26,7 @@ const rotationOptions: PdfRotation[] = [0, 90, 180, 270, 360];
 export function PdfViewer() {
     const { pathname } = useLocation();
     const { info, zoom, rotation, setZoom, setRotation, closeDocument, failViewer } = usePdfEngine();
-    const { pages, activePageId, activePage, isInitializing, setActivePage, reorderPages, getPage, getSourceFile } = usePdfPageOperations();
+    const { documentId, pages, activePageId, activePage, isInitializing, setActivePage, reorderPages, getPage, getSourceFile } = usePdfPageOperations();
     const { annotationsByPageId, formValues, flattenForms, dirty } = usePdfEditor();
     const utilities = usePdfUtilities();
     const [exporting, setExporting] = useState(false);
@@ -33,9 +34,13 @@ export function PdfViewer() {
     const [exportProgress, setExportProgress] = useState(0);
     const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
     const [documentToolsOpen, setDocumentToolsOpen] = useState(false);
+    const [annotationPreview, setAnnotationPreview] = useState<PdfAnnotation | null>(null);
     const exportingRef = useRef(false);
     const currentPage = Math.max(1, pages.findIndex((page) => page.id === activePageId) + 1);
     const pageCount = pages.length;
+    const handleAnnotationPreview = useCallback((annotation: PdfAnnotation | null) => setAnnotationPreview(annotation), []);
+
+    useEffect(() => { setAnnotationPreview(null); }, [activePageId, documentId]);
 
     useEffect(() => {
         const onKeyDown = (event: KeyboardEvent) => {
@@ -96,8 +101,8 @@ export function PdfViewer() {
             {pageCount >= 200 && <p className="pdf-export-progress" role="status">Large document: rendering the active page and nearby thumbnails on demand.</p>}
             {exportError && <p className="pdf-export-error" role="alert">{exportError}</p>}
             <div className="pdf-viewer__body">
-                <aside className="thumbnail-sidebar" aria-label="Page thumbnails"><PageThumbnailPanel pages={pages} activePageId={activePageId} getPage={getPage} reorderEnabled onSelect={(pageId) => setActivePage(pageId)} onReorder={reorderPages} /></aside>
-                <PdfPageCanvas page={activePage} pageNumber={currentPage} getPage={getPage} zoom={zoom} rotation={rotation} onRenderError={() => failViewer('A page could not be rendered safely. Please retry the document.')}>{(layout) => <><AnnotationOverlay pageId={activePage.id} layout={layout} /><CropOverlay page={activePage} layout={layout} /><UtilityPreviewOverlay pageId={activePage.id} pageNumber={currentPage} pageCount={pageCount} filename={info.filename} /></>}</PdfPageCanvas>
+                <aside className="thumbnail-sidebar" aria-label="Page thumbnails"><PageThumbnailPanel pages={pages} activePageId={activePageId} getPage={getPage} reorderEnabled annotationsByPageId={annotationsByPageId} previewAnnotation={annotationPreview} formValues={formValues} onSelect={(pageId) => setActivePage(pageId)} onReorder={reorderPages} /></aside>
+                <PdfPageCanvas page={activePage} pageNumber={currentPage} getPage={getPage} zoom={zoom} rotation={rotation} onRenderError={() => failViewer('A page could not be rendered safely. Please retry the document.')}>{(layout) => <><AnnotationOverlay pageId={activePage.id} layout={layout} onPreviewChange={handleAnnotationPreview} /><CropOverlay page={activePage} layout={layout} /><UtilityPreviewOverlay pageId={activePage.id} pageNumber={currentPage} pageCount={pageCount} filename={info.filename} /></>}</PdfPageCanvas>
             </div>
             {closeConfirmOpen && <Modal title="Discard unsaved work" onClose={() => setCloseConfirmOpen(false)}><p>Close this document and discard unsaved edits?</p><div className="modal-actions"><Button variant="secondary" type="button" onClick={() => setCloseConfirmOpen(false)}>Keep editing</Button><Button type="button" onClick={() => { setCloseConfirmOpen(false); closeDocument(); }}>Discard work</Button></div></Modal>}
             {documentToolsOpen && <Modal title="Document tools" onClose={() => setDocumentToolsOpen(false)}><RightPanel /></Modal>}

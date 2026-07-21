@@ -1,10 +1,23 @@
-import { PDFDocument, StandardFonts, degrees, rgb, type PDFPage } from 'pdf-lib';
+import {
+    LineCapStyle,
+    LineJoinStyle,
+    PDFDocument,
+    StandardFonts,
+    degrees,
+    popGraphicsState,
+    pushGraphicsState,
+    rgb,
+    setLineCap,
+    setLineJoin,
+    type PDFPage,
+} from 'pdf-lib';
 import type { WorkingPage } from '../../organization/types/pages';
 import type { PdfAnnotation, Point } from '../types/annotations';
 import { safePdfFilename } from '../../organization/utils/pageUtils';
 import { downloadPdf } from '../../organization/utils/pdfDownload';
 import type { HeaderFooterSettings, UtilitySettings } from '../../utilities/types/utilities';
 import { cropBoxFromMargins, expandTemplate, formatPageNumber, isPageTargeted, metadataValue, positionFor } from '../../utilities/utils/utilityFormatters';
+import { hexToRgb, pathCommandsToSvg, pathPaint, smoothPathCommands } from '../utils/annotationRendering';
 
 type PdfExportInput = {
     pages: WorkingPage[];
@@ -18,11 +31,9 @@ type PdfExportInput = {
     flattenForms?: boolean;
 };
 
-function color(value: string) {
-    const hex = value.replace('#', '');
-    const normalized = hex.length === 3 ? hex.split('').map((part) => part + part).join('') : hex;
-    const number = Number.parseInt(normalized, 16);
-    return rgb(((number >> 16) & 255) / 255, ((number >> 8) & 255) / 255, (number & 255) / 255);
+function color(value: string, fallback = '#172433') {
+    const converted = hexToRgb(value, fallback);
+    return rgb(converted.r / 255, converted.g / 255, converted.b / 255);
 }
 
 function fontName(annotation: Extract<PdfAnnotation, { type: 'text' }>) {
@@ -60,11 +71,21 @@ async function drawAnnotations(pdf: PDFDocument, page: PDFPage, annotations: Pdf
             });
             const textOrigin = rotatePdfPoint({ x: annotation.x + annotation.padding, y: annotation.y + annotation.height - annotation.padding - annotation.fontSize }, center, annotation.rotation);
             page.drawText(annotation.text, { x: textOrigin.x, y: textOrigin.y, size: annotation.fontSize, lineHeight: annotation.fontSize * annotation.lineHeight, maxWidth: Math.max(10, annotation.width - annotation.padding * 2), font, color: color(annotation.color), ...shared });
-        } else if (annotation.type === 'highlight') {
-            for (let point = 1; point < annotation.points.length; point += 1) page.drawLine({ start: annotation.points[point - 1], end: annotation.points[point], color: color(annotation.color), thickness: annotation.strokeWidth, opacity: annotation.opacity });
-        } else if (annotation.type === 'draw') {
-            for (let point = 1; point < annotation.points.length; point += 1) {
-                page.drawLine({ start: annotation.points[point - 1], end: annotation.points[point], color: color(annotation.color), thickness: annotation.strokeWidth, opacity: annotation.opacity });
+        } else if (annotation.type === 'highlight' || annotation.type === 'draw') {
+            const commands = smoothPathCommands(annotation.points);
+            if (commands.length > 1) {
+                const paint = pathPaint(annotation, 1);
+                const lineCap = paint.lineCap === 'round' ? LineCapStyle.Round : LineCapStyle.Butt;
+                page.pushOperators(pushGraphicsState(), setLineJoin(LineJoinStyle.Round), setLineCap(lineCap));
+                page.drawSvgPath(pathCommandsToSvg(commands, { invertY: true }), {
+                    x: 0,
+                    y: 0,
+                    borderColor: color(paint.color),
+                    borderWidth: paint.width,
+                    borderOpacity: paint.opacity,
+                    borderLineCap: lineCap,
+                });
+                page.pushOperators(popGraphicsState());
             }
         } else if (annotation.type === 'rectangle' || annotation.type === 'rounded-rectangle') {
             page.drawRectangle({ x: rotatedOrigin.x, y: rotatedOrigin.y, width: annotation.width, height: annotation.height, borderColor: color(annotation.strokeColor), borderWidth: annotation.strokeWidth, ...(annotation.fillColor === 'transparent' ? {} : { color: color(annotation.fillColor) }), ...shared });

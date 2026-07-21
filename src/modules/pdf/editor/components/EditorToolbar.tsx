@@ -7,6 +7,7 @@ import { createAnnotationId } from '../utils/annotationUtils';
 import type { EditorTool, ImageAnnotation } from '../types/annotations';
 import { notify } from '../../../../components/feedback/notifications';
 import { readBrowserImage } from '../../../../utils/imageFiles';
+import { normalizeHighlighterSettings } from '../utils/annotationRendering';
 
 const mainTools: Array<[EditorTool, string, typeof Pencil]> = [
     ['select', 'Select objects', MousePointer2], ['text', 'Add Text', Pencil], ['image', 'Add Image', ImagePlus],
@@ -37,8 +38,9 @@ export function EditorToolbar({ onExport, exporting }: { onExport: () => void; e
     const [isHighlighterPopoverOpen, setHighlighterPopoverOpen] = useState(false);
     const [popoverPosition, setPopoverPosition] = useState({ left: 12, top: 12 });
     const isHighlighterActive = editor.activeTool === 'highlight';
-    const highlighterColor = editor.highlighterSettings.color;
-    const highlighterSize = editor.highlighterSettings.strokeWidth;
+    const normalizedHighlighter = normalizeHighlighterSettings(editor.highlighterSettings);
+    const highlighterColor = normalizedHighlighter.color;
+    const highlighterSize = normalizedHighlighter.strokeWidth;
     const focusHighlighterButton = useCallback(() => {
         window.requestAnimationFrame(() => highlighterButton.current?.focus());
     }, []);
@@ -125,7 +127,7 @@ export function EditorToolbar({ onExport, exporting }: { onExport: () => void; e
         finally { setImageBusy(false); }
     };
     const updateHighlighter = (patch: Partial<typeof editor.highlighterSettings>) => {
-        editor.updateHighlighterSettings(patch);
+        editor.updateHighlighterSettings(normalizeHighlighterSettings({ ...editor.highlighterSettings, ...patch }));
     };
     const highlighterPopover = isHighlighterPopoverOpen && isHighlighterActive && typeof document !== 'undefined'
         ? createPortal(<section id="highlighter-settings-popover" className="highlighter-settings highlighter-settings--popover" aria-label="Highlighter settings" data-highlighter-controls role="dialog" style={{ left: popoverPosition.left, top: popoverPosition.top, width: Math.min(HIGHLIGHTER_POPOVER_WIDTH, window.innerWidth - 24) }}>
@@ -134,7 +136,7 @@ export function EditorToolbar({ onExport, exporting }: { onExport: () => void; e
                 const selected = highlighterColor.toLowerCase() === color;
                 return <button type="button" key={color} aria-label={`${label} highlighter`} title={label} aria-pressed={selected} className={selected ? 'is-selected' : ''} style={{ backgroundColor: color }} onClick={() => updateHighlighter({ color })}>{selected && <Check size={16} aria-hidden="true" />}</button>;
             })}<label className="custom-color" title="Custom highlight color"><span>Custom</span><input type="color" aria-label="Custom highlight color" value={highlighterColor} onChange={(event) => updateHighlighter({ color: event.target.value })} /></label></div></fieldset>
-            <label className="highlighter-range"><span>Darkness <output>{Math.round(editor.highlighterSettings.opacity * 100)}%</output></span><input type="range" min="10" max="70" step="1" value={Math.round(editor.highlighterSettings.opacity * 100)} onChange={(event) => updateHighlighter({ opacity: Number(event.target.value) / 100 })} /></label>
+            <label className="highlighter-range"><span>Darkness <output>{Math.round(normalizedHighlighter.opacity * 100)}%</output></span><input type="range" min="10" max="60" step="1" value={Math.round(normalizedHighlighter.opacity * 100)} onChange={(event) => updateHighlighter({ opacity: Number(event.target.value) / 100 })} /></label>
             <label className="highlighter-range"><span>Marker size <output>{Math.round(highlighterSize)}px</output></span><input type="range" min="8" max="40" step="1" value={highlighterSize} onChange={(event) => updateHighlighter({ strokeWidth: Number(event.target.value) })} /></label>
         </section>, document.body)
         : null;
