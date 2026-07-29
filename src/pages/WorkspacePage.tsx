@@ -14,6 +14,7 @@ import { RightPanel } from '../layouts/RightPanel';
 import { ArrowLeft, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useShell } from '../contexts/ShellContext';
+import { ToolGuideLink } from '../blog/components/ToolGuideLink';
 
 export default function WorkspacePage() {
     const location = useLocation();
@@ -44,7 +45,7 @@ export default function WorkspacePage() {
                         <UploadArea />
                     </>}
                 </>}
-            </div></div><RightPanel />
+            </div><ToolGuideLink toolPath={pathname} /></div><RightPanel />
         </section>
     );
 }

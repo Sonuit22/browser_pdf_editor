@@ -8,6 +8,7 @@ const requiredPaths = [
     'index.html',
     'robots.txt',
     'sitemap.xml',
+    'rss.xml',
     'manifest.json',
     'README.md',
     'package.json',
@@ -124,6 +125,11 @@ async function run() {
     const sitemap = await readFile(path.join(root, 'sitemap.xml'), 'utf8');
     if (!sitemap.includes('<urlset') || !sitemap.includes('</urlset>')) {
         errors.push('sitemap.xml: missing urlset root');
+    }
+
+    const rss = await readFile(path.join(root, 'rss.xml'), 'utf8');
+    if (!rss.includes('<rss version="2.0">') || !rss.includes('</rss>')) {
+        errors.push('rss.xml: missing RSS 2.0 root');
     }
 
     if (errors.length) {

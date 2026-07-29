@@ -1,11 +1,14 @@
 import { findToolByRoute } from './toolRegistry';
+import { getArticleMetadata } from '../blog/content';
+import type { BlogArticleMetadata } from '../blog/types';
 
 export type SeoDefinition = {
     title: string;
     description: string;
     index?: boolean;
     canonical?: boolean;
-    structuredData?: 'website' | 'faq';
+    structuredData?: 'website' | 'faq' | 'blog';
+    article?: BlogArticleMetadata;
 };
 
 export const defaultSeo: SeoDefinition = {
@@ -42,12 +45,25 @@ const routeSeo: Record<string, SeoDefinition> = {
     '/about': { title: 'About PDF by ib', description: 'Learn why PDF by ib provides practical browser-based tools for common PDF editing, organization, and conversion tasks.' },
     '/contact': { title: 'Contact and Support – PDF by ib', description: 'Contact PDF by ib support, report a bug, or request a feature using your default email application.' },
     '/support': { title: 'Support – PDF by ib', description: 'Get help with PDF by ib and learn what information to include when reporting an issue.' },
+    '/blog': {
+        title: 'PDF Guides and Tutorials – PDF by ib',
+        description: 'Learn how to merge, split, compress, sign, edit, organize, and convert PDF files with practical browser-based guides from PDF by ib.',
+        structuredData: 'blog',
+    },
 };
 
 export function getSeoForPath(pathname: string): SeoDefinition {
     const normalized = pathname !== '/' ? pathname.replace(/\/+$/, '') : '/';
     const definition = routeSeo[normalized];
     if (definition) return definition;
+    if (normalized.startsWith('/blog/')) {
+        const article = getArticleMetadata(normalized.slice('/blog/'.length));
+        if (article) return {
+            title: `${article.title} – PDF by ib`,
+            description: article.description,
+            article,
+        };
+    }
     const tool = findToolByRoute(normalized);
     if (tool) return {
         title: `${tool.title}${tool.status === 'beta' ? ' Beta' : ''} – PDF by ib`,

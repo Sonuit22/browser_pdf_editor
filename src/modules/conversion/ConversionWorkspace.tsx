@@ -10,6 +10,7 @@ import { validateImageFile } from '../../utils/imageFiles';
 import { resetCompletedToolSource } from '../../utils/toolReset';
 import { downloadBlob } from '../../utils/browserDownload';
 import { getProcessingErrorMessage } from '../../utils/processingErrors';
+import { ToolGuideLink } from '../../blog/components/ToolGuideLink';
 
 export default function ConversionWorkspace() {
     const location = useLocation();
@@ -236,6 +237,7 @@ export default function ConversionWorkspace() {
             <div><Link to="/" onClick={(event) => { event.preventDefault(); clear(); requestNavigation('back'); }}><ArrowLeft size={16} />Back</Link><Link to="/" onClick={(event) => { event.preventDefault(); clear(); requestNavigation('/'); }}><Home size={16} />Home</Link></div>
         </div>
         {definition?.limitations.length ? <div className="conversion-notice" role="note"><strong>{definition.badge ?? 'Limitation'}:</strong> {definition.limitations.join(' ')}</div> : null}
+        <ToolGuideLink toolPath={location.pathname} />
         <div className="conversion-grid">
             <section className="conversion-card conversion-upload">
                 <div className="conversion-card__title"><div><span>1</span><h2>Files</h2></div>{files.length > 0 && <Button variant="ghost" onClick={clear}>Remove {multiple ? 'all' : 'file'}</Button>}</div>

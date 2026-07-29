@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>PDF by ib Learning Center</title>
+    <description>Practical browser-based PDF guides and tutorials.</description>
+    <link>https://pdfbyib.com/blog</link>
+    <item>
+      <title>How to Merge PDF Files Online</title>
+      <link>https://pdfbyib.com/blog/how-to-merge-pdf-files-online</link>
+      <guid isPermaLink="true">https://pdfbyib.com/blog/how-to-merge-pdf-files-online</guid>
+      <pubDate>Wed, 29 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Learn how to combine multiple PDF files directly in your browser using PDF by ib.</description>
+    </item>
+    <item>
+      <title>How to Split PDF Pages Online</title>
+      <link>https://pdfbyib.com/blog/how-to-split-pdf-pages-online</link>
+      <guid isPermaLink="true">https://pdfbyib.com/blog/how-to-split-pdf-pages-online</guid>
+      <pubDate>Wed, 29 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Learn how to split a PDF by page range or selected pages using private browser-based processing.</description>
+    </item>
+    <item>
+      <title>How to Compress a PDF Without Losing Too Much Quality</title>
+      <link>https://pdfbyib.com/blog/how-to-compress-pdf-without-losing-quality</link>
+      <guid isPermaLink="true">https://pdfbyib.com/blog/how-to-compress-pdf-without-losing-quality</guid>
+      <pubDate>Wed, 29 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Understand PDF compression tradeoffs, quality settings, and practical ways to reduce document size.</description>
+    </item>
+    <item>
+      <title>How to Sign a PDF Online</title>
+      <link>https://pdfbyib.com/blog/how-to-sign-a-pdf-online</link>
+      <guid isPermaLink="true">https://pdfbyib.com/blog/how-to-sign-a-pdf-online</guid>
+      <pubDate>Wed, 29 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Add a drawn, typed, or uploaded signature to a PDF while understanding browser and document limitations.</description>
+    </item>
+    <item>
+      <title>How to Remove Pages from a PDF</title>
+      <link>https://pdfbyib.com/blog/how-to-remove-pages-from-a-pdf</link>
+      <guid isPermaLink="true">https://pdfbyib.com/blog/how-to-remove-pages-from-a-pdf</guid>
+      <pubDate>Wed, 29 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Remove unwanted PDF pages safely, verify the remaining order, and save a new document in your browser.</description>
+    </item>
+    <item>
+      <title>How to Organize and Rearrange PDF Pages</title>
+      <link>https://pdfbyib.com/blog/how-to-organize-pdf-pages</link>
+      <guid isPermaLink="true">https://pdfbyib.com/blog/how-to-organize-pdf-pages</guid>
+      <pubDate>Wed, 29 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Reorder, rotate, duplicate, and remove PDF pages with a careful browser-based workflow.</description>
+    </item>
+    <item>
+      <title>How to Convert JPG Images to PDF</title>
+      <link>https://pdfbyib.com/blog/how-to-convert-jpg-to-pdf</link>
+      <guid isPermaLink="true">https://pdfbyib.com/blog/how-to-convert-jpg-to-pdf</guid>
+      <pubDate>Wed, 29 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Combine JPG and other supported images into an ordered PDF with practical sizing and quality guidance.</description>
+    </item>
+    <item>
+      <title>How to Convert PDF Pages to JPG Images</title>
+      <link>https://pdfbyib.com/blog/how-to-convert-pdf-to-jpg</link>
+      <guid isPermaLink="true">https://pdfbyib.com/blog/how-to-convert-pdf-to-jpg</guid>
+      <pubDate>Wed, 29 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Export selected PDF pages as JPG images and choose practical quality settings for your intended use.</description>
+    </item>
+    <item>
+      <title>How to Edit a PDF Without Adobe Acrobat</title>
+      <link>https://pdfbyib.com/blog/how-to-edit-a-pdf-without-adobe</link>
+      <guid isPermaLink="true">https://pdfbyib.com/blog/how-to-edit-a-pdf-without-adobe</guid>
+      <pubDate>Wed, 29 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Learn what browser-based PDF editing can change, how to add annotations, and when source-file editing is better.</description>
+    </item>
+    <item>
+      <title>How to Protect a PDF with a Password</title>
+      <link>https://pdfbyib.com/blog/how-to-protect-a-pdf-with-password</link>
+      <guid isPermaLink="true">https://pdfbyib.com/blog/how-to-protect-a-pdf-with-password</guid>
+      <pubDate>Wed, 29 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Understand PDF password protection, permission limits, safe password handling, and current browser support.</description>
+    </item>
+  </channel>
+</rss>

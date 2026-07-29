@@ -9,6 +9,7 @@ export function Footer() {
             <Link to="/privacy">Privacy Policy</Link>
             <Link to="/terms">Terms of Use</Link>
             <Link to="/faq">FAQ</Link>
+            <Link to="/blog">Learning Center</Link>
             <Link to="/about">About</Link>
             <Link to="/contact">Contact</Link>
             <a href={externalLinks.bugReport} {...externalAttributes(externalLinks.bugReport)}><Bug size={14} aria-hidden="true" />Report a bug</a>

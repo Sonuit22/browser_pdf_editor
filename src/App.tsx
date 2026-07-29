@@ -4,11 +4,6 @@ import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { UnsupportedBrowser } from './components/UnsupportedBrowser';
 import { hasPdfBrowserSupport } from './utils/browserSupport';
-import { AppLayout } from './layouts/AppLayout';
-import { PdfEngineProvider } from './modules/pdf/context/PdfEngineContext';
-import { PdfEditorProvider } from './modules/pdf/editor/context/PdfEditorProvider';
-import { PdfPageOperationsProvider } from './modules/pdf/organization/context/PdfPageOperationsProvider';
-import { PdfUtilitiesProvider } from './modules/pdf/utilities/context/PdfUtilitiesProvider';
 import { toolRoutesBySurface } from './config/toolRegistry';
 import { landingUploadToolRoutes } from './config/landingUploadTools';
 
@@ -25,6 +20,10 @@ const FaqPage = lazy(() => import('./pages/FaqPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const AllToolsPage = lazy(() => import('./pages/AllToolsPage'));
 const ConversionWorkspace = lazy(() => import('./modules/conversion/ConversionWorkspace'));
+const ToolShell = lazy(() => import('./layouts/ToolShell'));
+const PublicContentLayout = lazy(() => import('./layouts/PublicContentLayout'));
+const BlogPage = lazy(() => import('./pages/BlogPage'));
+const BlogArticlePage = lazy(() => import('./pages/BlogArticlePage'));
 
 function CompressRoute() {
     const location = useLocation();
@@ -36,7 +35,11 @@ export default function App() {
     return (
         <AppErrorBoundary><Suspense fallback={<div className="route-loading"><LoadingSpinner /></div>}>
             <Routes>
-                <Route element={<PdfEngineProvider><PdfPageOperationsProvider><PdfEditorProvider><PdfUtilitiesProvider><AppLayout /></PdfUtilitiesProvider></PdfEditorProvider></PdfPageOperationsProvider></PdfEngineProvider>}>
+                <Route element={<PublicContentLayout />}>
+                    <Route path="/blog" element={<BlogPage />} />
+                    <Route path="/blog/:slug" element={<BlogArticlePage />} />
+                </Route>
+                <Route element={<ToolShell />}>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/all-tools" element={<AllToolsPage />} />
                     <Route path="/about" element={<AboutPage />} />

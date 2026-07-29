@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 function copyRootAssets() {
-    const rootFiles = ['manifest.json', 'manifest.webmanifest', 'robots.txt', 'sitemap.xml'];
+    const rootFiles = ['manifest.json', 'manifest.webmanifest', 'robots.txt', 'sitemap.xml', 'rss.xml'];
     const assetFolders = ['assets/icons', 'assets/images', 'pages'];
 
     return {
