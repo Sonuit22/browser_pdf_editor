@@ -299,7 +299,7 @@ Vercel will:
 ### 7.5 Custom Domain (Future)
 
 Once deployed, you can:
-1. Add your domain (pdfeditorbyib.com)
+1. Add your domain (pdfbyib.com)
 2. Configure DNS settings
 3. Enable HTTPS (automatic)
 

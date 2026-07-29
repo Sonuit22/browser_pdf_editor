@@ -9,7 +9,7 @@ const pending: PendingPdfFile = {
 };
 
 describe('landing PDF transfer guard', () => {
-    it.each(['/sign-pdf', '/compress', '/split', '/remove-pages', '/extract-pages', '/organize'])(
+    it.each(['/sign-pdf', '/compress-pdf', '/split-pdf', '/remove-pages', '/extract-pages', '/organize-pdf'])(
         'preserves the pending File while navigating from home to %s',
         (route) => {
             expect(shouldPreserveLandingFileTransition('/', route, { fromLandingFile: true }, pending)).toBe(true);
@@ -17,8 +17,8 @@ describe('landing PDF transfer guard', () => {
     );
 
     it('does not preserve unrelated or refresh-lost navigation state', () => {
-        expect(shouldPreserveLandingFileTransition('/faq', '/split', { fromLandingFile: true }, pending)).toBe(false);
-        expect(shouldPreserveLandingFileTransition('/', '/split', null, pending)).toBe(false);
-        expect(shouldPreserveLandingFileTransition('/', '/split', { fromLandingFile: true }, null)).toBe(false);
+        expect(shouldPreserveLandingFileTransition('/faq', '/split-pdf', { fromLandingFile: true }, pending)).toBe(false);
+        expect(shouldPreserveLandingFileTransition('/', '/split-pdf', null, pending)).toBe(false);
+        expect(shouldPreserveLandingFileTransition('/', '/split-pdf', { fromLandingFile: true }, null)).toBe(false);
     });
 });

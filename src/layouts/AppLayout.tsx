@@ -11,6 +11,7 @@ import { usePdfEditor } from '../modules/pdf/editor/hooks/usePdfEditor';
 import { Modal } from '../components/ui/Modal';
 import { Button } from '../components/ui/Button';
 import { shouldPreserveLandingFileTransition, type LandingRouteState } from '../utils/landingFileTransfer';
+import { SeoManager } from '../components/SeoManager';
 
 export function AppLayout() {
     const { openFilePicker, closeDocument, pendingPdfFile } = usePdfEngine();
@@ -34,7 +35,7 @@ export function AppLayout() {
     }, [closeSidebar, navigate, resetToolWorkspace]);
     const requestNavigation = useCallback((destination: string | 'back') => {
         if (destination !== 'back' && destination === location.pathname) { closeSidebar(); return; }
-        if (location.pathname === '/edit' && dirty) setPendingDestination(destination);
+        if (location.pathname === '/edit-pdf' && dirty) setPendingDestination(destination);
         else finishNavigation(destination);
     }, [closeSidebar, dirty, finishNavigation, location.pathname]);
     const shellValue = useMemo(() => ({ requestUpload, resetToolWorkspace, requestNavigation }), [requestNavigation, requestUpload, resetToolWorkspace]);
@@ -56,13 +57,14 @@ export function AppLayout() {
     }, [location.pathname, location.state, pendingPdfFile, resetToolWorkspace]);
 
     useEffect(() => {
-        const warn = (event: BeforeUnloadEvent) => { if (location.pathname === '/edit' && dirty) event.preventDefault(); };
+        const warn = (event: BeforeUnloadEvent) => { if (location.pathname === '/edit-pdf' && dirty) event.preventDefault(); };
         window.addEventListener('beforeunload', warn);
         return () => window.removeEventListener('beforeunload', warn);
     }, [dirty, location.pathname]);
 
     return (
         <ShellContext.Provider value={shellValue}>
+            <SeoManager />
             <div className="app-shell">
                 <a className="skip-link" href="#main-content">Skip to main content</a>
                 <Header

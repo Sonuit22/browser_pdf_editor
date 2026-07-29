@@ -19,12 +19,12 @@ const tool = (id: string, title: string, description: string, category: ToolCate
 });
 
 export const toolRegistry: ToolDefinition[] = [
-    tool('merge', 'Merge PDF', 'Combine multiple PDF files into one document.', 'PDF management', ['combine'], Files, '/merge', 'pdf-workspace'),
-    tool('split', 'Split PDF', 'Separate a PDF using page ranges or selected pages.', 'PDF management', ['separate'], Scissors, '/split', 'pdf-workspace'),
+    tool('merge', 'Merge PDF', 'Combine multiple PDF files into one document.', 'PDF management', ['combine'], Files, '/merge-pdf', 'pdf-workspace'),
+    tool('split', 'Split PDF', 'Separate a PDF using page ranges or selected pages.', 'PDF management', ['separate'], Scissors, '/split-pdf', 'pdf-workspace'),
     tool('remove-pages', 'Remove Pages from PDF', 'Delete unwanted pages from a PDF.', 'PDF management', ['remove pages delete pages'], Trash2, '/remove-pages', 'pdf-workspace'),
     tool('extract-pages', 'Extract Pages', 'Create a new PDF from selected pages.', 'PDF management', ['copy pages'], Archive, '/extract-pages', 'pdf-workspace'),
-    tool('organize', 'Organize PDF', 'Reorder, rotate, duplicate, or remove PDF pages.', 'PDF management', ['reorder rotate delete'], Files, '/organize', 'pdf-workspace', 'beta', ['Touch devices include move controls because direct drag behavior varies by browser.']),
-    tool('compress', 'Compress PDF', 'Reduce PDF file size using selectable compression levels.', 'PDF management', ['reduce size'], Archive, '/compress', 'tool-info', 'coming-soon', ['Reliable local PDF compression is not yet implemented.']),
+    tool('organize', 'Organize PDF', 'Reorder, rotate, duplicate, or remove PDF pages.', 'PDF management', ['reorder rotate delete'], Files, '/organize-pdf', 'pdf-workspace', 'beta', ['Touch devices include move controls because direct drag behavior varies by browser.']),
+    tool('compress', 'Compress PDF', 'Reduce PDF file size using selectable compression levels.', 'PDF management', ['reduce size'], Archive, '/compress-pdf', 'tool-info', 'coming-soon', ['Reliable local PDF compression is not yet implemented.']),
     tool('jpg-pdf', 'JPG to PDF', 'Convert one or more JPG images into a PDF.', 'PDF conversion', ['jpeg image png webp'], Images, '/jpg-to-pdf', 'conversion-workspace', 'beta', ['Large image batches are limited by available browser memory.']),
     tool('word-pdf', 'Word to PDF', 'Convert DOCX content into a PDF with basic formatting.', 'PDF conversion', ['docx'], FileText, '/word-to-pdf', 'conversion-workspace', 'beta', ['Complex layouts, custom fonts, headers, footers, floating elements, and exact pagination may change.']),
     tool('ppt-pdf', 'PPT to PDF', 'Convert PPTX slides into PDF pages.', 'PDF conversion', ['powerpoint slides'], Presentation, '/ppt-to-pdf', 'tool-info', 'coming-soon', ['Reliable browser-only PPTX reconstruction is not yet implemented.']),
@@ -33,7 +33,7 @@ export const toolRegistry: ToolDefinition[] = [
     tool('pdf-ppt', 'PDF to PPT', 'Place each PDF page as an image on a PowerPoint slide.', 'PDF conversion', ['powerpoint slides pptx'], Presentation, '/pdf-to-ppt', 'conversion-workspace', 'beta', ['Slides contain page images; text and page elements are not individually editable.']),
     tool('protect', 'Protect PDF', 'Add password protection where browser support permits.', 'PDF editing and security', ['password secure'], LockKeyhole, '/protect-pdf', 'tool-info', 'coming-soon', ['Password encryption is not available in the current browser engine.']),
     tool('sign', 'Sign PDF', 'Add drawn, typed, or uploaded signatures to a PDF.', 'PDF editing and security', ['signature initials date checkmark'], Signature, '/sign-pdf', 'pdf-workspace', 'beta', ['Complex signed documents and touch placement may vary slightly across browsers.']),
-    tool('edit', 'Edit PDF', 'Add text, images, shapes, drawings, and highlights.', 'PDF editing and security', ['text image draw shape highlight'], FilePenLine, '/edit', 'pdf-workspace', 'beta', ['Advanced edits on complex PDFs and touch interactions may vary across browsers.']),
+    tool('edit', 'Edit PDF', 'Add text, images, shapes, drawings, and highlights.', 'PDF editing and security', ['text image draw shape highlight'], FilePenLine, '/edit-pdf', 'pdf-workspace', 'beta', ['Advanced edits on complex PDFs and touch interactions may vary across browsers.']),
 ];
 
 export function filterTools(category: ToolCategory | 'All', query: string) {

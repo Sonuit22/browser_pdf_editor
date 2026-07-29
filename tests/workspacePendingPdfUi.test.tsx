@@ -42,7 +42,7 @@ describe('destination pending PDF UI', () => {
         } as unknown as PdfEngineValue;
     });
 
-    it.each(['/sign-pdf', '/compress', '/split', '/remove-pages', '/extract-pages', '/organize'])(
+    it.each(['/sign-pdf', '/compress-pdf', '/split-pdf', '/remove-pages', '/extract-pages', '/organize-pdf'])(
         'shows loading instead of a second upload prompt while %s receives the pending File',
         (route) => {
             const file = new File(['%PDF-1.7'], 'same-selected-file.pdf', { type: 'application/pdf' });
@@ -55,7 +55,7 @@ describe('destination pending PDF UI', () => {
     );
 
     it('shows the exact normal-upload refresh fallback when memory state is gone', () => {
-        const html = renderWorkspace('/split');
+        const html = renderWorkspace('/split-pdf');
         expect(html).toContain('The previously selected PDF is no longer available. Please choose it again.');
         expect(html).toContain('Select PDF');
     });
@@ -64,7 +64,7 @@ describe('destination pending PDF UI', () => {
         mocks.engine.phase = 'error';
         mocks.engine.error = 'The selected file is corrupted or is not a readable PDF.';
 
-        const html = renderWorkspace('/organize');
+        const html = renderWorkspace('/organize-pdf');
         expect(html).toContain('The selected file is corrupted or is not a readable PDF.');
         expect(html).toContain('Select PDF');
     });

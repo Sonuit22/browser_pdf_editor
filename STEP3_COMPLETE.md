@@ -275,7 +275,7 @@ All completed:
 3. Test auto-deployment (5 min)
 
 ### Then
-**Step 4**: Configure custom domain (`pdfeditorbyib.com`)
+**Step 4**: Configure custom domain (`pdfbyib.com`)
 - Add DNS settings
 - Enable SSL
 - Update GitHub Actions

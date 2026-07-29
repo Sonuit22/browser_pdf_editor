@@ -65,12 +65,12 @@ try {
     $vite = Start-Process -FilePath 'npm.cmd' -ArgumentList @('run','dev','--','--host','127.0.0.1','--port','4174','--strictPort') -WorkingDirectory $Workspace -WindowStyle Hidden -RedirectStandardOutput $viteOut -RedirectStandardError $viteErr -PassThru
     $deadline = (Get-Date).AddSeconds(30)
     do {
-        try { $ok = (Invoke-WebRequest -UseBasicParsing 'http://127.0.0.1:4174/edit').StatusCode -eq 200 } catch { $ok = $false }
+        try { $ok = (Invoke-WebRequest -UseBasicParsing 'http://127.0.0.1:4174/edit-pdf').StatusCode -eq 200 } catch { $ok = $false }
         if ($ok) { break }
         Start-Sleep -Milliseconds 250
     } while ((Get-Date) -lt $deadline)
     if (-not $ok) { throw 'Vite did not start.' }
-    $edgeArgs = @('--headless=new','--disable-gpu','--no-first-run','--no-default-browser-check','--remote-debugging-port=9224','--window-size=1440,1000',"--user-data-dir=$profilePath",'http://127.0.0.1:4174/edit')
+    $edgeArgs = @('--headless=new','--disable-gpu','--no-first-run','--no-default-browser-check','--remote-debugging-port=9224','--window-size=1440,1000',"--user-data-dir=$profilePath",'http://127.0.0.1:4174/edit-pdf')
     $edge = Start-Process -FilePath $edgePath -ArgumentList $edgeArgs -WindowStyle Hidden -PassThru
     $deadline = (Get-Date).AddSeconds(20)
     do {

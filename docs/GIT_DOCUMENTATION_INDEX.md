@@ -122,7 +122,7 @@ Check everything with **VALIDATION_CHECKLIST.md**.
 ### My Setup
 - **Local Project**: `C:\Users\Sonu Kumar\Desktop\browser_pdf_editor`
 - **Will Create**: `https://github.com/YOUR_USERNAME/browser-pdf-editor`
-- **Will Deploy To**: `https://pdfeditorbyib.com` (via Vercel)
+- **Will Deploy To**: `https://pdfbyib.com` (via Vercel)
 
 ### GitHub
 - **New Repository**: https://github.com/new

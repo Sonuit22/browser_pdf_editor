@@ -172,7 +172,7 @@ GitHub Actions (runs tests)
         ↓ (if passes)
 Vercel Platform
         ↓ (auto-deploy)
-Live Website (pdfeditorbyib.com)
+Live Website (pdfbyib.com)
 ```
 
 ### Every Time You Push

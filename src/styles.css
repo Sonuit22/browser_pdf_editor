@@ -467,6 +467,28 @@ body { overflow-x: hidden; }
 :root[data-theme="dark"] .info-page>header>span{color:#aeb7c4}:root[data-theme="dark"] .faq-list section,:root[data-theme="dark"] .legal-page article{border-color:#374151;background:#1f2937}:root[data-theme="dark"] .faq-list button{color:#f8fafc}:root[data-theme="dark"] .faq-list [role="region"],:root[data-theme="dark"] .legal-page article>p:first-child,:root[data-theme="dark"] .legal-contact{color:#cbd5e1}:root[data-theme="dark"] .legal-page li{color:#e5e7eb}:root[data-theme="dark"] .legal-contact{border-color:#374151}
 @media(max-width:600px){.info-page{padding-top:24px}.info-page>header{justify-items:start;text-align:left}.info-page>header h1{font-size:1.8rem}.faq-list button{min-height:58px;padding:13px 14px}.legal-page article{padding:18px 15px}}
 
+/* Public-launch polish: compact footer and readable public information pages. */
+.app-footer{display:flex!important;align-items:center!important;justify-content:center!important;flex-wrap:wrap;gap:10px 22px;padding:18px clamp(14px,4vw,36px)!important;text-align:center!important}
+.app-footer>p{margin:0;color:inherit;font-size:.78rem;font-weight:750}
+.app-footer>nav{display:flex!important;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 16px!important}
+.app-footer>nav a{display:inline-flex;align-items:center;gap:5px;color:inherit!important;font-size:.78rem;text-decoration:none!important}
+.app-footer>nav a:hover{text-decoration:underline!important;text-decoration-color:var(--brand)!important;text-underline-offset:3px}
+.info-page>header>small{margin-top:8px;color:#667085;font-size:.78rem}
+.info-page>article{color:#344054;line-height:1.65}
+.info-page>article h2{margin:24px 0 6px;font-size:1.08rem}
+.info-page>article h2:first-child{margin-top:0}
+.info-page>article p{margin:0 0 14px}
+.info-page>article ul{padding-left:22px}
+.legal-page article>section+section{margin-top:22px}
+.legal-page article>section h2{margin:0 0 6px}
+.legal-page article>section p{margin:0}
+.contact-actions,.not-found-actions{display:flex;flex-wrap:wrap;gap:10px}
+.all-tools-page{width:min(1180px,calc(100% - 32px))}
+.app-recovery{min-height:100vh;display:grid;place-items:center;padding:20px;background:var(--bg)}
+.app-recovery>.error-state{width:min(560px,100%)}
+:root[data-theme="dark"] .info-page>header>small,:root[data-theme="dark"] .info-page>article{color:#cbd5e1}
+@media(max-width:600px){.app-footer{align-items:flex-start!important;justify-content:flex-start!important;text-align:left!important}.app-footer>nav{justify-content:flex-start}.contact-actions .button{width:100%}}
+
 /* Landing page: lightweight, privacy-first SaaS polish */
 .tool-dashboard {
     width: 100%;

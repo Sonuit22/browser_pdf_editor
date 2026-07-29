@@ -406,7 +406,7 @@ Your Site Updates Live
 
 Every push to `main` will:
 - ✅ Run GitHub Actions (tests, security checks)
-- ✅ Deploy to production (pdfeditorbyib.com)
+- ✅ Deploy to production (pdfbyib.com)
 - ✅ Create preview for pull requests
 - ✅ Show deployment status in GitHub
 

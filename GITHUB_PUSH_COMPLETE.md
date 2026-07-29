@@ -96,7 +96,7 @@ GitHub Actions runs tests
     ↓
 Vercel auto-deploys
     ↓
-Live on pdfeditorbyib.com ✨
+Live on pdfbyib.com ✨
 ```
 
 ---

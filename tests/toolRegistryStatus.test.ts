@@ -37,9 +37,9 @@ describe('central tool status registry', () => {
         expect(toolRegistry.filter((tool) => tool.enabled).every((tool) => tool.surface !== 'tool-info')).toBe(true);
         expect(new Set(toolRegistry.map((tool) => tool.route)).size).toBe(toolRegistry.length);
         expect(toolRoutesBySurface).toEqual({
-            'pdf-workspace': ['/merge', '/split', '/remove-pages', '/extract-pages', '/organize', '/sign-pdf', '/edit'],
+            'pdf-workspace': ['/merge-pdf', '/split-pdf', '/remove-pages', '/extract-pages', '/organize-pdf', '/sign-pdf', '/edit-pdf'],
             'conversion-workspace': ['/jpg-to-pdf', '/word-to-pdf', '/pdf-to-jpg', '/pdf-to-word', '/pdf-to-ppt'],
-            'tool-info': ['/compress', '/ppt-to-pdf', '/protect-pdf'],
+            'tool-info': ['/compress-pdf', '/ppt-to-pdf', '/protect-pdf'],
         });
         expect(Object.keys(conversionAccept).map((route) => `/${route}`).sort()).toEqual([...toolRoutesBySurface['conversion-workspace']].sort());
     });

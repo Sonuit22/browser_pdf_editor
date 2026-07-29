@@ -38,7 +38,7 @@ export function OrganizationWorkspace() {
     const busyRef = useRef(false);
     const selectedIds = operations.selectedPageIds.length
         ? operations.selectedPageIds
-        : pathname === '/organize' && operations.activePageId ? [operations.activePageId] : [];
+        : pathname === '/organize-pdf' && operations.activePageId ? [operations.activePageId] : [];
     const selectedPages = operations.pages.filter((page) => selectedIds.includes(page.id));
     const remainingPages = operations.pages.filter((page) => !selectedIds.includes(page.id));
     const activeDimensions = operations.activePage ? { width: operations.activePage.width, height: operations.activePage.height } : A4_PORTRAIT;
@@ -130,7 +130,7 @@ export function OrganizationWorkspace() {
                 <div className="organize-toolbar__group organize-toolbar__group--actions">
                     <button className="icon-button" type="button" onClick={operations.undo} disabled={!operations.canUndo} aria-label="Undo page operation" title="Undo"><Undo2 size={17} aria-hidden="true" /></button>
                     <button className="icon-button" type="button" onClick={operations.redo} disabled={!operations.canRedo} aria-label="Redo page operation" title="Redo"><Redo2 size={17} aria-hidden="true" /></button>
-                    {pathname === '/organize' && <Button variant="secondary" size="compact" type="button" onClick={() => void exportPages(selectedPages, `pages-${selectedPages.map((page) => operations.getPageNumber(page.id)).join('-')}`)} disabled={!selectedPages.length || busy}><Scissors size={16} aria-hidden="true" />Extract</Button>}
+                    {pathname === '/organize-pdf' && <Button variant="secondary" size="compact" type="button" onClick={() => void exportPages(selectedPages, `pages-${selectedPages.map((page) => operations.getPageNumber(page.id)).join('-')}`)} disabled={!selectedPages.length || busy}><Scissors size={16} aria-hidden="true" />Extract</Button>}
                     <Button variant="primary" size="compact" type="button" onClick={runRouteAction} disabled={busy || (pathname === '/remove-pages' && (!selectedIds.length || !remainingPages.length)) || (pathname === '/extract-pages' && !selectedPages.length)}><Download size={16} aria-hidden="true" />{busy ? 'Working' : pathname === '/remove-pages' ? 'Remove pages and download' : pathname === '/extract-pages' ? 'Extract pages' : 'Export'}</Button>
                 </div>
             </div>

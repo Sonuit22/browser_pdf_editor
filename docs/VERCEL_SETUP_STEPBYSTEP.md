@@ -387,7 +387,7 @@ No FTP. No manual uploads. No waiting.
 
 Once verified, you can:
 
-1. Add your custom domain: `pdfeditorbyib.com`
+1. Add your custom domain: `pdfbyib.com`
 2. Configure DNS
 3. Enable SSL (automatic)
 

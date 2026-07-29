@@ -241,7 +241,7 @@ Open these files to understand the foundation:
 1. Push to GitHub: `git push origin main`
 2. GitHub Actions runs tests
 3. Vercel auto-deploys
-4. Check your domain: pdfeditorbyib.com
+4. Check your domain: pdfbyib.com
 
 ---
 

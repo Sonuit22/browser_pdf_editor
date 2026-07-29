@@ -21,8 +21,20 @@ function copyRootAssets() {
     };
 }
 
+function productionSiteMetadata() {
+    const fallback = 'https://pdfbyib.com';
+    const configured = (process.env.VITE_SITE_URL || fallback).trim().replace(/\/+$/, '');
+    const siteUrl = /^https:\/\/(?!localhost|127\.0\.0\.1)[a-z0-9.-]+(?::\d+)?$/i.test(configured) ? configured : fallback;
+    return {
+        name: 'production-site-metadata',
+        transformIndexHtml(html) {
+            return html.replaceAll('__SITE_URL__', siteUrl);
+        },
+    };
+}
+
 export default defineConfig({
-    plugins: [react(), copyRootAssets()],
+    plugins: [react(), productionSiteMetadata(), copyRootAssets()],
     build: {
         outDir: 'dist',
         emptyOutDir: true,

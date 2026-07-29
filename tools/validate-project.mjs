@@ -41,7 +41,8 @@ function localTargetFromUrl(value, fromFile) {
         value.startsWith('mailto:') ||
         value.startsWith('tel:') ||
         value.startsWith('#') ||
-        value.startsWith('data:')
+        value.startsWith('data:') ||
+        value.startsWith('__SITE_URL__')
     ) {
         return null;
     }

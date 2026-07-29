@@ -10,9 +10,13 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
         return { hasError: true };
     }
 
+    componentDidCatch(error: Error) {
+        if (import.meta.env.DEV) console.error('Unexpected application error', error);
+    }
+
     render() {
         if (this.state.hasError) {
-            return <main className="app-recovery" aria-labelledby="app-recovery-title"><section className="error-state" role="alert"><h1 id="app-recovery-title">The editor could not continue</h1><p>Your PDF stays on this device. Reload the page to start a fresh local session.</p><button className="button button--primary" type="button" onClick={() => window.location.reload()}>Reload editor</button></section></main>;
+            return <main className="app-recovery" aria-labelledby="app-recovery-title"><section className="error-state" role="alert"><h1 id="app-recovery-title">PDF by ib could not continue</h1><p>An unexpected interface error occurred. File content is not included in this message.</p><div className="modal-actions"><button className="button button--secondary" type="button" onClick={() => { window.location.href = '/'; }}>Return home</button><button className="button button--primary" type="button" onClick={() => window.location.reload()}>Reload</button></div></section></main>;
         }
         return this.props.children;
     }

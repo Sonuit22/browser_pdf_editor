@@ -149,7 +149,7 @@ git push
 ## 🔗 Important Links
 
 - **GitHub Repo**: https://github.com/<username>/browser-pdf-editor
-- **Live Site**: https://pdfeditorbyib.com
+- **Live Site**: https://pdfbyib.com
 - **Vercel Dashboard**: https://vercel.com/dashboard
 - **Git Docs**: https://git-scm.com/docs
 

@@ -27,7 +27,7 @@ export const RightPanel = memo(function RightPanel() {
             <dl>
                 <div><dt>Selected tool</dt><dd>{route?.title ?? 'PDF tool'}</dd></div>
                 <div><dt>Status</dt><dd>{phase === 'ready' ? 'Ready' : phase === 'loading' ? `Loading ${progress}%` : 'Waiting for file'}</dd></div>
-                {info && <><div><dt>File name</dt><dd title={info.filename}>{info.filename}</dd></div><div><dt>File size</dt><dd>{info.fileSize}</dd></div><div><dt>Pages</dt><dd>{info.pageCount}</dd></div><div><dt>Type</dt><dd>PDF</dd></div>{pathname === '/edit' && <div><dt>Current page</dt><dd>{currentPage} of {pages.length}</dd></div>}</>}
+                {info && <><div><dt>File name</dt><dd title={info.filename}>{info.filename}</dd></div><div><dt>File size</dt><dd>{info.fileSize}</dd></div><div><dt>Pages</dt><dd>{info.pageCount}</dd></div><div><dt>Type</dt><dd>PDF</dd></div>{pathname === '/edit-pdf' && <div><dt>Current page</dt><dd>{currentPage} of {pages.length}</dd></div>}</>}
             </dl>
             {info && <div className="details-actions"><button type="button" onClick={openFilePicker}><RotateCcw size={16} />Replace file</button><button type="button" onClick={closeDocument}><Trash2 size={16} />Remove file</button><button type="button" onClick={resetToolWorkspace}>Clear workspace</button></div>}
             {selected && <section className="selected-properties"><h3>Selected {selected.type.replace('-', ' ')}</h3>

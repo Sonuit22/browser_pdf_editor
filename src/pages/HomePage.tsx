@@ -24,9 +24,9 @@ const features = [
 ];
 
 const testimonials = [
-    'The clean layout makes quick PDF tasks feel straightforward from the first click.',
-    'Local browser processing gives me confidence when working with private documents.',
-    'The same focused experience is easy to use from a laptop, tablet, or phone.',
+    'Supported tools process files locally in the browser.',
+    'Tool status labels explain production readiness and known limitations.',
+    'Responsive controls support desktop, tablet, and phone layouts.',
 ];
 
 function formatSelectedFileSize(size: number) {
@@ -97,12 +97,11 @@ export default function HomePage() {
                 <h1 id="landing-title">PDF by ib</h1>
                 <p className="landing-hero__tagline">
                     <span>Edit PDFs securely in your browser.</span>
-                    <span>No uploads.</span>
-                    <span>No servers.</span>
+                    <span>Supported files are processed locally.</span>
                     <span>Your files stay on your device.</span>
                 </p>
                 <div className="landing-hero__actions">
-                    <a className="button button--secondary landing-cta" href="#tools">View All Tools</a>
+                    <Link className="button button--secondary landing-cta" to="/all-tools">View All Tools</Link>
                 </div>
             </div>
 
@@ -122,7 +121,7 @@ export default function HomePage() {
                     <p>Drag and drop a file, or choose one from your device.</p>
                     <button className="button button--secondary" type="button" onClick={choosePdf}>Choose PDF</button>
                     <p id="landing-upload-formats" className="landing-upload__formats">Supported format: PDF · Maximum size: {Math.round(MAX_PDF_FILE_SIZE / 1024 / 1024)} MB</p>
-                    <p id="landing-upload-privacy" className="landing-upload__privacy"><ShieldCheck size={14} aria-hidden="true" />Never uploaded to a server</p>
+                    <p id="landing-upload-privacy" className="landing-upload__privacy"><ShieldCheck size={14} aria-hidden="true" />Processed locally by supported tools</p>
                 </> : <>
                     <div className="landing-upload__file" aria-live="polite">
                         <div className="landing-upload__file-actions">
@@ -187,13 +186,13 @@ export default function HomePage() {
 
         <section className="landing-section landing-testimonials" aria-labelledby="testimonials-heading">
             <header className="landing-section__heading">
-                <p>Experience preview</p>
-                <h2 id="testimonials-heading">A focused workflow people can trust</h2>
+                <p>Product principles</p>
+                <h2 id="testimonials-heading">Clear expectations for every workflow</h2>
             </header>
             <div className="testimonial-grid">
                 {testimonials.map((quote, index) => <figure className="testimonial-card" key={quote}>
                     <blockquote>“{quote}”</blockquote>
-                    <figcaption><span aria-hidden="true">IB</span><div><strong>Sample user</strong><small>Placeholder testimonial {index + 1}</small></div></figcaption>
+                    <figcaption><span aria-hidden="true">IB</span><div><strong>PDF by ib</strong><small>Product principle {index + 1}</small></div></figcaption>
                 </figure>)}
             </div>
         </section>

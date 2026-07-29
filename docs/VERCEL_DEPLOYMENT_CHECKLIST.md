@@ -408,7 +408,7 @@ After verification:
 
 **✅ Step 3 Complete** - Vercel deployment live  
 
-**→ Step 4**: Configure custom domain (`pdfeditorbyib.com`)
+**→ Step 4**: Configure custom domain (`pdfbyib.com`)
 
 ---
 

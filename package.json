@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run validate && npm run typecheck && npm run lint && vite build",
+    "build": "npm run generate:public && npm run validate && npm run typecheck && npm run lint && vite build",
+    "generate:public": "node tools/generate-public-files.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "eslint . --max-warnings=0",

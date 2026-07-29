@@ -2,7 +2,7 @@
 
 A **production-ready, browser-based PDF editor** built with modern web standards. No backend required. No installation needed. 100% client-side processing.
 
-**Website**: [pdfeditorbyib.com](https://pdfeditorbyib.com) | [pdfeditorbyib.in](https://pdfeditorbyib.in)
+**Website**: [pdfbyib.com](https://pdfbyib.com)
 
 ---
 
@@ -278,7 +278,7 @@ refactor: Reorganize utils folder structure
 - **Version Control**: GitHub
 - **CI/CD**: GitHub Actions (deploys on push to `main`)
 - **Hosting**: Vercel (automatic on push)
-- **Domains**: pdfeditorbyib.com, pdfeditorbyib.in
+- **Domain**: pdfbyib.com
 
 ### Deployment Steps
 
@@ -311,8 +311,8 @@ MIT License - See LICENSE (coming soon)
 
 ## Contact
 
-- **Website**: [pdfeditorbyib.com](https://pdfeditorbyib.com)
-- **Email**: hello@pdfeditorbyib.com
+- **Website**: [pdfbyib.com](https://pdfbyib.com)
+- **Email**: pdfeditorbyib@gmail.com
 - **GitHub**: [@yourusername](https://github.com/yourusername)
 
 ---

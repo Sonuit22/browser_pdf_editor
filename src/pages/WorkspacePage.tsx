@@ -33,11 +33,11 @@ export default function WorkspacePage() {
         <section className="tool-workspace-shell" aria-label={`${route.title} workspace`}>
             <div className="workspace-main"><div className="workspace-heading"><div><p>Browser-based PDF tool</p><h1>{route.title}</h1></div><div><Link to="/" onClick={(event) => { event.preventDefault(); requestNavigation('back'); }}><ArrowLeft size={16} />Back</Link><Link to="/" onClick={(event) => { event.preventDefault(); requestNavigation('/'); }}><Home size={16} />Home</Link></div></div>
             <div className="editor-workspace">
-                {pathname === '/merge' ? <MergeWorkspace /> : <>
+                {pathname === '/merge-pdf' ? <MergeWorkspace /> : <>
                     {(phase === 'loading' || awaitingLandingLoad) && <div className="pdf-loading" role="status"><LoadingSpinner label="Loading PDF" /><strong>Loading PDF</strong><span>{progress}%</span></div>}
-                    {phase === 'ready' && (pathname === '/compress'
+                    {phase === 'ready' && (pathname === '/compress-pdf'
                         ? <section className="landing-selected-file" aria-label="Compress PDF file ready"><h2>PDF ready</h2><p><strong title={info?.filename}>{info?.filename}</strong></p><p>{info?.fileSize} · {info?.pageCount} page{info?.pageCount === 1 ? '' : 's'}</p><p>Compression controls are not available yet. Your PDF remains on this device.</p></section>
-                        : ['/organize', '/remove-pages', '/extract-pages'].includes(pathname) ? <OrganizationWorkspace /> : pathname === '/split' ? <SplitWorkspace /> : <PdfViewer />)}
+                        : ['/organize-pdf', '/remove-pages', '/extract-pages'].includes(pathname) ? <OrganizationWorkspace /> : pathname === '/split-pdf' ? <SplitWorkspace /> : <PdfViewer />)}
                     {!awaitingLandingLoad && phase !== 'loading' && phase !== 'ready' && <>
                         {phase === 'error' && error && <div className="pdf-error"><ErrorState description={error} /><Button type="button" variant="secondary" onClick={() => { if (pendingPdfFile) void consumePendingPdf(); else retry(); }}>Retry</Button></div>}
                         {needsLandingReselect && <p className="landing-reselect-message" role="status">The previously selected PDF is no longer available. Please choose it again.</p>}

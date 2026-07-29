@@ -327,7 +327,7 @@ Your site updates live within **30-60 seconds** of pushing to GitHub.
 Once deployment is live and verified:
 
 **Step 4**: Custom Domain Configuration
-- Add `pdfeditorbyib.com` as custom domain
+- Add `pdfbyib.com` as custom domain
 - Configure DNS settings
 - Enable analytics
 
