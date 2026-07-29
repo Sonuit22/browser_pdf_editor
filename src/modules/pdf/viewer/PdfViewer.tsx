@@ -39,6 +39,9 @@ export function PdfViewer() {
     const currentPage = Math.max(1, pages.findIndex((page) => page.id === activePageId) + 1);
     const pageCount = pages.length;
     const handleAnnotationPreview = useCallback((annotation: PdfAnnotation | null) => setAnnotationPreview(annotation), []);
+    const handleRenderError = useCallback(() => failViewer('A page could not be rendered safely. Please retry the document.'), [failViewer]);
+    const handleThumbnailSelect = useCallback((pageId: string) => setActivePage(pageId), [setActivePage]);
+    const handleThumbnailReorder = useCallback((movingIds: string[], targetId: string, placement: 'before' | 'after') => reorderPages(movingIds, targetId, placement), [reorderPages]);
 
     useEffect(() => { setAnnotationPreview(null); }, [activePageId, documentId]);
 
@@ -101,8 +104,8 @@ export function PdfViewer() {
             {pageCount >= 200 && <p className="pdf-export-progress" role="status">Large document: rendering the active page and nearby thumbnails on demand.</p>}
             {exportError && <p className="pdf-export-error" role="alert">{exportError}</p>}
             <div className="pdf-viewer__body">
-                <aside className="thumbnail-sidebar" aria-label="Page thumbnails"><PageThumbnailPanel pages={pages} activePageId={activePageId} getPage={getPage} reorderEnabled annotationsByPageId={annotationsByPageId} previewAnnotation={annotationPreview} formValues={formValues} onSelect={(pageId) => setActivePage(pageId)} onReorder={reorderPages} /></aside>
-                <PdfPageCanvas page={activePage} pageNumber={currentPage} getPage={getPage} zoom={zoom} rotation={rotation} onRenderError={() => failViewer('A page could not be rendered safely. Please retry the document.')}>{(layout) => <><AnnotationOverlay pageId={activePage.id} layout={layout} onPreviewChange={handleAnnotationPreview} /><CropOverlay page={activePage} layout={layout} /><UtilityPreviewOverlay pageId={activePage.id} pageNumber={currentPage} pageCount={pageCount} filename={info.filename} /></>}</PdfPageCanvas>
+                <aside className="thumbnail-sidebar" aria-label="Page thumbnails"><PageThumbnailPanel pages={pages} activePageId={activePageId} getPage={getPage} reorderEnabled annotationsByPageId={annotationsByPageId} previewAnnotation={annotationPreview} formValues={formValues} onSelect={handleThumbnailSelect} onReorder={handleThumbnailReorder} /></aside>
+                <PdfPageCanvas page={activePage} pageNumber={currentPage} getPage={getPage} zoom={zoom} rotation={rotation} onRenderError={handleRenderError}>{(layout) => <><AnnotationOverlay pageId={activePage.id} layout={layout} onPreviewChange={handleAnnotationPreview} /><CropOverlay page={activePage} layout={layout} /><UtilityPreviewOverlay pageId={activePage.id} pageNumber={currentPage} pageCount={pageCount} filename={info.filename} /></>}</PdfPageCanvas>
             </div>
             {closeConfirmOpen && <Modal title="Discard unsaved work" onClose={() => setCloseConfirmOpen(false)}><p>Close this document and discard unsaved edits?</p><div className="modal-actions"><Button variant="secondary" type="button" onClick={() => setCloseConfirmOpen(false)}>Keep editing</Button><Button type="button" onClick={() => { setCloseConfirmOpen(false); closeDocument(); }}>Discard work</Button></div></Modal>}
             {documentToolsOpen && <Modal title="Document tools" onClose={() => setDocumentToolsOpen(false)}><RightPanel /></Modal>}

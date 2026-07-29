@@ -2,9 +2,9 @@ import type { EditorHistoryState, EditorPresent, PdfAnnotation } from '../types/
 import { normalizeHighlighterSettings } from '../utils/annotationRendering';
 
 const LIMIT = 100;
-const createPresent = (): EditorPresent => ({ documentId: null, annotationsByPageId: {}, selectedId: null, selectedIds: [], activeTool: 'select', highlighterSettings: normalizeHighlighterSettings(), clipboard: null, formValues: {}, flattenForms: false, layout: { showRulers: false, rulerUnit: 'pt', showGrid: false, snapToGrid: false, gridSpacing: 18, snapToGuides: false, guides: [] }, dirty: false });
+const createPresent = (): EditorPresent => ({ documentId: null, annotationsByPageId: {}, selectedId: null, selectedIds: [], activeTool: 'select', highlighterSettings: normalizeHighlighterSettings(), textSettings: { color: '#111111', fontSize: 16 }, drawSettings: { color: '#178a49', opacity: .9, strokeWidth: 2 }, shapeSettings: { strokeColor: '#178a49', strokeWidth: 2, fillColor: 'transparent', opacity: .9 }, clipboard: null, formValues: {}, flattenForms: false, layout: { showRulers: false, rulerUnit: 'pt', showGrid: false, snapToGrid: false, gridSpacing: 18, snapToGuides: false, guides: [] }, dirty: false });
 export const initialEditorState: EditorHistoryState = { present: createPresent(), past: [], future: [] };
-export type EditorAction = { type: 'reset'; documentId: string | null } | { type: 'commit'; next: EditorPresent } | { type: 'select'; id: string | null; append?: boolean } | { type: 'select-many'; ids: string[] } | { type: 'tool'; tool: EditorPresent['activeTool'] } | { type: 'highlighter-settings'; settings: Partial<EditorPresent['highlighterSettings']> } | { type: 'clipboard'; annotation: EditorPresent['clipboard'] } | { type: 'sync-page-copies'; copies: Record<string, PdfAnnotation[]> } | { type: 'undo' } | { type: 'redo' };
+export type EditorAction = { type: 'reset'; documentId: string | null } | { type: 'commit'; next: EditorPresent } | { type: 'select'; id: string | null; append?: boolean } | { type: 'select-many'; ids: string[] } | { type: 'tool'; tool: EditorPresent['activeTool'] } | { type: 'highlighter-settings'; settings: Partial<EditorPresent['highlighterSettings']> } | { type: 'text-settings'; settings: Partial<EditorPresent['textSettings']> } | { type: 'draw-settings'; settings: Partial<EditorPresent['drawSettings']> } | { type: 'shape-settings'; settings: Partial<EditorPresent['shapeSettings']> } | { type: 'clipboard'; annotation: EditorPresent['clipboard'] } | { type: 'sync-page-copies'; copies: Record<string, PdfAnnotation[]> } | { type: 'undo' } | { type: 'redo' };
 
 function restoreHistorySnapshot(snapshot: EditorPresent, current: EditorPresent): EditorPresent {
     const availableIds = new Set(Object.values(snapshot.annotationsByPageId).flat().map((annotation) => annotation.id));
@@ -13,6 +13,9 @@ function restoreHistorySnapshot(snapshot: EditorPresent, current: EditorPresent)
         ...snapshot,
         activeTool: current.activeTool,
         highlighterSettings: current.highlighterSettings,
+        textSettings: current.textSettings,
+        drawSettings: current.drawSettings,
+        shapeSettings: current.shapeSettings,
         clipboard: current.clipboard,
         selectedId: selectedIds[selectedIds.length - 1] ?? null,
         selectedIds,
@@ -25,6 +28,9 @@ export function editorReducer(state: EditorHistoryState, action: EditorAction): 
     if (action.type === 'select-many') return { ...state, present: { ...state.present, selectedIds: action.ids, selectedId: action.ids[action.ids.length - 1] ?? null } };
     if (action.type === 'tool') return { ...state, present: { ...state.present, activeTool: action.tool, selectedId: action.tool === 'select' ? state.present.selectedId : null, selectedIds: action.tool === 'select' ? state.present.selectedIds : [] } };
     if (action.type === 'highlighter-settings') return { ...state, present: { ...state.present, highlighterSettings: normalizeHighlighterSettings({ ...state.present.highlighterSettings, ...action.settings }) } };
+    if (action.type === 'text-settings') return { ...state, present: { ...state.present, textSettings: { ...state.present.textSettings, ...action.settings } } };
+    if (action.type === 'draw-settings') return { ...state, present: { ...state.present, drawSettings: { ...state.present.drawSettings, ...action.settings } } };
+    if (action.type === 'shape-settings') return { ...state, present: { ...state.present, shapeSettings: { ...state.present.shapeSettings, ...action.settings } } };
     if (action.type === 'clipboard') return { ...state, present: { ...state.present, clipboard: action.annotation } };
     if (action.type === 'sync-page-copies') {
         const annotationsByPageId = { ...state.present.annotationsByPageId };

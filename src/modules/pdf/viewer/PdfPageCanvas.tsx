@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { memo, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { PageViewport, PDFPageProxy } from 'pdfjs-dist';
 import type { WorkingPage } from '../organization/types/pages';
 import { normalizePageRotation } from '../organization/utils/pageUtils';
@@ -41,7 +41,7 @@ function drawBlankPage(canvas: HTMLCanvasElement, viewport: PageViewport) {
     context.fillRect(0, 0, viewport.width, viewport.height);
 }
 
-export function PdfPageCanvas({ page, pageNumber, getPage, zoom, rotation, onRenderError, children }: PdfPageCanvasProps) {
+function PdfPageCanvasComponent({ page, pageNumber, getPage, zoom, rotation, onRenderError, children }: PdfPageCanvasProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [size, setSize] = useState({ width: 0, height: 0 });
@@ -51,7 +51,14 @@ export function PdfPageCanvas({ page, pageNumber, getPage, zoom, rotation, onRen
         const element = containerRef.current;
         if (!element) return;
         let frame = 0;
-        const observer = new ResizeObserver(([entry]) => { cancelAnimationFrame(frame); frame = requestAnimationFrame(() => setSize({ width: entry.contentRect.width, height: entry.contentRect.height })); });
+        const observer = new ResizeObserver(([entry]) => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(() => {
+                const width = Math.round(entry.contentRect.width);
+                const height = Math.round(entry.contentRect.height);
+                setSize((current) => current.width === width && current.height === height ? current : { width, height });
+            });
+        });
         observer.observe(element);
         return () => { observer.disconnect(); cancelAnimationFrame(frame); };
     }, []);
@@ -59,11 +66,9 @@ export function PdfPageCanvas({ page, pageNumber, getPage, zoom, rotation, onRen
     useEffect(() => {
         let cancelled = false;
         let renderTask: ReturnType<PDFPageProxy['render']> | null = null;
-        const effectCanvas = canvasRef.current;
         const render = async () => {
             let sourcePage: PDFPageProxy | null = null;
             try {
-                setLayout(null);
                 const effectiveRotation = normalizePageRotation(page.rotation + rotation);
                 sourcePage = page.kind === 'source' ? await getPage(page) : null;
                 const baseViewport = sourcePage ? sourcePage.getViewport({ scale: 1, rotation: effectiveRotation }) : blankViewport(page, 1, effectiveRotation);
@@ -99,12 +104,25 @@ export function PdfPageCanvas({ page, pageNumber, getPage, zoom, rotation, onRen
         return () => {
             cancelled = true;
             renderTask?.cancel();
-            if (effectCanvas) {
-                effectCanvas.width = 0;
-                effectCanvas.height = 0;
-            }
         };
     }, [getPage, onRenderError, page, rotation, size.height, size.width, zoom]);
 
+    useEffect(() => () => {
+        const canvas = canvasRef.current;
+        if (canvas) {
+            canvas.width = 0;
+            canvas.height = 0;
+        }
+    }, []);
+
     return <div ref={containerRef} className="pdf-canvas-stage"><div className="pdf-page-frame" style={layout ? { width: layout.width, height: layout.height } : undefined}><canvas ref={canvasRef} aria-label={`PDF page ${pageNumber}`} />{layout && children?.(layout)}</div></div>;
 }
+
+export const PdfPageCanvas = memo(PdfPageCanvasComponent, (previous, next) => (
+    previous.page === next.page
+    && previous.pageNumber === next.pageNumber
+    && previous.getPage === next.getPage
+    && previous.zoom === next.zoom
+    && previous.rotation === next.rotation
+    && previous.onRenderError === next.onRenderError
+));

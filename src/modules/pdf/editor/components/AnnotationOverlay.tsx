@@ -31,7 +31,7 @@ function safelyReleasePointer(element: HTMLElement | null, pointerId: number | n
     }
 }
 export function AnnotationOverlay({ pageId, layout, onPreviewChange }: AnnotationOverlayProps) {
-    const { annotationsByPageId, activeTool, highlighterSettings, selectedIds, add, update, select, setTool, removeSelected, setFormValue, formValues, duplicate, remove, reorder } = usePdfEditor();
+    const { annotationsByPageId, activeTool, highlighterSettings, textSettings, drawSettings, shapeSettings, selectedIds, add, update, select, setTool, removeSelected, setFormValue, formValues, duplicate, remove, reorder } = usePdfEditor();
     const overlayRef = useRef<HTMLDivElement>(null);
     const gestureRef = useRef<Gesture | null>(null);
     const frameRef = useRef(0);
@@ -232,7 +232,7 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
             return;
         }
         if (activeTool === 'select') { if (!event.shiftKey) select(null); setMenuId(null); return; }
-        const annotation = createAnnotation(activeTool, pageId, point, normalizedHighlighter, layout.viewport.scale);
+        const annotation = createAnnotation(activeTool, pageId, point, normalizedHighlighter, layout.viewport.scale, { text: textSettings, draw: drawSettings, shape: shapeSettings });
         if (!annotation) return;
         if (annotation.type === 'text') { add(annotation); setTool('select'); return; }
         event.currentTarget.classList.add('annotation-overlay--active-interaction');
@@ -373,14 +373,18 @@ function ObjectControls({ onEdit, onDuplicate, onDelete, onForward, onBackward }
 function EditableText({ annotation, scale, selected, onUpdate }: { annotation: Extract<PdfAnnotation, { type: 'text' }>; scale: number; selected: boolean; onUpdate: (patch: Partial<PdfAnnotation>) => void }) {
     const [value, setValue] = useState(annotation.text);
     const [editing, setEditing] = useState(!annotation.text);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
     useEffect(() => setValue(annotation.text), [annotation.text]);
     useEffect(() => { if (!selected) setEditing(false); }, [selected]);
+    useEffect(() => {
+        if (!annotation.text && selected) inputRef.current?.focus({ preventScroll: true });
+    }, [annotation.text, selected]);
     const finishEditing = (element: HTMLTextAreaElement) => {
         setEditing(false);
         const height = Math.max(annotation.height, element.scrollHeight / scale);
         if (value !== annotation.text || height !== annotation.height) onUpdate({ text: value, height });
     };
-    return <textarea autoFocus={!annotation.text} readOnly={!selected || !editing} aria-label="Editable PDF text" value={value} onFocus={() => setEditing(true)} onDoubleClick={(event) => { event.stopPropagation(); setEditing(true); event.currentTarget.focus(); }} onPointerDown={(event) => { if (editing) event.stopPropagation(); else event.preventDefault(); }} onChange={(event) => setValue(event.target.value)} onBlur={(event) => finishEditing(event.currentTarget)} onKeyDown={(event) => { if (event.key === 'Escape') event.currentTarget.blur(); }} style={{ color: annotation.color, fontSize: annotation.fontSize * scale, fontFamily: annotation.fontFamily, fontWeight: annotation.bold ? 700 : 400, fontStyle: annotation.italic ? 'italic' : 'normal', textDecoration: annotation.underline ? 'underline' : 'none', textAlign: annotation.align, lineHeight: annotation.lineHeight, letterSpacing: annotation.letterSpacing }} />;
+    return <textarea ref={inputRef} readOnly={!selected || !editing} aria-label="Editable PDF text" value={value} onFocus={() => setEditing(true)} onDoubleClick={(event) => { event.stopPropagation(); setEditing(true); event.currentTarget.focus({ preventScroll: true }); }} onPointerDown={(event) => { if (editing) event.stopPropagation(); else event.preventDefault(); }} onChange={(event) => setValue(event.target.value)} onBlur={(event) => finishEditing(event.currentTarget)} onKeyDown={(event) => { if (event.key === 'Escape') event.currentTarget.blur(); }} style={{ color: annotation.color, fontSize: annotation.fontSize * scale, fontFamily: annotation.fontFamily, fontWeight: annotation.bold ? 700 : 400, fontStyle: annotation.italic ? 'italic' : 'normal', textDecoration: annotation.underline ? 'underline' : 'none', textAlign: annotation.align, lineHeight: annotation.lineHeight, letterSpacing: annotation.letterSpacing }} />;
 }
 function movePointsWithinPage(points: Point[], dx: number, dy: number, pageWidth: number, pageHeight: number) {
     const minX = Math.min(...points.map((point) => point.x)); const maxX = Math.max(...points.map((point) => point.x));
