@@ -1,23 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Download, FileUp, GripVertical, Home, ShieldCheck, Trash2, X } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, Download, FileUp, GripVertical, Home, ShieldCheck, Trash2, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { useShell } from '../../contexts/ShellContext';
 import { findToolByRoute } from '../../config/toolRegistry';
-import { activeConversionLimits, conversionAccept, type ConversionToolKey } from './conversionConfig';
+import { activeConversionLimits, conversionAccept, conversionOutputFilename, type ConversionToolKey } from './conversionConfig';
 import { docxToHtml, htmlToPdf, imagesToPdf, loadPdf, pdfToJpg, pdfToPpt, pdfToWord, releaseLoadedPdf, renderPageToBlob, type CancelSignal } from './conversionServices';
 import { validateImageFile } from '../../utils/imageFiles';
 import { resetCompletedToolSource } from '../../utils/toolReset';
-
-function downloadBlob(blob: Blob, name: string) {
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url; anchor.download = name; anchor.style.display = 'none';
-    document.body.append(anchor);
-    anchor.click();
-    anchor.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
+import { downloadBlob } from '../../utils/browserDownload';
+import { getProcessingErrorMessage } from '../../utils/processingErrors';
 
 export default function ConversionWorkspace() {
     const location = useLocation();
@@ -183,6 +175,14 @@ export default function ConversionWorkspace() {
             setError('');
         }
     };
+    const downloadOutput = () => {
+        if (!output) return;
+        try {
+            downloadBlob(output.blob, output.name);
+        } catch (cause) {
+            setError(getProcessingErrorMessage(cause, 'The converted file could not be downloaded. Check browser download permissions and try again.'));
+        }
+    };
 
     const convert = async () => {
         if (busyRef.current) return;
@@ -196,31 +196,29 @@ export default function ConversionWorkspace() {
             if (isCurrent()) setProgress({ current, total, label });
         };
         try {
-            let blob: Blob; let name: string;
+            let blob: Blob;
             if (tool === 'jpg-to-pdf') {
                 blob = await imagesToPdf(files, { pageSize, orientation, margin, quality: imageQuality }, update, operationSignal);
-                name = 'images.pdf';
             } else if (tool === 'pdf-to-jpg') {
                 if (!selected.length) throw new Error('Select at least one page.');
                 const scales = { standard: 1.25, high: 2, maximum: 3 };
                 blob = await pdfToJpg(files[0], selected, scales[renderQuality], imageQuality, update, operationSignal);
-                name = selected.length === 1 ? `page-${selected[0]}.jpg` : 'pdf-pages.zip';
             } else if (tool === 'pdf-to-ppt') {
                 if (!selected.length) throw new Error('Select at least one page.');
-                blob = await pdfToPpt(files[0], selected, update, operationSignal); name = 'converted.pptx';
+                blob = await pdfToPpt(files[0], selected, update, operationSignal);
             } else if (tool === 'pdf-to-word') {
-                blob = await pdfToWord(files[0], update, operationSignal); name = 'converted.docx';
+                blob = await pdfToWord(files[0], update, operationSignal);
             } else if (tool === 'word-to-pdf') {
                 if (!preview.current) throw new Error('The document preview is not ready.');
-                blob = await htmlToPdf(preview.current, update, operationSignal); name = 'converted.pdf';
+                blob = await htmlToPdf(preview.current, update, operationSignal);
             } else throw new Error('This conversion route is not available.');
             if (!blob.size) throw new Error('Conversion produced an empty output and was stopped.');
             if (isCurrent()) {
-                setOutput({ blob, name });
+                setOutput({ blob, name: conversionOutputFilename(tool, files, selected) });
                 resetSourceState(true);
             }
         } catch (cause) {
-            if (isCurrent() && !(cause instanceof DOMException && cause.name === 'AbortError')) setError(cause instanceof Error ? cause.message : 'Conversion failed.');
+            if (isCurrent() && !(cause instanceof DOMException && cause.name === 'AbortError')) setError(getProcessingErrorMessage(cause, 'Conversion failed. Keep the source file selected and try again.'));
         } finally {
             if (operationRef.current === operation) {
                 busyRef.current = false;
@@ -244,7 +242,7 @@ export default function ConversionWorkspace() {
                 <input ref={input} className="sr-only" type="file" multiple={multiple} accept={conversionAccept[tool]} disabled={busy} onChange={(event) => { const next = Array.from(event.target.files ?? []); event.target.value = ''; void inspectFiles(next); }} />
                 {!files.length ? <button className="conversion-drop" type="button" disabled={busy} onClick={() => input.current?.click()}><FileUp /><strong>Choose {multiple ? 'images' : 'a file'}</strong><span>{multiple ? 'JPG, JPEG, PNG or WebP' : conversionAccept[tool].split(',')[0]}</span><small><ShieldCheck size={14} /> Nothing leaves this device</small></button> :
                     <div className="file-summary"><strong>{multiple ? `${files.length} images` : files[0].name}</strong><span>{(files.reduce((sum, file) => sum + file.size, 0) / 1024 / 1024).toFixed(2)} MB</span><Button variant="secondary" disabled={busy} onClick={() => input.current?.click()}>Replace File</Button></div>}
-                {multiple && files.length > 0 && <div className="image-order">{files.map((file, index) => <article key={`${file.name}-${file.lastModified}`} draggable={!busy} onDragStart={(event) => { if (!busyRef.current) event.dataTransfer.setData('text/plain', String(index)); }} onDragOver={(event) => event.preventDefault()} onDrop={(event) => reorder(Number(event.dataTransfer.getData('text/plain')), index)}><GripVertical aria-hidden="true" /><img src={thumbs[index]} alt="" /><span>{index + 1}. {file.name}</span><button type="button" disabled={busy} aria-label={`Remove ${file.name}`} onClick={() => void inspectFiles(files.filter((_, item) => item !== index))}><Trash2 size={15} /></button></article>)}</div>}
+                {multiple && files.length > 0 && <div className="image-order">{files.map((file, index) => <article key={`${file.name}-${file.lastModified}`} draggable={!busy} onDragStart={(event) => { if (!busyRef.current) event.dataTransfer.setData('text/plain', String(index)); }} onDragOver={(event) => event.preventDefault()} onDrop={(event) => reorder(Number(event.dataTransfer.getData('text/plain')), index)}><GripVertical aria-hidden="true" /><img src={thumbs[index]} alt="" /><span>{index + 1}. {file.name}</span><div className="image-order__actions"><button type="button" disabled={busy || index === 0} aria-label={`Move ${file.name} earlier`} onClick={() => reorder(index, index - 1)}><ArrowUp size={15} /></button><button type="button" disabled={busy || index === files.length - 1} aria-label={`Move ${file.name} later`} onClick={() => reorder(index, index + 1)}><ArrowDown size={15} /></button><button type="button" disabled={busy} aria-label={`Remove ${file.name}`} onClick={() => void inspectFiles(files.filter((_, item) => item !== index))}><Trash2 size={15} /></button></div></article>)}</div>}
             </section>
             <section className="conversion-card">
                 <div className="conversion-card__title"><div><span>2</span><h2>Options</h2></div></div>
@@ -260,7 +258,7 @@ export default function ConversionWorkspace() {
                 {busy && <div className="conversion-progress" role="status"><div><span>{progress.label || 'Preparing file'}</span><strong>{progress.total ? `${progress.current} / ${progress.total}` : 'Working…'}</strong></div><progress max={Math.max(1, progress.total)} value={progress.current} /><Button variant="secondary" onClick={() => { signal.current.cancelled = true; }}>Cancel</Button></div>}
                 {error && <div className="conversion-error" role="alert"><X size={17} />{error}</div>}
                 {output && <p className="operation-message" role="status">Conversion complete. The output is ready to download.</p>}
-                <div className="conversion-actions"><Button disabled={!canConvert} onClick={() => void convert()}>Convert</Button>{output && <Button variant="secondary" onClick={() => downloadBlob(output.blob, output.name)}><Download size={17} />Download {output.name}</Button>}</div>
+                <div className="conversion-actions"><Button disabled={!canConvert} onClick={() => void convert()}>Convert</Button>{output && <Button variant="secondary" onClick={downloadOutput}><Download size={17} />Download {output.name}</Button>}</div>
             </section>
         </div>
     </section>;

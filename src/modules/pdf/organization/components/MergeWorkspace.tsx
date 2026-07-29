@@ -5,6 +5,7 @@ import { downloadPdf } from '../utils/pdfDownload';
 import { mergePdfFiles } from '../services/documentOperationsService';
 import { validatePdfFileSelection } from '../../services/pdfValidationService';
 import { resetCompletedToolSource } from '../../../../utils/toolReset';
+import { getProcessingErrorMessage } from '../../../../utils/processingErrors';
 
 type MergeFile = { file: File; pageCount: number | null };
 type OperationMessage = { text: string; error: boolean };
@@ -73,7 +74,7 @@ export function MergeWorkspace() {
             });
             setMessage({ text: 'Merged PDF downloaded.', error: false });
         } catch (error) {
-            if (mountedRef.current) setMessage({ text: error instanceof Error ? error.message : 'The PDFs could not be merged.', error: true });
+            if (mountedRef.current) setMessage({ text: getProcessingErrorMessage(error, 'The PDFs could not be merged. Keep the files selected and try again.'), error: true });
         } finally {
             busyRef.current = false;
             if (mountedRef.current) setBusy(false);

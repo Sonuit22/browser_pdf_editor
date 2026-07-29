@@ -19,6 +19,7 @@ import { RightPanel } from '../../../layouts/RightPanel';
 import { SigningToolbar } from '../editor/components/SigningToolbar';
 import { useLocation } from 'react-router-dom';
 import type { PdfAnnotation } from '../editor/types/annotations';
+import { getProcessingErrorMessage } from '../../../utils/processingErrors';
 
 const zoomOptions: Array<[string, ZoomPreset]> = [['Fit width', 'fit-width'], ['Fit page', 'fit-page'], ['25%', 25], ['50%', 50], ['75%', 75], ['100%', 100], ['125%', 125], ['150%', 150], ['200%', 200], ['300%', 300]];
 const rotationOptions: PdfRotation[] = [0, 90, 180, 270, 360];
@@ -72,8 +73,8 @@ export function PdfViewer() {
             await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile, filename: editedFilename(info.filename), utilities, sourceFilename: info.filename, formValues, flattenForms, onProgress: setExportProgress });
             notify(flattenForms ? 'PDF exported with flattened form fields.' : 'PDF export completed.');
             completed = true;
-        } catch {
-            const message = 'Export failed. Check available browser memory and the source PDF, then try again.';
+        } catch (error) {
+            const message = getProcessingErrorMessage(error, 'Export failed. Keep the document open, check available browser memory, and try again.');
             setExportError(message);
             notify(message, 'error');
         } finally {

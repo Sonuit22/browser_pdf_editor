@@ -12,6 +12,8 @@ import { A4_PORTRAIT, LETTER_PORTRAIT } from '../types/pages';
 import { safePdfFilename } from '../utils/pageUtils';
 import { usePdfUtilities } from '../../utilities/hooks/usePdfUtilities';
 import { notify } from '../../../../components/feedback/notifications';
+import { useLocation } from 'react-router-dom';
+import { getProcessingErrorMessage } from '../../../../utils/processingErrors';
 
 const blankPresets = {
     'Same as active': null,
@@ -22,6 +24,7 @@ const blankPresets = {
 };
 
 export function OrganizationWorkspace() {
+    const { pathname } = useLocation();
     const { closeDocument, info } = usePdfEngine();
     const { annotationsByPageId } = usePdfEditor();
     const utilities = usePdfUtilities();
@@ -33,8 +36,11 @@ export function OrganizationWorkspace() {
     const [message, setMessage] = useState<string | null>(null);
     const importInputRef = useRef<HTMLInputElement>(null);
     const busyRef = useRef(false);
-    const selectedIds = operations.selectedPageIds.length ? operations.selectedPageIds : operations.activePageId ? [operations.activePageId] : [];
+    const selectedIds = operations.selectedPageIds.length
+        ? operations.selectedPageIds
+        : pathname === '/organize' && operations.activePageId ? [operations.activePageId] : [];
     const selectedPages = operations.pages.filter((page) => selectedIds.includes(page.id));
+    const remainingPages = operations.pages.filter((page) => !selectedIds.includes(page.id));
     const activeDimensions = operations.activePage ? { width: operations.activePage.width, height: operations.activePage.height } : A4_PORTRAIT;
 
     const exportPages = async (pages: WorkingPage[], suffix: string) => {
@@ -47,8 +53,8 @@ export function OrganizationWorkspace() {
             await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile: operations.getSourceFile, filename: safePdfFilename(info.filename, suffix), utilities, sourceFilename: info.filename });
             notify('PDF downloaded successfully.');
             completed = true;
-        } catch {
-            setMessage('The selected pages could not be exported. Check every source PDF and try again.');
+        } catch (error) {
+            setMessage(getProcessingErrorMessage(error, 'The selected pages could not be exported. Keep the document open and try again.'));
         } finally {
             busyRef.current = false;
             setBusy(false);
@@ -62,6 +68,29 @@ export function OrganizationWorkspace() {
     const confirmDelete = () => {
         if (!operations.deleteSelected()) setMessage('At least one page must remain in the document.'); else notify('Selected pages deleted. You can undo this operation.');
         setDeleteOpen(false);
+    };
+    const runRouteAction = () => {
+        if (pathname === '/remove-pages') {
+            if (!selectedIds.length) {
+                setMessage('Select at least one page to remove.');
+                return;
+            }
+            if (!remainingPages.length) {
+                setMessage('At least one page must remain in the document.');
+                return;
+            }
+            void exportPages(remainingPages, 'pages-removed');
+            return;
+        }
+        if (pathname === '/extract-pages') {
+            if (!selectedPages.length) {
+                setMessage('Select at least one page to extract.');
+                return;
+            }
+            void exportPages(selectedPages, `pages-${selectedPages.map((page) => operations.getPageNumber(page.id)).join('-')}`);
+            return;
+        }
+        void exportPages(operations.pages, 'edited');
     };
     const importFile = async (event: ChangeEvent<HTMLInputElement>) => {
         const [file] = Array.from(event.target.files ?? []);
@@ -101,8 +130,8 @@ export function OrganizationWorkspace() {
                 <div className="organize-toolbar__group organize-toolbar__group--actions">
                     <button className="icon-button" type="button" onClick={operations.undo} disabled={!operations.canUndo} aria-label="Undo page operation" title="Undo"><Undo2 size={17} aria-hidden="true" /></button>
                     <button className="icon-button" type="button" onClick={operations.redo} disabled={!operations.canRedo} aria-label="Redo page operation" title="Redo"><Redo2 size={17} aria-hidden="true" /></button>
-                    <Button variant="secondary" size="compact" type="button" onClick={() => void exportPages(selectedPages, `pages-${selectedPages.map((page) => operations.getPageNumber(page.id)).join('-')}`)} disabled={!selectedPages.length || busy}><Scissors size={16} aria-hidden="true" />Extract</Button>
-                    <Button variant="primary" size="compact" type="button" onClick={() => void exportPages(operations.pages, 'edited')} disabled={busy}><Download size={16} aria-hidden="true" />{busy ? 'Working' : 'Export'}</Button>
+                    {pathname === '/organize' && <Button variant="secondary" size="compact" type="button" onClick={() => void exportPages(selectedPages, `pages-${selectedPages.map((page) => operations.getPageNumber(page.id)).join('-')}`)} disabled={!selectedPages.length || busy}><Scissors size={16} aria-hidden="true" />Extract</Button>}
+                    <Button variant="primary" size="compact" type="button" onClick={runRouteAction} disabled={busy || (pathname === '/remove-pages' && (!selectedIds.length || !remainingPages.length)) || (pathname === '/extract-pages' && !selectedPages.length)}><Download size={16} aria-hidden="true" />{busy ? 'Working' : pathname === '/remove-pages' ? 'Remove pages and download' : pathname === '/extract-pages' ? 'Extract pages' : 'Export'}</Button>
                 </div>
             </div>
             <div className="organize-selection" role="status" aria-live="polite"><span>{selectedIds.length} selected</span><button type="button" onClick={operations.selectAll}>Select all</button><button type="button" onClick={operations.clearSelection}>Clear</button><button type="button" onClick={operations.invertSelection}>Invert</button><button type="button" onClick={() => operations.rotateAll(90)}>Rotate all</button></div>

@@ -8,7 +8,7 @@ describe('central tool status registry', () => {
         toolRegistry.forEach((tool) => {
             expect(tool.description.length).toBeGreaterThan(10);
             expect(tool.description.length).toBeLessThan(80);
-            expect(['available', 'basic', 'beta', 'coming-soon']).toContain(tool.status);
+            expect(['available', 'beta', 'coming-soon']).toContain(tool.status);
             expect(tool.enabled).toBe(tool.status !== 'coming-soon');
             expect(tool.implemented).toBe(tool.status !== 'coming-soon');
             expect(tool.route).toMatch(/^\//);
@@ -23,11 +23,11 @@ describe('central tool status registry', () => {
         }
     });
 
-    it('marks genuine limited conversions as Basic', () => {
+    it('marks genuine limited conversions as Beta', () => {
         for (const id of ['word-pdf', 'pdf-word', 'pdf-ppt']) {
             const tool = toolRegistry.find((item) => item.id === id);
             expect(tool).toMatchObject({
-                status: 'basic', badge: 'Basic', enabled: true,
+                status: 'beta', badge: 'Beta', enabled: true,
             });
             expect(tool?.limitations.length).toBeGreaterThan(0);
         }

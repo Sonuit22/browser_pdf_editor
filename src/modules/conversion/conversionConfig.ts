@@ -20,3 +20,19 @@ export const conversionAccept: Record<ConversionToolKey, string> = {
     'pdf-to-word': '.pdf,application/pdf',
     'word-to-pdf': '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 };
+
+function sourceBaseName(name: string) {
+    const withoutExtension = name.replace(/\.[^.]+$/, '');
+    return (withoutExtension || 'document').replace(/[<>:"/\\|?*]+/g, '-').slice(0, 120);
+}
+
+export function conversionOutputFilename(tool: ConversionToolKey, files: File[], selectedPages: number[] = []) {
+    const base = sourceBaseName(files[0]?.name ?? 'document');
+    if (tool === 'jpg-to-pdf') return files.length > 1 ? `${base}-and-${files.length - 1}-more.pdf` : `${base}.pdf`;
+    if (tool === 'pdf-to-jpg') return selectedPages.length === 1
+        ? `${base}-page-${String(selectedPages[0]).padStart(3, '0')}.jpg`
+        : `${base}-pages.zip`;
+    if (tool === 'pdf-to-ppt') return `${base}.pptx`;
+    if (tool === 'pdf-to-word') return `${base}.docx`;
+    return `${base}.pdf`;
+}

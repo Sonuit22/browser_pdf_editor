@@ -11,6 +11,7 @@ import { parsePageRangeGroups } from '../utils/pageRangeParser';
 import { usePdfUtilities } from '../../utilities/hooks/usePdfUtilities';
 import { PageThumbnailPanel } from './PageThumbnailPanel';
 import { notify } from '../../../../components/feedback/notifications';
+import { getProcessingErrorMessage } from '../../../../utils/processingErrors';
 
 type SplitMode = 'ranges' | 'selected' | 'count' | 'parts' | 'every-page';
 type OperationMessage = { text: string; error: boolean };
@@ -67,7 +68,7 @@ export function SplitWorkspace() {
             notify(`${output.length} PDF file${output.length === 1 ? '' : 's'} downloaded.`);
             completed = true;
         } catch (error) {
-            if (mountedRef.current) setMessage({ text: error instanceof Error ? error.message : 'The PDF could not be split. Check the source document and try again.', error: true });
+            if (mountedRef.current) setMessage({ text: getProcessingErrorMessage(error, 'The PDF could not be split. Keep the source document open and try again.'), error: true });
         } finally {
             busyRef.current = false;
             if (mountedRef.current) setBusy(false);
