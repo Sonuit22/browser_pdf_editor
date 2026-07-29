@@ -15,10 +15,12 @@ import { Link } from 'react-router-dom';
 import { useShell } from '../contexts/ShellContext';
 
 export default function WorkspacePage() {
-    const { pathname } = useLocation();
-    const { phase, error, progress, retry } = usePdfEngine();
+    const location = useLocation();
+    const { pathname } = location;
+    const { phase, error, progress, retry, stagedFile } = usePdfEngine();
     const route = workspaceRoutes[pathname] ?? workspaceRoutes['/'];
     const { requestNavigation } = useShell();
+    const needsLandingReselect = Boolean((location.state as { fromLandingFile?: boolean } | null)?.fromLandingFile) && phase === 'idle' && !stagedFile;
 
     return (
         <section className="tool-workspace-shell" aria-label={`${route.title} workspace`}>
@@ -27,7 +29,7 @@ export default function WorkspacePage() {
                 {pathname === '/merge' ? <MergeWorkspace /> : <>
                     {phase === 'loading' && <div className="pdf-loading" role="status"><LoadingSpinner label="Loading PDF" /><strong>Loading PDF</strong><span>{progress}%</span></div>}
                     {phase === 'ready' && (['/organize', '/remove-pages', '/extract-pages'].includes(pathname) ? <OrganizationWorkspace /> : pathname === '/split' ? <SplitWorkspace /> : <PdfViewer />)}
-                    {phase !== 'loading' && phase !== 'ready' && <>{phase === 'error' && error ? <div className="pdf-error"><ErrorState description={error} /><Button type="button" variant="secondary" onClick={retry}>Retry</Button></div> : <UploadArea />}</>}
+                    {phase !== 'loading' && phase !== 'ready' && <>{phase === 'error' && error ? <div className="pdf-error"><ErrorState description={error} /><Button type="button" variant="secondary" onClick={retry}>Retry</Button></div> : <>{needsLandingReselect && <p className="landing-reselect-message" role="status">Please select the PDF again. Files are kept only in memory and are cleared when the page is refreshed.</p>}<UploadArea /></>}</>}
                 </>}
             </div></div><RightPanel />
         </section>

@@ -1,14 +1,18 @@
-import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
+import { useCallback, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import {
     BadgeDollarSign,
     Bolt,
     CheckCircle2,
+    FileText,
     MonitorSmartphone,
+    RotateCcw,
     ShieldCheck,
+    Trash2,
     UploadCloud,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toolRegistry } from '../config/toolRegistry';
+import { landingUploadTools } from '../config/landingUploadTools';
 import { usePdfEngine } from '../modules/pdf/hooks/usePdfEngine';
 import { validatePdfFileSelection } from '../modules/pdf/services/pdfValidationService';
 import { MAX_PDF_FILE_SIZE } from '../modules/pdf/types/pdf';
@@ -26,31 +30,33 @@ const testimonials = [
     'The same focused experience is easy to use from a laptop, tablet, or phone.',
 ];
 
+function formatSelectedFileSize(size: number) {
+    return size < 1024 * 1024 ? `${Math.max(1, Math.round(size / 1024))} KB` : `${(size / 1024 / 1024).toFixed(1)} MB`;
+}
+
 export default function HomePage() {
     const navigate = useNavigate();
-    const { error, openFile, phase } = usePdfEngine();
+    const { stagedFile, stageFile, clearStagedFile, openStagedFile } = usePdfEngine();
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [isDragActive, setIsDragActive] = useState(false);
-    const pendingLandingUpload = useRef(false);
+    const [openingRoute, setOpeningRoute] = useState<string | null>(null);
     const uploadInput = useRef<HTMLInputElement>(null);
 
     const beginLocalUpload = useCallback((file: File) => {
-        if (phase === 'loading') return;
         try {
             validatePdfFileSelection(file);
         } catch (selectionError) {
-            pendingLandingUpload.current = false;
+            clearStagedFile();
             setUploadError(selectionError instanceof Error ? selectionError.message : 'Choose one non-empty PDF file to continue.');
             return;
         }
-        pendingLandingUpload.current = true;
         setUploadError(null);
-        void openFile(file);
-    }, [openFile, phase]);
+        stageFile(file);
+    }, [clearStagedFile, stageFile]);
 
     const choosePdf = useCallback(() => {
-        if (phase !== 'loading') uploadInput.current?.click();
-    }, [phase]);
+        uploadInput.current?.click();
+    }, []);
     const onFileChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
         const [file] = Array.from(event.target.files ?? []);
         event.target.value = '';
@@ -58,39 +64,37 @@ export default function HomePage() {
     }, [beginLocalUpload]);
     const onDragOver = useCallback((event: DragEvent<HTMLElement>) => {
         event.preventDefault();
-        if (phase !== 'loading' && Array.from(event.dataTransfer.types).includes('Files')) {
+        if (Array.from(event.dataTransfer.types).includes('Files')) {
             event.dataTransfer.dropEffect = 'copy';
             setIsDragActive(true);
         }
-    }, [phase]);
+    }, []);
     const onDragLeave = useCallback((event: DragEvent<HTMLElement>) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsDragActive(false);
     }, []);
     const onDrop = useCallback((event: DragEvent<HTMLElement>) => {
         event.preventDefault();
         setIsDragActive(false);
-        if (phase === 'loading') return;
         const files = Array.from(event.dataTransfer.files);
         if (files.length !== 1) {
-            pendingLandingUpload.current = false;
+            clearStagedFile();
             setUploadError('Choose one non-empty PDF file to continue.');
             return;
         }
         beginLocalUpload(files[0]);
-    }, [beginLocalUpload, phase]);
+    }, [beginLocalUpload, clearStagedFile]);
 
-    useEffect(() => {
-        if (!pendingLandingUpload.current) return;
-        if (phase === 'ready') {
-            pendingLandingUpload.current = false;
-            navigate('/edit', { state: { preserveLandingUpload: true } });
-        } else if (phase === 'error') {
-            pendingLandingUpload.current = false;
-            setUploadError(error ?? 'The PDF could not be opened. Please try another file.');
+    const chooseTool = async (route: string) => {
+        if (!stagedFile) {
+            setUploadError('Please select the PDF again.');
+            return;
         }
-    }, [error, navigate, phase]);
-
-    const isLoading = phase === 'loading' && pendingLandingUpload.current;
+        if (route !== '/compress') {
+            setOpeningRoute(route);
+            await openStagedFile();
+        }
+        navigate(route, { state: { fromLandingFile: true } });
+    };
 
     return <div className="tool-dashboard">
         <section className="landing-hero" aria-labelledby="landing-title">
@@ -109,24 +113,41 @@ export default function HomePage() {
             </div>
 
             <section
-                className={`landing-upload${isDragActive ? ' is-dragging' : ''}${isLoading ? ' is-loading' : ''}`}
+                className={`landing-upload${isDragActive ? ' is-dragging' : ''}${stagedFile ? ' has-file' : ''}`}
                 aria-labelledby="landing-upload-title"
                 aria-describedby="landing-upload-formats landing-upload-privacy"
-                aria-busy={isLoading}
                 onDragEnter={onDragOver}
                 onDragOver={onDragOver}
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}
             >
-                <input ref={uploadInput} className="sr-only" type="file" accept="application/pdf,.pdf" onChange={onFileChange} disabled={isLoading} tabIndex={-1} />
-                <span className="landing-upload__icon" aria-hidden="true"><UploadCloud size={34} strokeWidth={1.8} /></span>
-                <h2 id="landing-upload-title">{isLoading ? 'Opening your PDF…' : 'Drop your PDF here'}</h2>
-                <p>{isLoading ? 'Checking the file locally in your browser.' : 'Drag and drop a file, or choose one from your device.'}</p>
-                <button className="button button--secondary" type="button" onClick={choosePdf} disabled={isLoading}>
-                    Choose PDF
-                </button>
-                <p id="landing-upload-formats" className="landing-upload__formats">Supported format: PDF · Maximum size: {Math.round(MAX_PDF_FILE_SIZE / 1024 / 1024)} MB</p>
-                <p id="landing-upload-privacy" className="landing-upload__privacy"><ShieldCheck size={14} aria-hidden="true" />Never uploaded to a server</p>
+                <input ref={uploadInput} className="sr-only" type="file" accept="application/pdf,.pdf" onChange={onFileChange} tabIndex={-1} />
+                {!stagedFile ? <>
+                    <span className="landing-upload__icon" aria-hidden="true"><UploadCloud size={34} strokeWidth={1.8} /></span>
+                    <h2 id="landing-upload-title">Drop your PDF here</h2>
+                    <p>Drag and drop a file, or choose one from your device.</p>
+                    <button className="button button--secondary" type="button" onClick={choosePdf}>Choose PDF</button>
+                    <p id="landing-upload-formats" className="landing-upload__formats">Supported format: PDF · Maximum size: {Math.round(MAX_PDF_FILE_SIZE / 1024 / 1024)} MB</p>
+                    <p id="landing-upload-privacy" className="landing-upload__privacy"><ShieldCheck size={14} aria-hidden="true" />Never uploaded to a server</p>
+                </> : <>
+                    <div className="landing-upload__file" aria-live="polite">
+                        <span aria-hidden="true"><FileText size={24} /></span>
+                        <div><strong title={stagedFile.name}>{stagedFile.name}</strong><small>{formatSelectedFileSize(stagedFile.size)}</small></div>
+                        <div className="landing-upload__file-actions">
+                            <button type="button" onClick={choosePdf}><RotateCcw size={15} />Replace file</button>
+                            <button type="button" onClick={() => { clearStagedFile(); setUploadError(null); }}><Trash2 size={15} />Remove file</button>
+                        </div>
+                    </div>
+                    <section className="landing-tool-chooser" aria-labelledby="landing-tool-chooser-title">
+                        <h2 id="landing-tool-chooser-title">Choose what you want to do</h2>
+                        <div>{landingUploadTools.map((tool) => {
+                            const Icon = tool.icon;
+                            return <button type="button" key={tool.route} disabled={openingRoute !== null} onClick={() => void chooseTool(tool.route)}><Icon size={20} aria-hidden="true" /><span><strong>{openingRoute === tool.route ? `Opening ${tool.title}…` : tool.title}</strong><small>{tool.description}</small></span></button>;
+                        })}</div>
+                    </section>
+                    <p id="landing-upload-formats" className="landing-upload__formats">PDF · {formatSelectedFileSize(stagedFile.size)}</p>
+                    <p id="landing-upload-privacy" className="landing-upload__privacy"><ShieldCheck size={14} aria-hidden="true" />Stored only in this browser session</p>
+                </>}
                 {uploadError && <p className="landing-upload__error" role="alert">{uploadError}</p>}
             </section>
         </section>

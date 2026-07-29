@@ -395,6 +395,44 @@ body { overflow-x: hidden; }
 @media(max-width:520px){.landing-intro{margin-bottom:26px}.landing-intro h1{max-width:300px}.dynamic-tagline{min-height:2.9em;max-width:310px}}
 @media(prefers-reduced-motion:reduce){.dynamic-tagline span{font-size:0}.dynamic-tagline span::after{content:"Powerful PDF tools, right in your browser.";font-size:1rem}.dynamic-tagline i{display:none}}
 
+/* Landing upload: stage one local file, then explicitly choose a tool. */
+.landing-upload.has-file { min-height: 390px; align-items: stretch; justify-content: flex-start; gap: 14px; padding: 24px; text-align: left; }
+.landing-upload__file { width: 100%; min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 11px; padding: 12px; border: 1px solid #dce5df; border-radius: 11px; background: #f7faf8; }
+.landing-upload__file > span { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 9px; color: var(--brand); background: rgba(23,138,73,.1); }
+.landing-upload__file > div:nth-child(2) { min-width: 0; display: grid; gap: 3px; }
+.landing-upload__file strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.landing-upload__file small { color: #667085; }
+.landing-upload__file-actions { display: flex; gap: 5px; }
+.landing-upload__file-actions button { min-height: 40px; display: inline-flex; align-items: center; gap: 5px; padding: 7px 9px; border: 1px solid #cfd9d2; border-radius: 7px; color: inherit; background: #fff; }
+.landing-upload__file-actions button:last-child { color: #a52828; }
+.landing-tool-chooser { width: 100%; min-width: 0; }
+.landing-tool-chooser h2 { margin: 2px 0 10px; font-size: 1.05rem; }
+.landing-tool-chooser > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.landing-tool-chooser button { min-width: 0; min-height: 62px; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 9px; padding: 9px 10px; border: 1px solid transparent; border-radius: 9px; color: inherit; background: #f5f8f6; text-align: left; }
+.landing-tool-chooser button:hover, .landing-tool-chooser button:focus-visible { border-color: var(--brand); background: #eef8f1; }
+.landing-tool-chooser button:disabled { cursor: wait; opacity: .64; }
+.landing-tool-chooser button > svg { color: var(--brand); }
+.landing-tool-chooser button span { min-width: 0; display: grid; gap: 2px; }
+.landing-tool-chooser button strong { font-size: .82rem; }
+.landing-tool-chooser button small { display: -webkit-box; overflow: hidden; color: #667085; font-size: .68rem; line-height: 1.3; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.landing-upload.has-file .landing-upload__formats, .landing-upload.has-file .landing-upload__privacy { align-self: center; margin: 0; }
+.landing-reselect-message { width: min(100%, 620px); margin: 0 auto; padding: 10px 12px; border: 1px solid #efcf83; border-radius: 8px; color: #6c4a00; background: #fff8df; font-size: .84rem; }
+@media (max-width: 760px) {
+    .landing-upload__file { grid-template-columns: auto minmax(0, 1fr); }
+    .landing-upload__file-actions { grid-column: 1 / -1; }
+    .landing-upload__file-actions button { flex: 1; justify-content: center; }
+}
+@media (max-width: 430px) {
+    .landing-tool-chooser > div { grid-template-columns: 1fr; }
+    .landing-tool-chooser button { min-height: 68px; }
+}
+:root[data-theme="dark"] .landing-upload__file,
+:root[data-theme="dark"] .landing-tool-chooser button { border-color: #374151; color: #f8fafc; background: #17221c; }
+:root[data-theme="dark"] .landing-upload__file-actions button { border-color: #4b5563; color: #f8fafc; background: #1f2937; }
+:root[data-theme="dark"] .landing-upload__file-actions button:last-child { color: #fca5a5; }
+:root[data-theme="dark"] .landing-upload__file small,
+:root[data-theme="dark"] .landing-tool-chooser button small { color: #cbd5e1; }
+
 /* Touch-first annotation editing */
 .annotation-overlay--select{touch-action:pan-x pan-y pinch-zoom}.annotation-overlay--draw,.annotation-overlay--highlight{touch-action:pan-x pan-y pinch-zoom}.annotation-item{touch-action:pinch-zoom}.resize-handle,.rotation-handle{touch-action:none}.annotation-path{pointer-events:none!important}.annotation-path :is(polyline,path)[data-annotation-id]{pointer-events:stroke;touch-action:none;cursor:move}.annotation-path-selection{position:absolute;border:1px dashed #178a49;pointer-events:none}.annotation-path-selection .resize-handle,.annotation-path-selection .object-quick-actions{pointer-events:auto}
 .annotation-overlay--object-gesture,.annotation-overlay--object-gesture .annotation-item,.annotation-text,.annotation-image-wrap,.annotation-shape-wrap{touch-action:none}.annotation-overlay--object-gesture{user-select:none;-webkit-user-select:none}
