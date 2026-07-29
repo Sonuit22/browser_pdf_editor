@@ -312,7 +312,7 @@ MIT License - See LICENSE (coming soon)
 ## Contact
 
 - **Website**: [pdfbyib.com](https://pdfbyib.com)
-- **Email**: pdfeditorbyib@gmail.com
+- **Email**: pdfbyib@gmail.com
 - **GitHub**: [@yourusername](https://github.com/yourusername)
 
 ---

@@ -1,6 +1,6 @@
 export const SITE_NAME = 'PDF by ib';
 export const SITE_URL = normalizeSiteUrl(import.meta.env.VITE_SITE_URL || 'https://pdfbyib.com');
-export const SUPPORT_EMAIL = 'pdfeditorbyib@gmail.com';
+export const SUPPORT_EMAIL = 'pdfbyib@gmail.com';
 export const SOCIAL_IMAGE_PATH = '/logo-512.png';
 export const LEGAL_LAST_UPDATED = 'July 29, 2026';
 export const GOVERNING_LAW = import.meta.env.VITE_GOVERNING_LAW?.trim() || 'a jurisdiction to be specified before commercial launch';
