@@ -1,6 +1,6 @@
 import { findToolByRoute } from './toolRegistry';
 
-export const landingUploadToolRoutes = ['/edit', '/sign-pdf', '/compress', '/split', '/remove-pages', '/extract-pages', '/organize'] as const;
+export const landingUploadToolRoutes = ['/sign-pdf', '/compress', '/split', '/remove-pages', '/extract-pages', '/organize'] as const;
 
 export const landingUploadTools = landingUploadToolRoutes
     .map((route) => findToolByRoute(route))

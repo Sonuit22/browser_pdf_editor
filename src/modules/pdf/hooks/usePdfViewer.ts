@@ -27,26 +27,26 @@ export function usePdfViewer() {
     const openFile = useCallback(async (file: File) => {
         const request = ++requestRef.current;
         await dispose();
-        if (!mountedRef.current || request !== requestRef.current) return;
+        if (!mountedRef.current || request !== requestRef.current) return false;
         setLastFile(file);
         setState({ ...initialState, phase: 'loading', progress: 1 });
         let task: PDFDocumentLoadingTask | null = null;
         let document: PDFDocumentProxy | null = null;
         try {
             const data = await validatePdfFile(file);
-            if (request !== requestRef.current) return;
+            if (request !== requestRef.current) return false;
             task = createDocumentLoadingTask(data, (progress) => {
                 if (mountedRef.current && request === requestRef.current) setState((current) => ({ ...current, progress }));
             });
             taskRef.current = task;
             document = await task.promise;
-            if (request !== requestRef.current) { await task.destroy(); return; }
+            if (request !== requestRef.current) { await task.destroy(); return false; }
             documentRef.current = document;
             const info = await getPdfDocumentInfo(document, file);
-            if (request !== requestRef.current) return;
-            if (!mountedRef.current) return;
+            if (request !== requestRef.current || !mountedRef.current) return false;
             setState({ phase: 'ready', document, loadingTask: task, info, progress: 100, currentPage: 1, zoom: 'fit-width', rotation: 0, error: null });
             notify(`${file.name} loaded successfully.`);
+            return true;
         } catch (error) {
             if (mountedRef.current && request === requestRef.current) {
                 taskRef.current = null;
@@ -54,6 +54,7 @@ export function usePdfViewer() {
                 await releasePdfDocument(task, document);
                 setState({ ...initialState, phase: 'error', error: getPdfErrorMessage(error) });
             }
+            return false;
         }
     }, [dispose]);
 
@@ -65,6 +66,11 @@ export function usePdfViewer() {
     const setZoom = useCallback((zoom: ZoomPreset) => setState((current) => ({ ...current, zoom })), []);
     const setRotation = useCallback((rotation: PdfRotation) => setState((current) => ({ ...current, rotation })), []);
 
-    useEffect(() => () => { mountedRef.current = false; ++requestRef.current; void dispose(); }, [dispose]);
+    useEffect(() => {
+        mountedRef.current = true;
+        const mounted = mountedRef;
+        const requests = requestRef;
+        return () => { mounted.current = false; ++requests.current; void dispose(); };
+    }, [dispose]);
     return { ...state, sourceFile: lastFile, openFile, retry, closeDocument, setCurrentPage, setZoom, setRotation, setUploadError, failViewer };
 }

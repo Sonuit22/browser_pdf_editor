@@ -10,6 +10,10 @@ import { PdfEditorProvider } from './modules/pdf/editor/context/PdfEditorProvide
 import { PdfPageOperationsProvider } from './modules/pdf/organization/context/PdfPageOperationsProvider';
 import { PdfUtilitiesProvider } from './modules/pdf/utilities/context/PdfUtilitiesProvider';
 import { toolRoutesBySurface } from './config/toolRegistry';
+import { landingUploadToolRoutes } from './config/landingUploadTools';
+
+const landingWorkspaceRoutes = new Set<string>(landingUploadToolRoutes);
+const pdfWorkspaceRoutes = Array.from(new Set([...toolRoutesBySurface['pdf-workspace'], ...landingUploadToolRoutes]));
 
 const WorkspacePage = lazy(() => import('./pages/WorkspacePage'));
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -27,9 +31,9 @@ export default function App() {
             <Routes>
                 <Route element={<PdfEngineProvider><PdfPageOperationsProvider><PdfEditorProvider><PdfUtilitiesProvider><AppLayout /></PdfUtilitiesProvider></PdfEditorProvider></PdfPageOperationsProvider></PdfEngineProvider>}>
                     <Route path="/" element={<HomePage />} />
-                    {toolRoutesBySurface['pdf-workspace'].map((path) => <Route key={path} path={path} element={<WorkspacePage />} />)}
+                    {pdfWorkspaceRoutes.map((path) => <Route key={path} path={path} element={<WorkspacePage />} />)}
                     {toolRoutesBySurface['conversion-workspace'].map((path) => <Route key={path} path={path} element={<ConversionWorkspace />} />)}
-                    {toolRoutesBySurface['tool-info'].map((path) => <Route key={path} path={path} element={<ToolInfoPage />} />)}
+                    {toolRoutesBySurface['tool-info'].filter((path) => !landingWorkspaceRoutes.has(path)).map((path) => <Route key={path} path={path} element={<ToolInfoPage />} />)}
                     <Route path="contact" element={<SimplePage />} />
                     <Route path="support" element={<SimplePage />} />
                     <Route path="privacy" element={<LegalPage kind="privacy" />} />

@@ -10,6 +10,7 @@ function renderLanding(stagedFile: File | null) {
         stageFile: () => undefined,
         clearStagedFile: () => undefined,
         openStagedFile: async () => Boolean(stagedFile),
+        consumePendingPdf: async () => Boolean(stagedFile),
     } as PdfEngineValue;
     return renderToStaticMarkup(
         <MemoryRouter>
@@ -35,10 +36,20 @@ describe('landing upload UI states', () => {
         expect(html).toContain('Replace file');
         expect(html).toContain('Remove file');
         expect(html).toContain('Choose what you want to do');
-        for (const label of ['Edit PDF', 'Sign PDF', 'Compress PDF', 'Split PDF', 'Remove Pages', 'Extract Pages', 'Organize PDF']) {
+        for (const label of ['Sign PDF', 'Compress PDF', 'Split PDF', 'Remove Pages from PDF', 'Extract Pages', 'Organize PDF']) {
             expect(html).toContain(label);
         }
         expect(html).not.toContain('>Choose PDF<');
         expect(html).not.toContain('PDF editing controls');
+        expect(html).toContain('File name:');
+        expect(html).toContain('PDF • 1 KB');
+    });
+
+    it('keeps a long complete filename in the accessible title while displaying file actions first', () => {
+        const filename = 'a-very-long-document-name-that-needs-two-safe-lines-before-the-user-selects-a-tool.pdf';
+        const html = renderLanding(new File(['%PDF-1.7'], filename, { type: 'application/pdf' }));
+        expect(html).toContain(`title="${filename}"`);
+        expect(html.indexOf('Replace file')).toBeLessThan(html.indexOf('File name:'));
+        expect(html.indexOf('Remove file')).toBeLessThan(html.indexOf('File name:'));
     });
 });

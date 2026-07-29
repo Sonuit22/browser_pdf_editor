@@ -3,7 +3,6 @@ import {
     BadgeDollarSign,
     Bolt,
     CheckCircle2,
-    FileText,
     MonitorSmartphone,
     RotateCcw,
     ShieldCheck,
@@ -36,7 +35,7 @@ function formatSelectedFileSize(size: number) {
 
 export default function HomePage() {
     const navigate = useNavigate();
-    const { stagedFile, stageFile, clearStagedFile, openStagedFile } = usePdfEngine();
+    const { stagedFile, stageFile, clearStagedFile } = usePdfEngine();
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [isDragActive, setIsDragActive] = useState(false);
     const [openingRoute, setOpeningRoute] = useState<string | null>(null);
@@ -46,13 +45,12 @@ export default function HomePage() {
         try {
             validatePdfFileSelection(file);
         } catch (selectionError) {
-            clearStagedFile();
             setUploadError(selectionError instanceof Error ? selectionError.message : 'Choose one non-empty PDF file to continue.');
             return;
         }
         setUploadError(null);
         stageFile(file);
-    }, [clearStagedFile, stageFile]);
+    }, [stageFile]);
 
     const choosePdf = useCallback(() => {
         uploadInput.current?.click();
@@ -77,22 +75,18 @@ export default function HomePage() {
         setIsDragActive(false);
         const files = Array.from(event.dataTransfer.files);
         if (files.length !== 1) {
-            clearStagedFile();
             setUploadError('Choose one non-empty PDF file to continue.');
             return;
         }
         beginLocalUpload(files[0]);
-    }, [beginLocalUpload, clearStagedFile]);
+    }, [beginLocalUpload]);
 
-    const chooseTool = async (route: string) => {
+    const chooseTool = (route: string) => {
         if (!stagedFile) {
             setUploadError('Please select the PDF again.');
             return;
         }
-        if (route !== '/compress') {
-            setOpeningRoute(route);
-            await openStagedFile();
-        }
+        setOpeningRoute(route);
         navigate(route, { state: { fromLandingFile: true } });
     };
 
@@ -131,21 +125,24 @@ export default function HomePage() {
                     <p id="landing-upload-privacy" className="landing-upload__privacy"><ShieldCheck size={14} aria-hidden="true" />Never uploaded to a server</p>
                 </> : <>
                     <div className="landing-upload__file" aria-live="polite">
-                        <span aria-hidden="true"><FileText size={24} /></span>
-                        <div><strong title={stagedFile.name}>{stagedFile.name}</strong><small>{formatSelectedFileSize(stagedFile.size)}</small></div>
                         <div className="landing-upload__file-actions">
                             <button type="button" onClick={choosePdf}><RotateCcw size={15} />Replace file</button>
                             <button type="button" onClick={() => { clearStagedFile(); setUploadError(null); }}><Trash2 size={15} />Remove file</button>
+                        </div>
+                        <div className="landing-upload__file-details">
+                            <span>File name:</span>
+                            <strong title={stagedFile.name}>{stagedFile.name}</strong>
+                            <small>PDF • {formatSelectedFileSize(stagedFile.size)}</small>
                         </div>
                     </div>
                     <section className="landing-tool-chooser" aria-labelledby="landing-tool-chooser-title">
                         <h2 id="landing-tool-chooser-title">Choose what you want to do</h2>
                         <div>{landingUploadTools.map((tool) => {
                             const Icon = tool.icon;
-                            return <button type="button" key={tool.route} disabled={openingRoute !== null} onClick={() => void chooseTool(tool.route)}><Icon size={20} aria-hidden="true" /><span><strong>{openingRoute === tool.route ? `Opening ${tool.title}…` : tool.title}</strong><small>{tool.description}</small></span></button>;
+                            return <button type="button" key={tool.route} disabled={openingRoute !== null} onClick={() => chooseTool(tool.route)}><Icon size={20} aria-hidden="true" /><span><strong>{openingRoute === tool.route ? `Opening ${tool.title}…` : tool.title}</strong><small>{tool.description}</small></span></button>;
                         })}</div>
                     </section>
-                    <p id="landing-upload-formats" className="landing-upload__formats">PDF · {formatSelectedFileSize(stagedFile.size)}</p>
+                    <span id="landing-upload-formats" className="sr-only">PDF file, {formatSelectedFileSize(stagedFile.size)}</span>
                     <p id="landing-upload-privacy" className="landing-upload__privacy"><ShieldCheck size={14} aria-hidden="true" />Stored only in this browser session</p>
                 </>}
                 {uploadError && <p className="landing-upload__error" role="alert">{uploadError}</p>}

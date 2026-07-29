@@ -3,7 +3,6 @@ import {
     Bug,
     Check,
     CircleHelp,
-    Github,
     Home,
     Lightbulb,
     LockKeyhole,
@@ -18,7 +17,6 @@ import {
     bugReportEmailLink,
     contactEmail,
     featureRequestEmailLink,
-    githubRepositoryUrl,
     supportEmailLink,
 } from '../config/footerLinks';
 
@@ -43,7 +41,6 @@ export function Footer() {
                 <a href={supportEmailLink} aria-label="Email support"><MessageCircle size={14} aria-hidden="true" />Support</a>
                 <a href={bugReportEmailLink} aria-label="Report a bug by email"><Bug size={14} aria-hidden="true" />Report a Bug</a>
                 <a href={featureRequestEmailLink} aria-label="Send a feature request by email"><Lightbulb size={14} aria-hidden="true" />Feature Request</a>
-                <a href={githubRepositoryUrl} target="_blank" rel="noreferrer" aria-label="View PDF by ib on GitHub"><Github size={14} aria-hidden="true" />GitHub</a>
             </nav>
             <section className="footer-trust" aria-labelledby="trust-title">
                 <h2 id="trust-title">Private by design</h2>

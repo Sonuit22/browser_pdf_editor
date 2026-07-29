@@ -10,9 +10,10 @@ import { NotificationRegion } from '../components/feedback/NotificationRegion';
 import { usePdfEditor } from '../modules/pdf/editor/hooks/usePdfEditor';
 import { Modal } from '../components/ui/Modal';
 import { Button } from '../components/ui/Button';
+import { shouldPreserveLandingFileTransition, type LandingRouteState } from '../utils/landingFileTransfer';
 
 export function AppLayout() {
-    const { openFilePicker, closeDocument, phase } = usePdfEngine();
+    const { openFilePicker, closeDocument, pendingPdfFile } = usePdfEngine();
     const { dirty } = usePdfEditor();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const location = useLocation();
@@ -48,15 +49,11 @@ export function AppLayout() {
 
     useEffect(() => {
         if (previousPath.current !== location.pathname) {
-            const routeState = location.state as { preserveLandingUpload?: boolean } | null;
-            const keepLandingUpload = previousPath.current === '/'
-                && location.pathname === '/edit'
-                && routeState?.preserveLandingUpload === true
-                && phase === 'ready';
-            if (!keepLandingUpload) resetToolWorkspace();
+            const keepLandingFile = shouldPreserveLandingFileTransition(previousPath.current, location.pathname, location.state as LandingRouteState, pendingPdfFile);
+            if (!keepLandingFile) resetToolWorkspace();
             previousPath.current = location.pathname;
         }
-    }, [location.pathname, location.state, phase, resetToolWorkspace]);
+    }, [location.pathname, location.state, pendingPdfFile, resetToolWorkspace]);
 
     useEffect(() => {
         const warn = (event: BeforeUnloadEvent) => { if (location.pathname === '/edit' && dirty) event.preventDefault(); };
