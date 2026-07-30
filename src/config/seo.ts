@@ -12,14 +12,14 @@ export type SeoDefinition = {
 };
 
 export const defaultSeo: SeoDefinition = {
-    title: 'PDF by ib – Free Browser PDF Tools',
+    title: 'PDF by ib | Free Online PDF Editor, Merge, Split, Sign & Compress PDFs',
     description: 'Free browser-based PDF tools to edit, sign, merge, split, compress, organize, protect, and convert PDF files. Your files stay on your device and are not uploaded to a server.',
     structuredData: 'website',
 };
 
 const routeSeo: Record<string, SeoDefinition> = {
     '/': {
-        title: 'PDF by ib – Free Browser PDF Tools',
+        title: 'PDF by ib | Free Online PDF Editor, Merge, Split, Sign & Compress PDFs',
         description: 'Free browser-based PDF tools for editing, signing, merging, splitting, compressing, organizing, protecting, and converting PDFs privately on your device.',
         structuredData: 'website',
     },
