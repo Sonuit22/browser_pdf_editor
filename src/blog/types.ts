@@ -27,6 +27,8 @@ export type BlogArticleMetadata = {
     image: string;
     imageAlt: string;
     canonicalUrl: string;
+    primaryKeyword?: string;
+    secondaryKeywords?: string[];
 };
 
 export type BlogArticle = BlogArticleMetadata & {

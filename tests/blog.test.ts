@@ -45,11 +45,24 @@ const newArticleSlugs = [
     'browser-based-pdf-editing-vs-desktop-software',
 ] as const;
 
+const seoIntentArticles = [
+    ['complete-guide-to-pdf-tools-2026', 'pdf tools'],
+    ['how-to-merge-pdf-files-online', 'merge pdf'],
+    ['how-to-edit-a-pdf-without-adobe', 'edit pdf online'],
+    ['how-to-compress-pdf-without-losing-quality', 'compress pdf'],
+    ['how-to-split-pdf-pages-online', 'split pdf'],
+    ['how-to-convert-jpg-to-pdf', 'jpg to pdf'],
+    ['convert-pdf-to-word-without-formatting-problems', 'pdf to word'],
+    ['how-to-protect-a-pdf-with-password', 'protect pdf'],
+    ['how-to-sign-a-pdf-online', 'sign pdf'],
+    ['how-to-organize-pdf-pages', 'organize pdf'],
+] as const;
+
 describe('Learning Center content registry', () => {
-    it('publishes all twenty requested complete articles', () => {
-        expect(publishedArticles).toHaveLength(20);
-        expect(publishedArticleMetadata).toHaveLength(20);
-        expect(new Set(publishedArticles.map((article) => article.slug)).size).toBe(20);
+    it('publishes all twenty-two requested complete articles', () => {
+        expect(publishedArticles).toHaveLength(22);
+        expect(publishedArticleMetadata).toHaveLength(22);
+        expect(new Set(publishedArticles.map((article) => article.slug)).size).toBe(22);
 
         for (const article of publishedArticles) {
             expect(article.sections.length).toBeGreaterThanOrEqual(5);
@@ -85,6 +98,36 @@ describe('Learning Center content registry', () => {
         expect(article.relatedSlugs.length).toBeLessThanOrEqual(3);
         expect(article.description.length).toBeGreaterThanOrEqual(140);
         expect(article.description.length).toBeLessThanOrEqual(160);
+    });
+
+    it.each(seoIntentArticles)('%s follows the focused 2026 search-intent brief', (slug, keyword) => {
+        const article = getArticleBySlug(slug);
+        expect(article).toBeDefined();
+        if (!article) return;
+
+        const wordCount = articleWordCount(article);
+        const introduction = article.introduction.join(' ');
+        const conclusion = article.sections.find((section) => section.heading === 'Conclusion');
+        expect(wordCount, `${slug} has ${wordCount} words`).toBeGreaterThanOrEqual(600);
+        expect(wordCount, `${slug} has ${wordCount} words`).toBeLessThanOrEqual(800);
+        expect(article.title.length).toBeLessThanOrEqual(60);
+        expect(article.description.length).toBeLessThanOrEqual(155);
+        expect(article.primaryKeyword).toBe(keyword);
+        expect(article.secondaryKeywords?.length).toBeGreaterThanOrEqual(3);
+        expect(introduction.split(/\s+/).length).toBeLessThanOrEqual(90);
+        expect(introduction.toLowerCase()).toContain(keyword);
+        expect(article.sections.some((section) => section.heading === 'Quick Answer')).toBe(true);
+        expect(article.sections.some((section) => section.heading === 'People Also Ask')).toBe(true);
+        expect(article.sections.some((section) => section.heading === 'Quick Summary')).toBe(true);
+        expect(article.sections.some((section) => section.heading === 'Image suggestions')).toBe(true);
+        expect(article.sections.some((section) => section.heading === 'Schema suggestions')).toBe(true);
+        expect(article.sections.some((section) => section.heading.toLowerCase().includes(keyword))).toBe(true);
+        expect(article.sections.some((section) => section.steps && section.steps.length >= 4)).toBe(true);
+        expect(article.sections.some((section) => section.table)).toBe(true);
+        expect(article.faq).toHaveLength(4);
+        expect(article.relatedSlugs.length).toBeGreaterThanOrEqual(2);
+        expect(conclusion?.paragraphs?.join(' ').toLowerCase()).toContain(keyword);
+        expect(conclusion?.paragraphs).toContain('PDF by ib processes your files locally in your browser. Your documents are not uploaded to a server.');
     });
 
     it('excludes drafts without relying on the current manifest having a draft', () => {

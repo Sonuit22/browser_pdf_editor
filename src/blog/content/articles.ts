@@ -10,7 +10,7 @@ function define(slug: string, content: Omit<BlogArticle, keyof BlogArticleMetada
     return { ...item, ...content };
 }
 
-export const articles: BlogArticle[] = [
+const baseArticles: BlogArticle[] = [
     define('how-to-merge-pdf-files-online', {
         introduction: [
             'Merging PDFs creates one ordered document from several separate files. It is useful when an application, client, teacher, or colleague expects a single attachment instead of a collection of scans, forms, and supporting pages. A careful merge preserves the source pages while letting you decide which document appears first.',
@@ -536,6 +536,133 @@ export const articles: BlogArticle[] = [
         ctaLabel: 'Open browser PDF editor',
     }),
 ];
+
+const additionalSeoIntentArticles: BlogArticle[] = [
+    define('complete-guide-to-pdf-tools-2026', {
+        introduction: [
+            'PDF tools help you combine, divide, edit, convert, secure, and prepare documents without rebuilding them. The best choice depends on the result you need, not the longest feature list.',
+            'This 2026 guide explains the main workflows in simple terms. Supported PDF by ib tools process document contents inside your browser instead of sending files to a processing server.',
+        ],
+        sections: [
+            { id: 'quick-answer', heading: 'Quick Answer', paragraphs: ['Choose one focused tool for one job: Merge PDF combines documents, Split PDF separates ranges, Extract Pages keeps selected pages, and Organize PDF changes page order. Conversion tools change formats. Keep the original, make one controlled change, and inspect the download.'] },
+            { id: 'steps', heading: 'How to choose PDF tools in 2026', steps: [
+                { title: 'Step 1: Define the result', description: 'Write down the exact outcome: one attachment, selected pages, another format, a visible signature, or a smaller file. This avoids unnecessary conversions.' },
+                { title: 'Step 2: Check the source', description: 'Confirm the extension matches the real file type and open the document once. Renaming a file does not convert its contents.' },
+                { title: 'Step 3: Pick a focused tool', description: 'Use Merge for whole documents, Split or Extract for page selection, Organize for sequence and rotation, and converters only when the recipient requires another format.' },
+                { title: 'Step 4: Work from a copy', description: 'Keep the source unchanged. A copy provides a safe return point when order, clarity, or formatting is not right.' },
+                { title: 'Step 5: Verify the output', description: 'Open the download in another viewer. Check page count, order, text, links, signatures, orientation, and any portal limit.' },
+            ] },
+            { id: 'comparison', heading: 'Choose the right approach', table: { headers: ['Need', 'Best starting tool'], rows: [['Combine files', 'Merge PDF'], ['Keep selected pages', 'Split PDF or Extract Pages'], ['Reorder pages', 'Organize PDF'], ['Change format', 'JPG, Word, PPT, or PDF converter']] } },
+            { id: 'tips', heading: 'Practical tips', bullets: ['Name files before merging them.', 'Use Extract Pages when the source must stay intact.', 'Convert the editable source directly when possible.', 'Test large scanned files on a desktop browser.', 'Check whether a tool is Available, Beta, or Coming Soon.'] },
+            { id: 'mistakes', heading: 'Common mistakes', bullets: ['Using Edit PDF when the task is page organization.', 'Compressing repeatedly and reducing clarity.', 'Assuming password protection is secure redaction.', 'Sending a result without reopening it.', 'Deleting the only source copy.'] },
+            { id: 'paa', heading: 'People Also Ask', bullets: ['Are browser PDF tools safe? File handling varies; supported PDF by ib processing stays in browser memory.', 'Which tool combines files? Merge PDF creates one ordered file from several PDFs.', 'Can a PDF be edited like Word? Simple additions are possible, but deep rewriting usually belongs in the source document.', 'Do tools work on phones? Many do, although large scans can exceed mobile memory.'] },
+            { id: 'summary', heading: 'Quick Summary', bullets: ['Match one PDF tool to one outcome.', 'Preserve the original.', 'Prefer direct conversion over repeated exports.', 'Verify every download.'] },
+            { id: 'example', heading: 'Practical example', paragraphs: ['A student has a cover letter, assignment, and reference sheet. Merge PDF creates one submission; Organize PDF corrects page order; Compress PDF would only be relevant if the portal rejects the size. Defining the required result first prevents three unnecessary conversions and keeps the source documents available for corrections.'] },
+            { id: 'images', heading: 'Image suggestions', bullets: ['Featured image: branded PDF by ib placeholder with a simple tools grid.', 'Inline image: decision chart mapping common document jobs to tools.'] },
+            { id: 'schema', heading: 'Schema suggestions', bullets: ['Use BlogPosting schema with headline, description, author, dates, image, and canonical URL.', 'Use FAQPage schema for the four visible questions, with answers matching the article.'] },
+            { id: 'conclusion', heading: 'Conclusion', paragraphs: ['Good PDF tools make document work predictable. Start with the specific task, use the smallest suitable workflow, and verify the result. PDF by ib offers focused browser tools for common PDF jobs.', 'PDF by ib processes your files locally in your browser. Your documents are not uploaded to a server.'] },
+        ],
+        faq: [
+            { question: 'What are the most useful PDF tools?', answer: 'Merge, split, organize, extract, convert, sign, and edit tools cover most everyday document tasks.' },
+            { question: 'Can I use PDF tools without installing software?', answer: 'Yes. Browser tools run in a modern browser, although supported features and practical file limits vary.' },
+            { question: 'Will conversion preserve every detail?', answer: 'Not always. Complex fonts, forms, columns, and scanned pages can change, so inspect the result.' },
+            { question: 'Should I keep the original PDF?', answer: 'Yes. Keep an unchanged source until the final document has been checked and accepted.' },
+        ],
+        relatedSlugs: ['common-pdf-problems-and-simple-solutions', 'browser-based-pdf-editing-vs-desktop-software', 'how-to-prepare-pdf-files-for-online-job-applications'],
+        ctaLabel: 'Browse all PDF tools',
+    }),
+    define('convert-pdf-to-word-without-formatting-problems', {
+        introduction: [
+            'A PDF to Word conversion is useful when you need to revise text, reuse a table, or update an old document. Formatting problems happen because PDF pages store fixed positions while Word rebuilds flowing paragraphs.',
+            'PDF by ib PDF to Word is a Beta tool. Supported conversion runs locally in your browser, but complex layouts and scans still need careful review.',
+        ],
+        sections: [
+            { id: 'quick-answer', heading: 'Quick Answer', paragraphs: ['Start with the cleanest original PDF, convert it once, and compare the Word file beside the source. Correct styles, tables, page breaks, and headers in Word. For an image-only scan, use OCR software first because ordinary conversion cannot reliably invent editable text.'] },
+            { id: 'steps', heading: 'How to convert PDF to Word accurately', steps: [
+                { title: 'Step 1: Identify the PDF type', description: 'Try selecting a sentence. Selectable text is easier to convert; a page that behaves like one photograph usually needs OCR.' },
+                { title: 'Step 2: Prepare a clean copy', description: 'Use the original export when available. Remove no pages unless necessary, and keep the master PDF unchanged.' },
+                { title: 'Step 3: Run PDF to Word', description: 'Select the file in the converter and create the Word output once. Repeated format changes can introduce extra spacing and image artifacts.' },
+                { title: 'Step 4: Compare structure', description: 'Check headings, columns, lists, tables, footnotes, headers, page numbers, and images against the PDF.' },
+                { title: 'Step 5: Repair with Word styles', description: 'Apply heading and paragraph styles instead of adding many spaces or blank lines. Save a separate corrected DOCX.' },
+            ] },
+            { id: 'comparison', heading: 'Choose the right source', table: { headers: ['PDF content', 'Expected Word result'], rows: [['Simple selectable text', 'Usually needs light cleanup'], ['Tables and columns', 'May need width and flow corrections'], ['Image-only scan', 'Needs OCR before useful editing'], ['Forms or complex graphics', 'Often better rebuilt from the source']] } },
+            { id: 'tips', heading: 'Practical tips', bullets: ['Install or embed required fonts when licensed.', 'Use paragraph styles for consistent spacing.', 'Check section breaks before changing headers.', 'Keep images at their original aspect ratio.', 'Proofread numbers and names after OCR.'] },
+            { id: 'mistakes', heading: 'Common mistakes', bullets: ['Expecting a fixed PDF page to become a perfect flowing document.', 'Using spaces to align columns.', 'Ignoring missing fonts.', 'Converting a scan without OCR.', 'Overwriting the first converted copy before comparison.'] },
+            { id: 'paa', heading: 'People Also Ask', bullets: ['Why does formatting move? Word must infer reading order and paragraph structure from fixed PDF coordinates.', 'Can every PDF become editable? No. Scans need OCR, and secured or complex files may not convert well.', 'Will tables survive? Simple tables may; merged cells and unusual borders often need repair.', 'Does conversion change the PDF? No. It creates a separate Word file.'] },
+            { id: 'summary', heading: 'Quick Summary', bullets: ['Use the best original PDF.', 'Identify scans before converting.', 'Compare structure side by side.', 'Repair the DOCX with styles, not spaces.'] },
+            { id: 'example', heading: 'Practical example', paragraphs: ['An office report contains two columns, a table, and a logo. After conversion, the paragraphs are editable but one table wraps onto a second page. Compare it with the PDF, adjust the table width, apply heading styles, and check the header before treating the DOCX as the new working copy.'] },
+            { id: 'images', heading: 'Image suggestions', bullets: ['Featured image: branded PDF and Word documents side by side.', 'Inline image: comparison of selectable text and an image-only scan.'] },
+            { id: 'schema', heading: 'Schema suggestions', bullets: ['Use BlogPosting schema with author, dates, image, canonical URL, and headline.', 'Use FAQPage schema for the four visible questions, matching the displayed wording.'] },
+            { id: 'conclusion', heading: 'Conclusion', paragraphs: ['A clean PDF to Word conversion starts with the right source and ends with a side-by-side review. Expect minor cleanup, use OCR for scans, and rebuild highly complex layouts when accuracy matters more than speed.', 'PDF by ib processes your files locally in your browser. Your documents are not uploaded to a server.'] },
+        ],
+        faq: [
+            { question: 'Why is my converted Word file not editable?', answer: 'The PDF may be an image-only scan. OCR is required to recognize text before normal editing.' },
+            { question: 'Can PDF to Word keep the same font?', answer: 'Only when the font is available and the converter can map it. Otherwise Word may substitute another font.' },
+            { question: 'Why are page breaks different?', answer: 'PDF uses fixed pages while Word reflows content according to margins, styles, fonts, and printer settings.' },
+            { question: 'Is PDF by ib PDF to Word finished?', answer: 'It is currently marked Beta, so verify complex documents carefully after conversion.' },
+        ],
+        relatedSlugs: ['browser-based-pdf-editing-vs-desktop-software', 'common-pdf-problems-and-simple-solutions', 'how-to-prepare-pdf-files-for-online-job-applications'],
+        ctaLabel: 'Convert PDF to Word',
+    }),
+];
+
+const seoIntentDetails: Record<string, { keyword: string; quickAnswer: string; mistakes: string[] }> = {
+    'how-to-merge-pdf-files-online': { keyword: 'merge pdf', quickAnswer: 'Add the source PDFs, arrange whole files in the required order, merge once, and inspect every transition in the downloaded document. A direct merge preserves page content better than printing or converting pages to images.', mistakes: ['Selecting an outdated source file.', 'Setting the file order without checking section transitions.', 'Using Print to PDF when a direct merge is available.', 'Deleting originals before the result is accepted.'] },
+    'how-to-edit-a-pdf-without-adobe': { keyword: 'edit pdf online', quickAnswer: 'Use an online editor for additions such as text, images, highlights, or shapes. For substantial paragraph changes, edit the original source document and export a fresh PDF. Always reopen the edited copy before sharing it.', mistakes: ['Treating a white box as secure redaction.', 'Expecting scanned text to behave like editable text.', 'Replacing the only original file.', 'Skipping a review at normal zoom.'] },
+    'how-to-compress-pdf-without-losing-quality': { keyword: 'compress pdf', quickAnswer: 'Start from the original, use moderate settings once, and compare small text, signatures, diagrams, and photos at 100% zoom. PDF by ib Compress PDF is currently Coming Soon, so this guide explains the safe workflow without claiming a live compressor.', mistakes: ['Compressing an already compressed copy.', 'Chasing the smallest size instead of the required limit.', 'Ignoring fine print and QR codes.', 'Deleting the high-quality source.'] },
+    'how-to-split-pdf-pages-online': { keyword: 'split pdf', quickAnswer: 'Map the required page ranges, select them in Split PDF, create the outputs, and verify the first and last page of every file. Use displayed PDF page positions rather than printed page labels.', mistakes: ['Confusing printed page labels with viewer positions.', 'Missing an inclusive range endpoint.', 'Creating overlapping ranges accidentally.', 'Sharing outputs before checking each one.'] },
+    'how-to-convert-jpg-to-pdf': { keyword: 'jpg to pdf', quickAnswer: 'Choose clear JPG images, arrange them in reading order, select suitable page settings, and create one PDF. Check orientation, margins, image clarity, and page sequence before sending the result.', mistakes: ['Using low-resolution screenshots.', 'Leaving phone photos sideways.', 'Putting images in filename order without checking it.', 'Converting the same images repeatedly.'] },
+    'how-to-protect-a-pdf-with-password': { keyword: 'protect pdf', quickAnswer: 'Choose a strong unique password, protect a copy, test it in another viewer, and share the password through a different channel. PDF by ib Protect PDF is currently Coming Soon, so no live password-setting feature is implied.', mistakes: ['Sending the password in the same message as the file.', 'Using a short or reused password.', 'Assuming password protection permanently prevents copying.', 'Losing the only unprotected original.'] },
+    'how-to-sign-a-pdf-online': { keyword: 'sign pdf', quickAnswer: 'Open Sign PDF, create or upload a visible signature, place it carefully, and export a signed copy. Then reopen the file and confirm the signature appears on the correct page and does not cover important text.', mistakes: ['Signing the wrong document version.', 'Placing a signature over required text.', 'Assuming every visible signature is a certificate-based digital signature.', 'Deleting the unsigned source.'] },
+    'how-to-organize-pdf-pages': { keyword: 'organize pdf', quickAnswer: 'Review page thumbnails, drag pages into the correct order, rotate only the pages that need it, and remove or duplicate pages deliberately. Export a copy and verify the final sequence from beginning to end.', mistakes: ['Dragging pages while zoomed too far out to identify them.', 'Deleting blank pages that are intentional separators.', 'Rotating every page instead of selected pages.', 'Overwriting the source before review.'] },
+};
+
+function adaptForSeoIntent(item: BlogArticle): BlogArticle {
+    const details = seoIntentDetails[item.slug];
+    if (!details) return item;
+    const sourceSections = item.sections.filter((section) => section.id !== 'conclusion').slice(0, 5);
+    const shorten = (text: string, limit: number) => {
+        const words = text.trim().split(/\s+/);
+        return words.length <= limit ? text : `${words.slice(0, limit).join(' ')}…`;
+    };
+    const processSteps = sourceSections.map((section, index) => ({
+        title: `Step ${index + 1}: ${section.heading.replace(/^Step \d+:?\s*/, '')}`,
+        description: shorten(section.paragraphs?.join(' ') ?? section.steps?.map((step) => `${step.title}: ${step.description}`).join(' ') ?? section.bullets?.join(' ') ?? '', 30),
+    }));
+    const tips = item.sections.find((section) => section.heading === 'Quick Tips')?.bullets ?? [
+        'Keep an unchanged source file.',
+        'Use a descriptive output filename.',
+        'Check the result in another PDF viewer.',
+        'Use a desktop browser for unusually large scans.',
+    ];
+    const comparison = item.sections.find((section) => section.table)?.table ?? {
+        headers: ['Approach', 'Best use'] as [string, string],
+        rows: [['Focused browser tool', 'A supported everyday task on a trusted device'], ['Source application', 'Deep text or layout changes'], ['Specialist desktop software', 'Regulated, advanced, or very large workflows']] as Array<[string, string]>,
+    };
+    const oldConclusion = item.sections.find((section) => section.id === 'conclusion')?.paragraphs?.[0] ?? '';
+    return {
+        ...item,
+        primaryKeyword: details.keyword,
+        secondaryKeywords: [...item.tags.filter((tag) => tag.toLowerCase() !== details.keyword), 'online PDF guide'].slice(0, 5),
+        introduction: [`The ${details.keyword} workflow solves a specific document problem without unnecessary format changes. ${shorten(item.introduction.join(' '), 68)}`],
+        sections: [
+            { id: 'quick-answer', heading: 'Quick Answer', paragraphs: [details.quickAnswer] },
+            { id: 'numbered-steps', heading: `How to ${details.keyword} safely`, steps: processSteps },
+            { id: 'comparison', heading: 'Choose the right approach', table: comparison },
+            { id: 'practical-tips', heading: 'Practical tips', bullets: tips },
+            { id: 'common-mistakes', heading: 'Common mistakes', bullets: details.mistakes },
+            { id: 'people-also-ask', heading: 'People Also Ask', bullets: item.faq.map((entry) => `${entry.question} ${entry.answer}`) },
+            { id: 'quick-summary', heading: 'Quick Summary', bullets: [`Use ${details.keyword} for the specific job described above.`, 'Preserve the original, make one controlled change, and verify the download before sharing it.'] },
+            { id: 'practical-example', heading: 'Practical example', paragraphs: ['Before sending a document, compare the source and download side by side. Check the first and last affected pages, filename, page count, and important visual details. This short review catches ordering and quality problems before the recipient sees them.'] },
+            { id: 'image-suggestions', heading: 'Image suggestions', bullets: [`Featured image: branded PDF by ib illustration for ${details.keyword}.`, 'Inline image: a before-and-after view of the main workflow.'] },
+            { id: 'schema-suggestions', heading: 'Schema suggestions', bullets: ['Use BlogPosting schema with the canonical URL, dates, author, image, and headline.', 'Use FAQPage schema for the four visible questions below, keeping the structured answers consistent with the page.'] },
+            { id: 'conclusion', heading: 'Conclusion', paragraphs: [`${oldConclusion} This ${details.keyword} workflow works best when you preserve the source and check the exported result.`, 'PDF by ib processes your files locally in your browser. Your documents are not uploaded to a server.'] },
+        ],
+        faq: item.faq.length >= 4 ? item.faq.slice(0, 4) : [...item.faq, { question: `What should I check after I ${details.keyword}?`, answer: 'Reopen the download and check page count, order, readability, filename, and the details that matter to the recipient.' }],
+    };
+}
+
+export const articles: BlogArticle[] = [...baseArticles, ...additionalSeoIntentArticles].map(adaptForSeoIntent);
 
 export const publishedArticles = articles.filter((article) => !article.draft);
 export function getArticleBySlug(slug: string | undefined) {

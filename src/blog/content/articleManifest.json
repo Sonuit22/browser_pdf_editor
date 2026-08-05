@@ -1,10 +1,10 @@
 [
   {
-    "title": "How to Merge PDF Files Online",
+    "title": "How to Merge PDF Files Online Without Losing Quality",
     "slug": "how-to-merge-pdf-files-online",
     "description": "Learn how to merge PDF files online with PDF by ib, arrange document order, protect source files, and verify one locally processed browser download.",
     "publishedDate": "2026-07-29",
-    "updatedDate": "2026-07-29",
+    "updatedDate": "2026-08-05",
     "author": "PDF by ib",
     "category": "PDF Guides",
     "tags": ["Merge PDF", "PDF Tools", "Page Management"],
@@ -15,14 +15,16 @@
     "relatedToolPath": "/merge-pdf",
     "image": "/logo-512.png",
     "imageAlt": "PDF by ib guide to merging PDF documents",
-    "canonicalUrl": "/blog/how-to-merge-pdf-files-online"
+    "canonicalUrl": "/blog/how-to-merge-pdf-files-online",
+    "primaryKeyword": "merge pdf",
+    "secondaryKeywords": ["merge PDF files", "combine PDF documents", "online PDF merger", "merge PDF without losing quality"]
   },
   {
-    "title": "How to Split PDF Pages Online",
+    "title": "How to Split a PDF Into Multiple Files",
     "slug": "how-to-split-pdf-pages-online",
     "description": "Learn how to split PDF pages with PDF by ib using ranges or selected pages, avoid numbering mistakes, and verify locally processed browser downloads.",
     "publishedDate": "2026-07-29",
-    "updatedDate": "2026-07-29",
+    "updatedDate": "2026-08-05",
     "author": "PDF by ib",
     "category": "PDF Guides",
     "tags": ["Split PDF", "PDF Pages", "Page Management"],
@@ -33,14 +35,16 @@
     "relatedToolPath": "/split-pdf",
     "image": "/logo-512.png",
     "imageAlt": "PDF by ib guide to splitting PDF pages",
-    "canonicalUrl": "/blog/how-to-split-pdf-pages-online"
+    "canonicalUrl": "/blog/how-to-split-pdf-pages-online",
+    "primaryKeyword": "split pdf",
+    "secondaryKeywords": ["split PDF pages", "PDF page ranges", "separate PDF files", "extract PDF pages"]
   },
   {
-    "title": "How to Compress a PDF Without Losing Too Much Quality",
+    "title": "How to Compress PDF Files Without Losing Quality",
     "slug": "how-to-compress-pdf-without-losing-quality",
     "description": "Learn PDF compression basics with PDF by ib, compare quality and file-size tradeoffs, and review browser limits while Compress PDF remains Coming Soon.",
     "publishedDate": "2026-07-29",
-    "updatedDate": "2026-07-29",
+    "updatedDate": "2026-08-05",
     "author": "PDF by ib",
     "category": "PDF Guides",
     "tags": ["Compress PDF", "File Size", "PDF Quality"],
@@ -51,14 +55,16 @@
     "relatedToolPath": "/compress-pdf",
     "image": "/logo-512.png",
     "imageAlt": "PDF by ib guide to PDF compression and quality",
-    "canonicalUrl": "/blog/how-to-compress-pdf-without-losing-quality"
+    "canonicalUrl": "/blog/how-to-compress-pdf-without-losing-quality",
+    "primaryKeyword": "compress pdf",
+    "secondaryKeywords": ["reduce PDF size", "PDF compression", "smaller PDF file", "compress PDF quality"]
   },
   {
-    "title": "How to Sign a PDF Online",
+    "title": "How to Sign PDF Documents Online",
     "slug": "how-to-sign-a-pdf-online",
     "description": "Learn how to sign a PDF with PDF by ib, place drawn, typed, or uploaded signatures locally in your browser, and verify legal and document limits.",
     "publishedDate": "2026-07-29",
-    "updatedDate": "2026-07-29",
+    "updatedDate": "2026-08-05",
     "author": "PDF by ib",
     "category": "Editing",
     "tags": ["Sign PDF", "Electronic Signature", "PDF Editing"],
@@ -69,7 +75,9 @@
     "relatedToolPath": "/sign-pdf",
     "image": "/logo-512.png",
     "imageAlt": "PDF by ib guide to adding signatures to PDF files",
-    "canonicalUrl": "/blog/how-to-sign-a-pdf-online"
+    "canonicalUrl": "/blog/how-to-sign-a-pdf-online",
+    "primaryKeyword": "sign pdf",
+    "secondaryKeywords": ["sign PDF online", "electronic signature", "add signature to PDF", "browser PDF signing"]
   },
   {
     "title": "How to Remove Pages from a PDF",
@@ -90,11 +98,11 @@
     "canonicalUrl": "/blog/how-to-remove-pages-from-a-pdf"
   },
   {
-    "title": "How to Organize and Rearrange PDF Pages",
+    "title": "How to Organize PDF Pages Like a Professional",
     "slug": "how-to-organize-pdf-pages",
     "description": "Learn how to organize PDF pages with PDF by ib by reordering, rotating, duplicating, and removing pages through local browser-based processing.",
     "publishedDate": "2026-07-29",
-    "updatedDate": "2026-07-29",
+    "updatedDate": "2026-08-05",
     "author": "PDF by ib",
     "category": "Organization",
     "tags": ["Organize PDF", "Reorder Pages", "Rotate PDF"],
@@ -105,14 +113,16 @@
     "relatedToolPath": "/organize-pdf",
     "image": "/logo-512.png",
     "imageAlt": "PDF by ib guide to organizing and rearranging PDF pages",
-    "canonicalUrl": "/blog/how-to-organize-pdf-pages"
+    "canonicalUrl": "/blog/how-to-organize-pdf-pages",
+    "primaryKeyword": "organize pdf",
+    "secondaryKeywords": ["reorder PDF pages", "rotate PDF pages", "arrange PDF pages", "PDF page organizer"]
   },
   {
-    "title": "How to Convert JPG Images to PDF",
+    "title": "Convert JPG to PDF in Seconds",
     "slug": "how-to-convert-jpg-to-pdf",
     "description": "Learn how to convert JPG images to PDF with PDF by ib, arrange image order, choose page and quality settings, and process files locally in your browser.",
     "publishedDate": "2026-07-29",
-    "updatedDate": "2026-07-29",
+    "updatedDate": "2026-08-05",
     "author": "PDF by ib",
     "category": "Conversion",
     "tags": ["JPG to PDF", "Image Conversion", "PDF Conversion"],
@@ -123,7 +133,9 @@
     "relatedToolPath": "/jpg-to-pdf",
     "image": "/logo-512.png",
     "imageAlt": "PDF by ib guide to converting JPG images into a PDF",
-    "canonicalUrl": "/blog/how-to-convert-jpg-to-pdf"
+    "canonicalUrl": "/blog/how-to-convert-jpg-to-pdf",
+    "primaryKeyword": "jpg to pdf",
+    "secondaryKeywords": ["convert JPG to PDF", "image to PDF", "combine JPG images", "JPG PDF converter"]
   },
   {
     "title": "How to Convert PDF Pages to JPG Images",
@@ -144,11 +156,11 @@
     "canonicalUrl": "/blog/how-to-convert-pdf-to-jpg"
   },
   {
-    "title": "How to Edit a PDF Without Adobe Acrobat",
+    "title": "How to Edit PDF Files Online for Free",
     "slug": "how-to-edit-a-pdf-without-adobe",
     "description": "Learn how to edit a PDF without Adobe using PDF by ib, add annotations locally in your browser, and recognize when source-file editing is more suitable.",
     "publishedDate": "2026-07-29",
-    "updatedDate": "2026-07-29",
+    "updatedDate": "2026-08-05",
     "author": "PDF by ib",
     "category": "Editing",
     "tags": ["Edit PDF", "PDF Annotations", "Browser PDF Editor"],
@@ -159,14 +171,16 @@
     "relatedToolPath": "/edit-pdf",
     "image": "/logo-512.png",
     "imageAlt": "PDF by ib guide to editing a PDF in a browser",
-    "canonicalUrl": "/blog/how-to-edit-a-pdf-without-adobe"
+    "canonicalUrl": "/blog/how-to-edit-a-pdf-without-adobe",
+    "primaryKeyword": "edit pdf online",
+    "secondaryKeywords": ["free PDF editor", "edit PDF in browser", "add text to PDF", "online PDF editing"]
   },
   {
-    "title": "How to Protect a PDF with a Password",
+    "title": "How to Password Protect a PDF File",
     "slug": "how-to-protect-a-pdf-with-password",
-    "description": "Learn PDF password protection basics with PDF by ib, understand encryption and permission limits, and review safe handling while Protect PDF is Coming Soon.",
+    "description": "Learn PDF password protection with PDF by ib, understand encryption and permission limits, and review safe handling while Protect PDF is Coming Soon.",
     "publishedDate": "2026-07-29",
-    "updatedDate": "2026-07-29",
+    "updatedDate": "2026-08-05",
     "author": "PDF by ib",
     "category": "Security",
     "tags": ["Protect PDF", "PDF Password", "Document Security"],
@@ -177,7 +191,9 @@
     "relatedToolPath": "/protect-pdf",
     "image": "/logo-512.png",
     "imageAlt": "PDF by ib guide to PDF password protection",
-    "canonicalUrl": "/blog/how-to-protect-a-pdf-with-password"
+    "canonicalUrl": "/blog/how-to-protect-a-pdf-with-password",
+    "primaryKeyword": "protect pdf",
+    "secondaryKeywords": ["password protect PDF", "PDF encryption", "secure PDF file", "PDF password protection"]
   },
   {
     "title": "How to Reduce PDF Size Below 1 MB",
@@ -358,5 +374,45 @@
     "image": "/logo-512.png",
     "imageAlt": "PDF by ib comparison of browser PDF editing and desktop software",
     "canonicalUrl": "/blog/browser-based-pdf-editing-vs-desktop-software"
+  },
+  {
+    "title": "The Complete Guide to PDF Tools in 2026",
+    "slug": "complete-guide-to-pdf-tools-2026",
+    "description": "Explore essential PDF tools for merging, splitting, editing, converting, signing, and organizing files locally in your browser with PDF by ib.",
+    "publishedDate": "2026-08-05",
+    "updatedDate": "2026-08-05",
+    "author": "PDF by ib",
+    "category": "PDF Guides",
+    "tags": ["PDF Tools", "Browser PDF Tools", "PDF Guide", "Document Workflow"],
+    "featured": true,
+    "draft": false,
+    "readingTime": 7,
+    "relatedTool": "All PDF Tools",
+    "relatedToolPath": "/all-tools",
+    "image": "/logo-512.png",
+    "imageAlt": "PDF by ib guide to browser PDF tools in 2026",
+    "canonicalUrl": "/blog/complete-guide-to-pdf-tools-2026",
+    "primaryKeyword": "pdf tools",
+    "secondaryKeywords": ["online PDF tools", "browser PDF tools", "free PDF tools", "PDF software"]
+  },
+  {
+    "title": "Convert PDF to Word Without Formatting Problems",
+    "slug": "convert-pdf-to-word-without-formatting-problems",
+    "description": "Learn how to convert PDF to Word, reduce formatting problems, handle scans, and verify editable output locally in your browser with PDF by ib.",
+    "publishedDate": "2026-08-05",
+    "updatedDate": "2026-08-05",
+    "author": "PDF by ib",
+    "category": "Conversion",
+    "tags": ["PDF to Word", "PDF Conversion", "Editable Document", "Formatting"],
+    "featured": false,
+    "draft": false,
+    "readingTime": 7,
+    "relatedTool": "PDF to Word",
+    "relatedToolPath": "/pdf-to-word",
+    "image": "/logo-512.png",
+    "imageAlt": "PDF by ib guide to converting PDF files to Word",
+    "canonicalUrl": "/blog/convert-pdf-to-word-without-formatting-problems",
+    "primaryKeyword": "pdf to word",
+    "secondaryKeywords": ["convert PDF to Word", "PDF Word converter", "editable Word document", "preserve PDF formatting"]
   }
 ]

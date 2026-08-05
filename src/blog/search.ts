@@ -4,7 +4,14 @@ export function filterBlogArticles(articles: BlogArticleMetadata[], query: strin
     const needle = query.trim().toLowerCase();
     return articles.filter((article) => {
         const categoryMatches = category === 'All' || article.category === category;
-        const searchable = [article.title, article.description, article.category, ...article.tags].join(' ').toLowerCase();
+        const searchable = [
+            article.title,
+            article.description,
+            article.category,
+            article.primaryKeyword ?? '',
+            ...(article.secondaryKeywords ?? []),
+            ...article.tags,
+        ].join(' ').toLowerCase();
         return categoryMatches && (!needle || searchable.includes(needle));
     });
 }
