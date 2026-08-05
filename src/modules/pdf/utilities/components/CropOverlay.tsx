@@ -27,7 +27,7 @@ export function CropOverlay({ page, layout }: { page: WorkingPage; layout: PdfPa
     };
     const setFromRect = (rect: ViewportRect) => setCropDraft(page.id, viewportRectToCropMargins(rect, dimensions, layout.viewport));
     const scheduleRect = (rect: ViewportRect) => { pendingRectRef.current = rect; if (!frameRef.current) frameRef.current = requestAnimationFrame(() => { frameRef.current = 0; if (pendingRectRef.current) setFromRect(pendingRectRef.current); }); };
-    const release = (event: PointerEvent<HTMLDivElement>) => { if (pendingRectRef.current) setFromRect(pendingRectRef.current); pendingRectRef.current = null; cancelAnimationFrame(frameRef.current); frameRef.current = 0; if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); gestureRef.current = null; };
+    const release = (event: PointerEvent<HTMLDivElement>) => { if (pendingRectRef.current) setFromRect(pendingRectRef.current); pendingRectRef.current = null; cancelAnimationFrame(frameRef.current); frameRef.current = 0; gestureRef.current = null; if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); };
     const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
         if (event.button !== 0) return;
         const target = event.target as HTMLElement;
@@ -54,7 +54,16 @@ export function CropOverlay({ page, layout }: { page: WorkingPage; layout: PdfPa
     const onPointerCancel = (event: PointerEvent<HTMLDivElement>) => {
         const gesture = gestureRef.current;
         if (gesture) setCropDraft(page.id, gesture.crop);
-        pendingRectRef.current = null; cancelAnimationFrame(frameRef.current); frameRef.current = 0; release(event);
+        pendingRectRef.current = null; cancelAnimationFrame(frameRef.current); frameRef.current = 0; gestureRef.current = null;
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    };
+    const onLostPointerCapture = () => {
+        const gesture = gestureRef.current;
+        if (gesture) setCropDraft(page.id, gesture.crop);
+        pendingRectRef.current = null;
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = 0;
+        gestureRef.current = null;
     };
     const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
         if (event.key === 'Escape') {
@@ -71,7 +80,7 @@ export function CropOverlay({ page, layout }: { page: WorkingPage; layout: PdfPa
         setFromRect(moveViewportRect(cropRect, offset[0], offset[1], { width: layout.width, height: layout.height }));
         event.preventDefault();
     };
-    return <div ref={overlayRef} className="crop-overlay" role="group" aria-label="Interactive crop rectangle" aria-describedby={descriptionId} tabIndex={0} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={release} onPointerCancel={onPointerCancel} onKeyDown={onKeyDown}>
+    return <div ref={overlayRef} className="crop-overlay" role="group" aria-label="Interactive crop rectangle" aria-describedby={descriptionId} tabIndex={0} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={release} onPointerCancel={onPointerCancel} onLostPointerCapture={onLostPointerCapture} onKeyDown={onKeyDown}>
         <span id={descriptionId} className="sr-only">{cropAreaDescription(page.width, page.height, currentCrop)}</span>
         <div className="crop-overlay__rectangle" data-crop-body style={{ left: cropRect.left, top: cropRect.top, width: cropRect.width, height: cropRect.height }}>{handles.map((handle) => <span key={handle} className={`crop-overlay__handle crop-overlay__handle--${handle}`} data-crop-handle={handle} aria-hidden="true" />)}</div>
     </div>;

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { PendingPdfFile } from '../src/modules/pdf/context/pdfEngineStore';
-import { loadPendingPdfFile } from '../src/utils/pendingPdfLifecycle';
+import { loadPendingPdfFile, shouldShowLandingFileReselect } from '../src/utils/pendingPdfLifecycle';
 
 function pendingFile(name = 'landing.pdf'): PendingPdfFile {
     return {
@@ -36,5 +36,12 @@ describe('pending landing PDF lifecycle', () => {
 
         await loadPendingPdfFile(pending, () => replacement, async () => true, clear);
         expect(clear).not.toHaveBeenCalled();
+    });
+
+    it('only requests a replacement when session memory was lost before a successful load', () => {
+        expect(shouldShowLandingFileReselect(true, 'idle', null, false)).toBe(true);
+        expect(shouldShowLandingFileReselect(true, 'idle', null, true)).toBe(false);
+        expect(shouldShowLandingFileReselect(true, 'ready', null, false)).toBe(false);
+        expect(shouldShowLandingFileReselect(false, 'idle', null, false)).toBe(false);
     });
 });

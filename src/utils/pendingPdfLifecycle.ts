@@ -10,3 +10,12 @@ export async function loadPendingPdfFile(
     if (loaded && getCurrentPending() === pending) clearPending();
     return loaded;
 }
+
+export function shouldShowLandingFileReselect(
+    fromLanding: boolean,
+    phase: string,
+    pending: PendingPdfFile | null,
+    landingFileWasLoaded: boolean,
+) {
+    return fromLanding && phase === 'idle' && !pending && !landingFileWasLoaded;
+}

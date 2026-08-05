@@ -56,9 +56,17 @@ export function EditorToolbar({ onExport, exporting }: { onExport: () => void; e
             return;
         }
         if (tool === 'highlight') {
+            if (isHighlighterActive && highlighterOpen) {
+                deactivateHighlighter(true);
+                return;
+            }
             setHighlighterPosition(popoverPosition(highlighterButton.current));
             editor.setTool('highlight');
             setHighlighterOpen(true);
+            return;
+        }
+        if (editor.activeTool === tool || (tool === 'rectangle' && shapeToolNames.includes(editor.activeTool))) {
+            editor.setTool('select');
             return;
         }
         setHighlighterOpen(false);
@@ -184,6 +192,30 @@ function ToolSettingsPopover() {
             window.removeEventListener('scroll', update, true);
         };
     }, [kind]);
+    useEffect(() => {
+        if (!kind) return;
+        const selector = kind === 'shape' ? '[data-editor-tool="rectangle"]' : `[data-editor-tool="${kind}"]`;
+        const close = (restoreFocus = false) => {
+            editor.setTool('select');
+            if (restoreFocus) window.requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(selector)?.focus({ preventScroll: true }));
+        };
+        const onPointerDown = (event: globalThis.PointerEvent) => {
+            const target = event.target as HTMLElement | null;
+            if (target?.closest('[data-tool-settings],[data-editor-tool],.annotation-overlay')) return;
+            close();
+        };
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key !== 'Escape') return;
+            event.preventDefault();
+            close(true);
+        };
+        document.addEventListener('pointerdown', onPointerDown);
+        window.addEventListener('keydown', onKeyDown);
+        return () => {
+            document.removeEventListener('pointerdown', onPointerDown);
+            window.removeEventListener('keydown', onKeyDown);
+        };
+    }, [editor, kind]);
     if (!kind || typeof document === 'undefined') return null;
     return createPortal(<section className="tool-settings-popover" role="dialog" aria-label={`${kind} settings`} data-tool-settings style={{ left: position.left, top: position.top, width: Math.min(POPOVER_WIDTH, window.innerWidth - 24) }}>
         {kind === 'text' && <><strong>Text settings</strong><label>Color <input type="color" value={editor.textSettings.color} onChange={(event) => editor.updateTextSettings({ color: event.target.value })} /></label><label>Font size <output>{editor.textSettings.fontSize}px</output><input type="range" min="6" max="72" value={editor.textSettings.fontSize} onChange={(event) => editor.updateTextSettings({ fontSize: Number(event.target.value) })} /></label></>}

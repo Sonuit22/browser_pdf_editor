@@ -1,4 +1,4 @@
-import { useRef, useState, type DragEvent, type MouseEvent, type PointerEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type DragEvent, type MouseEvent, type PointerEvent } from 'react';
 import { GripVertical, RotateCw, Copy, Trash2, ArrowLeft, ArrowRight } from 'lucide-react';
 import type { PDFPageProxy } from 'pdfjs-dist';
 import type { PdfAnnotation } from '../../editor/types/annotations';
@@ -23,7 +23,17 @@ export function PageThumbnailPanel({ pages, activePageId, selectedPageIds = [], 
     const choose = (id: PageId, event: MouseEvent<HTMLButtonElement>) => onSelect(id, event.shiftKey ? 'range' : event.ctrlKey || event.metaKey ? 'toggle' : 'replace');
     const placementFor = (element: HTMLElement, x: number, y: number) => layout === 'strip' ? x > element.getBoundingClientRect().left + element.clientWidth / 2 ? 'after' : 'before' : y > element.getBoundingClientRect().top + element.clientHeight / 2 ? 'after' : 'before';
     const finish = (targetId: PageId, placement: 'before' | 'after') => { if (dragging.current && dragging.current !== targetId) onReorder?.([dragging.current], targetId, placement); dragging.current = null; setDrop(null); };
-    const cancelDrag = () => { dragging.current = null; setDrop(null); };
+    const cancelDrag = useCallback(() => { dragging.current = null; setDrop(null); }, []);
+    useEffect(() => {
+        window.addEventListener('blur', cancelDrag);
+        window.addEventListener('resize', cancelDrag);
+        window.addEventListener('orientationchange', cancelDrag);
+        return () => {
+            window.removeEventListener('blur', cancelDrag);
+            window.removeEventListener('resize', cancelDrag);
+            window.removeEventListener('orientationchange', cancelDrag);
+        };
+    }, [cancelDrag]);
     const pointerMove = (event: PointerEvent<HTMLButtonElement>) => {
         if (!dragging.current) return;
         const target = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>('[data-page-id]');
@@ -34,7 +44,7 @@ export function PageThumbnailPanel({ pages, activePageId, selectedPageIds = [], 
             const selected = selectedPageIds.includes(page.id); const target = drop?.id === page.id ? ` is-drop-${drop.placement}` : '';
             return <article key={page.id} data-page-id={page.id} className={`shared-page-thumbnail${selected ? ' is-selected' : ''}${target}`} role="listitem" draggable={reorderEnabled}
                 onDragStart={() => { dragging.current = page.id; }} onDragEnd={cancelDrag} onDragOver={(event: DragEvent<HTMLElement>) => { if (!reorderEnabled) return; event.preventDefault(); setDrop({ id: page.id, placement: placementFor(event.currentTarget, event.clientX, event.clientY) }); }} onDrop={(event) => { event.preventDefault(); finish(page.id, drop?.placement ?? 'before'); }}>
-                {reorderEnabled && <button className="page-drag-handle" type="button" aria-label={`Drag page ${index + 1}`} title="Drag to reorder" onPointerDown={(event) => { if (event.pointerType === 'touch' && !event.isPrimary) return; event.preventDefault(); dragging.current = page.id; event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={pointerMove} onPointerUp={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); if (drop) finish(drop.id, drop.placement); else cancelDrag(); }} onPointerCancel={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); cancelDrag(); }}><GripVertical size={18} /></button>}
+                {reorderEnabled && <button className="page-drag-handle" type="button" aria-label={`Drag page ${index + 1}`} title="Drag to reorder" onPointerDown={(event) => { if (event.pointerType === 'touch' && !event.isPrimary) return; event.preventDefault(); dragging.current = page.id; event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={pointerMove} onPointerUp={(event) => { const target = drop; if (target) finish(target.id, target.placement); else cancelDrag(); if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }} onPointerCancel={(event) => { cancelDrag(); if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }} onLostPointerCapture={cancelDrag}><GripVertical size={18} /></button>}
                 {selectionEnabled && <input type="checkbox" checked={selected} onChange={() => onSelect(page.id, 'toggle')} aria-label={`Select page ${index + 1}`} />}
                 <PdfThumbnail page={page} pageNumber={index + 1} active={activePageId === page.id} rotation={0} getPage={getPage} onSelect={choose} annotations={annotationsByPageId?.[page.id]} previewAnnotation={previewAnnotation?.pageId === page.id ? previewAnnotation : null} formValues={formValues} />
                 <div className="page-thumbnail-actions">

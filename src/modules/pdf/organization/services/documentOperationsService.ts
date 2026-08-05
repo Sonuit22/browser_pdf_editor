@@ -1,6 +1,5 @@
 import { PDFDocument } from 'pdf-lib';
 import { validatePdfFile } from '../../services/pdfValidationService';
-import { downloadPdf } from '../utils/pdfDownload';
 
 export async function mergePdfFiles(files: File[], onProgress?: (percent: number) => void) {
     if (files.length < 2) throw new Error('Choose at least two PDF files to merge.');
@@ -13,9 +12,4 @@ export async function mergePdfFiles(files: File[], onProgress?: (percent: number
         onProgress?.(Math.round(((index + 1) / files.length) * 100));
     }
     return output.save();
-}
-
-export function downloadSequentialPdfs(files: Array<{ bytes: Uint8Array; filename: string }>) {
-    if (files.length > 10) throw new Error('Refine the split to ten files or fewer before downloading.');
-    for (const file of files) downloadPdf(file.bytes, file.filename);
 }

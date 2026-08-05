@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { ErrorState } from '../components/ui/ErrorState';
@@ -15,6 +15,7 @@ import { ArrowLeft, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useShell } from '../contexts/ShellContext';
 import { ToolGuideLink } from '../blog/components/ToolGuideLink';
+import { shouldShowLandingFileReselect } from '../utils/pendingPdfLifecycle';
 
 export default function WorkspacePage() {
     const location = useLocation();
@@ -22,13 +23,17 @@ export default function WorkspacePage() {
     const { phase, error, progress, retry, pendingPdfFile, consumePendingPdf, info } = usePdfEngine();
     const route = workspaceRoutes[pathname] ?? workspaceRoutes['/'];
     const { requestNavigation } = useShell();
+    const [landingFileWasLoaded, setLandingFileWasLoaded] = useState(false);
     const fromLanding = Boolean((location.state as { fromLandingFile?: boolean } | null)?.fromLandingFile);
     const awaitingLandingLoad = fromLanding && phase === 'idle' && Boolean(pendingPdfFile);
-    const needsLandingReselect = fromLanding && phase === 'idle' && !pendingPdfFile;
+    const needsLandingReselect = shouldShowLandingFileReselect(fromLanding, phase, pendingPdfFile, landingFileWasLoaded);
 
     useEffect(() => {
         if (fromLanding && pendingPdfFile) void consumePendingPdf();
     }, [consumePendingPdf, fromLanding, pendingPdfFile]);
+    useEffect(() => {
+        if (fromLanding && phase === 'ready') setLandingFileWasLoaded(true);
+    }, [fromLanding, phase]);
 
     return (
         <section className="tool-workspace-shell" aria-label={`${route.title} workspace`}>
