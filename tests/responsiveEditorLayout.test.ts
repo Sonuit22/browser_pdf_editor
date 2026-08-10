@@ -36,4 +36,25 @@ describe('responsive PDF editor workspace', () => {
         expect(canvas).toContain("window.addEventListener('orientationchange', measure)");
         expect(canvas).toContain('(size.width - fitMargin) / baseViewport.width');
     });
+
+    it('keeps the Sign PDF drawing pad and signing objects pointer-safe', async () => {
+        const [signingToolbar, viewer, css] = await Promise.all([
+            readFile('src/modules/pdf/editor/components/SigningToolbar.tsx', 'utf8'),
+            readFile('src/modules/pdf/viewer/PdfViewer.tsx', 'utf8'),
+            readFile('src/styles.css', 'utf8'),
+        ]);
+
+        expect(signingToolbar).toContain('onPointerCancel');
+        expect(signingToolbar).toContain('setPointerCapture');
+        expect(signingToolbar).toContain('getCoalescedEvents');
+        expect(signingToolbar).toContain('Undo stroke');
+        expect(signingToolbar).toContain('Apply ${kind}');
+        expect(signingToolbar).toContain('className="signature-modal"');
+        expect(css).toContain('.signature-canvas');
+        expect(css).toContain('touch-action: none');
+        expect(css).toContain('.pdf-viewer--signing .annotation-image-wrap');
+        expect(css).toContain('@media (max-height: 500px) and (orientation: landscape)');
+        expect(viewer).toContain("pathname === '/sign-pdf' ? 'Document downloaded'");
+        expect(viewer).toContain("pathname === '/sign-pdf' ? 'Download failed. Please try again.'");
+    });
 });

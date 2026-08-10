@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type ChangeEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { CalendarDays, Check, PenTool, Type, Upload, UserRoundPen } from 'lucide-react';
 import { Modal } from '../../../../components/ui/Modal';
 import { Button } from '../../../../components/ui/Button';
@@ -43,10 +43,7 @@ export function SigningToolbar({ onExport, exporting }: { onExport: () => void; 
         <button type="button" onClick={addDate}><CalendarDays size={17} />Add Date</button>
         <button type="button" onClick={addCheckmark}><Check size={17} />Add Checkmark</button>
     </div><EditorToolbar onExport={onExport} exporting={exporting} />
-    {modalKind && <SignatureModal kind={modalKind} onClose={() => setModalKind(null)} onFreeDraw={() => {
-        editor.setTool('draw');
-        setModalKind(null);
-    }} onInsert={(source, signatureKind, aspectRatio) => {
+    {modalKind && <SignatureModal kind={modalKind} onClose={() => setModalKind(null)} onInsert={(source, signatureKind, aspectRatio) => {
         addSigningObject(source, signatureKind, aspectRatio, 220);
         setModalKind(null);
     }} />}</>;
@@ -72,8 +69,10 @@ function renderSigningObject(text: string, options: { width: number; height: num
     }
 }
 
-function SignatureModal({ kind, onClose, onFreeDraw, onInsert }: { kind: 'signature' | 'initials'; onClose: () => void; onFreeDraw: () => void; onInsert: (source: string, type: SignatureAnnotation['signatureKind'], aspectRatio: number) => void }) {
+function SignatureModal({ kind, onClose, onInsert }: { kind: 'signature' | 'initials'; onClose: () => void; onInsert: (source: string, type: SignatureAnnotation['signatureKind'], aspectRatio: number) => void }) {
     const [tab, setTab] = useState<'draw' | 'type' | 'upload'>('draw'); const [name, setName] = useState(''); const [uploaded, setUploaded] = useState<{ source: string; aspectRatio: number } | null>(null); const [uploadBusy, setUploadBusy] = useState(false);
+    const [drawingReady, setDrawingReady] = useState(false);
+    const drawingPad = useRef<SignatureDrawingPadHandle>(null);
     const fileInput = useRef<HTMLInputElement>(null); const inserted = useRef(false);
     const upload = async (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]; event.target.value = '';
@@ -91,6 +90,12 @@ function SignatureModal({ kind, onClose, onFreeDraw, onInsert }: { kind: 'signat
     };
     const insert = () => {
         if (inserted.current) return;
+        if (tab === 'draw') {
+            const output = drawingPad.current?.exportImage();
+            if (!output) return;
+            inserted.current = true;
+            onInsert(output.source, 'drawn', output.aspectRatio);
+        }
         if (tab === 'type' && name.trim()) {
             const output = document.createElement('canvas'); output.width = 560; output.height = 160;
             try {
@@ -108,10 +113,154 @@ function SignatureModal({ kind, onClose, onFreeDraw, onInsert }: { kind: 'signat
             onInsert(uploaded.source, 'uploaded', uploaded.aspectRatio);
         }
     };
-    return <Modal title={`Add ${kind === 'signature' ? 'Signature' : 'Initials'}`} onClose={onClose}><div className="signature-tabs">{(['draw', 'type', 'upload'] as const).map((value) => <button type="button" key={value} className={tab === value ? 'is-active' : ''} onClick={() => setTab(value)}>{value === 'draw' ? <PenTool size={16} /> : value === 'type' ? <Type size={16} /> : <Upload size={16} />}{value}</button>)}</div>
-        {tab === 'draw' && <div className="signature-free-draw"><PenTool size={28} aria-hidden="true" /><p>Draw directly anywhere on the visible PDF page. Lift your pointer to finish each stroke.</p></div>}
+    return <Modal className="signature-modal" title={`Add ${kind === 'signature' ? 'Signature' : 'Initials'}`} onClose={onClose}><div className="signature-tabs">{(['draw', 'type', 'upload'] as const).map((value) => <button type="button" key={value} className={tab === value ? 'is-active' : ''} onClick={() => setTab(value)}>{value === 'draw' ? <PenTool size={16} /> : value === 'type' ? <Type size={16} /> : <Upload size={16} />}{value}</button>)}</div>
+        {tab === 'draw' && <SignatureDrawingPad ref={drawingPad} onAvailabilityChange={setDrawingReady} />}
         {tab === 'type' && <label>{kind === 'signature' ? 'Signer name' : 'Initials'}<input autoFocus value={name} onChange={(event) => setName(event.target.value)} /></label>}
         {tab === 'upload' && <><input ref={fileInput} className="sr-only" type="file" accept="image/png,image/jpeg,image/webp,.jpg,.jpeg,.png,.webp" disabled={uploadBusy} onChange={(event) => void upload(event)} /><Button type="button" variant="secondary" disabled={uploadBusy} onClick={() => fileInput.current?.click()}>{uploadBusy ? 'Loading…' : 'Choose image'}</Button>{uploaded && <img className="signature-preview" src={uploaded.source} alt="Signature preview" />}</>}
-        <div className="modal-actions"><Button type="button" variant="secondary" onClick={onClose}>Cancel</Button><Button type="button" onClick={tab === 'draw' ? onFreeDraw : insert} disabled={uploadBusy || (tab === 'type' ? !name.trim() : tab === 'upload' ? !uploaded : false)}>{tab === 'draw' ? 'Draw on PDF' : `Insert ${kind}`}</Button></div>
+        <div className="modal-actions"><Button type="button" variant="secondary" onClick={onClose}>Cancel</Button><Button type="button" onClick={insert} disabled={uploadBusy || (tab === 'draw' ? !drawingReady : tab === 'type' ? !name.trim() : !uploaded)}>{tab === 'draw' ? `Apply ${kind}` : `Insert ${kind}`}</Button></div>
     </Modal>;
 }
+
+type SignaturePoint = { x: number; y: number };
+type SignatureDrawingPadHandle = { exportImage: () => { source: string; aspectRatio: number } | null };
+
+const SignatureDrawingPad = forwardRef<SignatureDrawingPadHandle, { onAvailabilityChange: (available: boolean) => void }>(function SignatureDrawingPad({ onAvailabilityChange }, ref) {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const strokesRef = useRef<SignaturePoint[][]>([]);
+    const activeStrokeRef = useRef<SignaturePoint[] | null>(null);
+    const activePointerRef = useRef<number | null>(null);
+    const frameRef = useRef(0);
+    const pixelRatioRef = useRef(1);
+    const [strokeCount, setStrokeCount] = useState(0);
+
+    const draw = useCallback(() => {
+        frameRef.current = 0;
+        const canvas = canvasRef.current;
+        const context = canvas?.getContext('2d');
+        if (!canvas || !context) return;
+        const pixelRatio = pixelRatioRef.current;
+        const width = canvas.width / pixelRatio;
+        const height = canvas.height / pixelRatio;
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        context.clearRect(0, 0, width, height);
+        context.strokeStyle = '#111111';
+        context.fillStyle = '#111111';
+        context.lineWidth = 2.8;
+        context.lineCap = 'round';
+        context.lineJoin = 'round';
+        for (const stroke of strokesRef.current) {
+            if (!stroke.length) continue;
+            if (stroke.length === 1) {
+                context.beginPath();
+                context.arc(stroke[0].x * width, stroke[0].y * height, 1.4, 0, Math.PI * 2);
+                context.fill();
+                continue;
+            }
+            context.beginPath();
+            context.moveTo(stroke[0].x * width, stroke[0].y * height);
+            for (let index = 1; index < stroke.length; index += 1) context.lineTo(stroke[index].x * width, stroke[index].y * height);
+            context.stroke();
+        }
+    }, []);
+
+    const scheduleDraw = useCallback(() => {
+        if (!frameRef.current) frameRef.current = requestAnimationFrame(draw);
+    }, [draw]);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const resize = () => {
+            const rect = canvas.getBoundingClientRect();
+            const pixelRatio = Math.min(window.devicePixelRatio || 1, 3);
+            const width = Math.max(1, Math.round(rect.width * pixelRatio));
+            const height = Math.max(1, Math.round(rect.height * pixelRatio));
+            pixelRatioRef.current = pixelRatio;
+            if (canvas.width !== width || canvas.height !== height) {
+                canvas.width = width;
+                canvas.height = height;
+            }
+            draw();
+        };
+        const observer = new ResizeObserver(resize);
+        observer.observe(canvas);
+        window.addEventListener('orientationchange', resize);
+        resize();
+        return () => {
+            observer.disconnect();
+            window.removeEventListener('orientationchange', resize);
+            cancelAnimationFrame(frameRef.current);
+        };
+    }, [draw]);
+
+    useEffect(() => onAvailabilityChange(strokeCount > 0), [onAvailabilityChange, strokeCount]);
+
+    const pointFromEvent = (event: ReactPointerEvent<HTMLCanvasElement> | globalThis.PointerEvent): SignaturePoint => {
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (!rect) return { x: 0, y: 0 };
+        return {
+            x: Math.max(0, Math.min(1, (event.clientX - rect.left) / Math.max(1, rect.width))),
+            y: Math.max(0, Math.min(1, (event.clientY - rect.top) / Math.max(1, rect.height))),
+        };
+    };
+    const appendPoint = (stroke: SignaturePoint[], point: SignaturePoint) => {
+        const previous = stroke[stroke.length - 1];
+        if (!previous || Math.hypot(point.x - previous.x, point.y - previous.y) > .0005) stroke.push(point);
+    };
+    const finishStroke = (event: ReactPointerEvent<HTMLCanvasElement>, cancelled = false) => {
+        if (activePointerRef.current !== event.pointerId) return;
+        const canvas = event.currentTarget;
+        if (!cancelled && activeStrokeRef.current) appendPoint(activeStrokeRef.current, pointFromEvent(event));
+        if (cancelled && activeStrokeRef.current) strokesRef.current = strokesRef.current.filter((stroke) => stroke !== activeStrokeRef.current);
+        activeStrokeRef.current = null;
+        activePointerRef.current = null;
+        try { if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId); } catch { /* Pointer capture may already be released. */ }
+        setStrokeCount(strokesRef.current.length);
+        scheduleDraw();
+    };
+    const onPointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+        if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
+        event.preventDefault();
+        const stroke = [pointFromEvent(event)];
+        strokesRef.current.push(stroke);
+        activeStrokeRef.current = stroke;
+        activePointerRef.current = event.pointerId;
+        try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* Pointer may end before capture. */ }
+        scheduleDraw();
+    };
+    const onPointerMove = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+        if (activePointerRef.current !== event.pointerId || !activeStrokeRef.current) return;
+        event.preventDefault();
+        const samples = event.nativeEvent.getCoalescedEvents?.() ?? [];
+        for (const sample of samples) appendPoint(activeStrokeRef.current, pointFromEvent(sample));
+        appendPoint(activeStrokeRef.current, pointFromEvent(event));
+        scheduleDraw();
+    };
+    const clear = () => {
+        strokesRef.current = [];
+        activeStrokeRef.current = null;
+        activePointerRef.current = null;
+        setStrokeCount(0);
+        draw();
+    };
+    const undoStroke = () => {
+        strokesRef.current = strokesRef.current.slice(0, -1);
+        setStrokeCount(strokesRef.current.length);
+        draw();
+    };
+
+    useImperativeHandle(ref, () => ({
+        exportImage: () => {
+            const canvas = canvasRef.current;
+            if (!canvas || !strokesRef.current.length) return null;
+            draw();
+            return { source: canvas.toDataURL('image/png'), aspectRatio: canvas.width / canvas.height };
+        },
+    }), [draw]);
+
+    return <div className="signature-drawing-pad">
+        <canvas ref={canvasRef} className="signature-canvas" aria-label="Signature drawing canvas" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={finishStroke} onPointerCancel={(event) => finishStroke(event, true)} onLostPointerCapture={(event) => { if (activePointerRef.current === event.pointerId) finishStroke(event); }} />
+        <p className="signature-canvas-hint">Draw with a finger, stylus, or mouse. You can use multiple strokes before applying.</p>
+        <div className="signature-drawing-actions"><Button type="button" variant="secondary" onClick={undoStroke} disabled={!strokeCount}>Undo stroke</Button><Button type="button" variant="secondary" onClick={clear} disabled={!strokeCount}>Clear</Button></div>
+    </div>;
+});

@@ -6,9 +6,10 @@ type ModalProps = {
     title: string;
     children: ReactNode;
     onClose: () => void;
+    className?: string;
 };
 
-export function Modal({ title, children, onClose }: ModalProps) {
+export function Modal({ title, children, onClose, className = '' }: ModalProps) {
     const titleId = useId();
     const dialogRef = useRef<HTMLElement>(null);
     const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -50,7 +51,7 @@ export function Modal({ title, children, onClose }: ModalProps) {
 
     return (
         <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
-            <section ref={dialogRef} className="modal" role="dialog" aria-modal="true" aria-labelledby={titleId} onMouseDown={(event) => event.stopPropagation()}>
+            <section ref={dialogRef} className={`modal${className ? ` ${className}` : ''}`} role="dialog" aria-modal="true" aria-labelledby={titleId} onMouseDown={(event) => event.stopPropagation()}>
                 <div className="modal__header">
                     <h2 id={titleId}>{title}</h2>
                     <button ref={closeButtonRef} className="icon-button" type="button" onClick={onClose} aria-label="Close dialog" title="Close dialog">

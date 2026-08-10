@@ -12,6 +12,7 @@ import { Modal } from '../components/ui/Modal';
 import { Button } from '../components/ui/Button';
 import { shouldPreserveLandingFileTransition, type LandingRouteState } from '../utils/landingFileTransfer';
 import { SeoManager } from '../components/SeoManager';
+import { PrivacyAnnouncement } from '../components/PrivacyAnnouncement';
 
 export function AppLayout() {
     const { openFilePicker, closeDocument, pendingPdfFile } = usePdfEngine();
@@ -74,6 +75,7 @@ export function AppLayout() {
                     onRequestUpload={requestUpload}
                     onNavigateRequest={requestNavigation}
                 />
+                {isToolDashboard && <PrivacyAnnouncement />}
                 <div className={isToolDashboard ? 'app-body app-body--public' : 'app-body'}>
                     {showSidebar && <Sidebar onNavigate={requestNavigation} onClose={closeSidebar} />}
                     {isSidebarOpen && <button className="sidebar-scrim" type="button" aria-label="Close navigation" onClick={closeSidebar} />}

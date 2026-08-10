@@ -92,12 +92,12 @@ export function PdfViewer() {
         setExportError(null);
         try {
             await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile, filename: editedFilename(info.filename), utilities, sourceFilename: info.filename, formValues, flattenForms, onProgress: setExportProgress });
-            notify(flattenForms ? 'PDF exported with flattened form fields.' : 'PDF export completed.');
+            notify(pathname === '/sign-pdf' ? 'Document downloaded' : flattenForms ? 'PDF exported with flattened form fields.' : 'PDF export completed.');
             completed = true;
         } catch (error) {
             const message = getProcessingErrorMessage(error, 'Export failed. Keep the document open, check available browser memory, and try again.');
             setExportError(message);
-            notify(message, 'error');
+            notify(pathname === '/sign-pdf' ? 'Download failed. Please try again.' : message, 'error');
         } finally {
             exportingRef.current = false;
             setExporting(false);
@@ -107,7 +107,7 @@ export function PdfViewer() {
 
     const jumpToPage = (value: number) => setActivePage(pages[Math.min(Math.max(1, value), pageCount) - 1]?.id ?? null);
     return (
-        <section className="pdf-viewer" aria-label={`${info.filename} viewer`}>
+        <section className={`pdf-viewer${pathname === '/sign-pdf' ? ' pdf-viewer--signing' : ''}`} aria-label={`${info.filename} viewer`}>
             <div className="pdf-toolbar" aria-label="PDF viewer controls">
                 <div className="pdf-toolbar__group">
                     <button className="icon-button" type="button" onClick={() => jumpToPage(currentPage - 1)} disabled={currentPage === 1} aria-label="Previous page" title="Previous page"><ChevronLeft size={19} aria-hidden="true" /></button>
