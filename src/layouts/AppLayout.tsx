@@ -65,7 +65,7 @@ export function AppLayout() {
     return (
         <ShellContext.Provider value={shellValue}>
             <SeoManager />
-            <div className="app-shell">
+            <div className={`app-shell${isToolDashboard ? ' app-shell--landing' : ''}`}>
                 <a className="skip-link" href="#main-content">Skip to main content</a>
                 <Header
                     isSidebarOpen={isSidebarOpen}

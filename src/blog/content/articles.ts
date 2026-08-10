@@ -1,5 +1,6 @@
 import manifest from './articleManifest.json';
 import type { BlogArticle, BlogArticleMetadata } from '../types';
+import { searchConsoleArticles } from './searchConsoleArticles';
 
 const metadata = manifest as BlogArticleMetadata[];
 const bySlug = new Map(metadata.map((item) => [item.slug, item]));
@@ -662,7 +663,7 @@ function adaptForSeoIntent(item: BlogArticle): BlogArticle {
     };
 }
 
-export const articles: BlogArticle[] = [...baseArticles, ...additionalSeoIntentArticles].map(adaptForSeoIntent);
+export const articles: BlogArticle[] = [...baseArticles, ...additionalSeoIntentArticles, ...searchConsoleArticles].map(adaptForSeoIntent);
 
 export const publishedArticles = articles.filter((article) => !article.draft);
 export function getArticleBySlug(slug: string | undefined) {

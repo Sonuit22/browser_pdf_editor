@@ -2228,3 +2228,278 @@ textarea:focus-visible,
         min-height: 154px !important;
     }
 }
+
+.tool-guide-link nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    margin-top: 4px;
+}
+
+.tool-guide-link nav a {
+    font-size: .8rem;
+}
+
+@media (max-width: 620px) {
+    .tool-guide-link nav {
+        display: grid;
+        gap: 7px;
+    }
+}
+
+/* Landing-page-only cool navy dark theme */
+:root[data-theme="dark"] .app-shell--landing {
+    --landing-dark-page: #0f1929;
+    --landing-dark-header: #1b283a;
+    --landing-dark-surface: #142233;
+    --landing-dark-surface-secondary: #182a36;
+    --landing-dark-card: #172735;
+    --landing-dark-elevated: #1a2c38;
+    --landing-dark-border: #314354;
+    --landing-dark-border-strong: #415568;
+    --landing-dark-text: #f7f9fb;
+    --landing-dark-text-secondary: #b8c5ce;
+    --landing-dark-text-muted: #8496a3;
+    --landing-dark-green: #27c881;
+    --landing-dark-green-hover: #21b573;
+    --landing-dark-green-soft: rgba(39, 200, 129, .1);
+    color: var(--landing-dark-text) !important;
+    background: var(--landing-dark-page) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .app-body,
+:root[data-theme="dark"] .app-shell--landing .app-main,
+:root[data-theme="dark"] .app-shell--landing .tool-dashboard {
+    color: var(--landing-dark-text) !important;
+    background: var(--landing-dark-page) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .app-header {
+    border-bottom-color: var(--landing-dark-border) !important;
+    background: var(--landing-dark-header) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .header-brand,
+:root[data-theme="dark"] .app-shell--landing .header-learning-link {
+    color: var(--landing-dark-text) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .header-learning-link svg,
+:root[data-theme="dark"] .app-shell--landing .header-search > svg {
+    color: var(--landing-dark-green) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .header-search {
+    border-color: #34465a !important;
+    color: var(--landing-dark-text-secondary) !important;
+    background: #1b293b !important;
+    box-shadow: none !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .header-search:focus-within {
+    border-color: var(--landing-dark-green) !important;
+    box-shadow: 0 0 0 3px rgba(39, 200, 129, .17) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .header-search input {
+    color: #f4f7fa !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .header-search input::placeholder {
+    color: #8999a6 !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .header-search__results {
+    border-color: var(--landing-dark-border) !important;
+    background: var(--landing-dark-surface) !important;
+    box-shadow: 0 10px 24px rgba(4, 11, 20, .24) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .header-search__results a:hover,
+:root[data-theme="dark"] .app-shell--landing .header-search__results a:focus {
+    background: var(--landing-dark-green-soft) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .app-header .icon-button,
+:root[data-theme="dark"] .app-shell--landing .menu-button {
+    border-color: var(--landing-dark-border) !important;
+    color: #ffffff !important;
+    background: var(--landing-dark-surface) !important;
+    box-shadow: none !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .app-header .icon-button:hover,
+:root[data-theme="dark"] .app-shell--landing .menu-button:hover,
+:root[data-theme="dark"] .app-shell--landing .menu-button:active,
+:root[data-theme="dark"] .app-shell--landing .menu-button[aria-expanded="true"] {
+    border-color: var(--landing-dark-border-strong) !important;
+    color: var(--landing-dark-green) !important;
+    background: var(--landing-dark-surface-secondary) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-hero {
+    border: 1px solid #243849 !important;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #132532 0%, #101d29 100%) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-privacy-pill {
+    border-color: rgba(39, 200, 129, .3) !important;
+    color: #85dfb7 !important;
+    background: var(--landing-dark-green-soft) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-hero h1,
+:root[data-theme="dark"] .app-shell--landing .landing-section__heading h2,
+:root[data-theme="dark"] .app-shell--landing .tool-catalogue > .landing-section__heading h2,
+:root[data-theme="dark"] .app-shell--landing .landing-feature-card h3,
+:root[data-theme="dark"] .app-shell--landing .testimonial-card h3,
+:root[data-theme="dark"] .app-shell--landing .tool-dashboard-card > strong,
+:root[data-theme="dark"] .app-shell--landing .landing-upload h2 {
+    color: var(--landing-dark-text) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-hero__tagline,
+:root[data-theme="dark"] .app-shell--landing .landing-section__heading--row > span,
+:root[data-theme="dark"] .app-shell--landing .landing-feature-card p,
+:root[data-theme="dark"] .app-shell--landing .testimonial-card p,
+:root[data-theme="dark"] .app-shell--landing .tool-dashboard-card > p,
+:root[data-theme="dark"] .app-shell--landing .landing-upload > p,
+:root[data-theme="dark"] .app-shell--landing .landing-upload__formats {
+    color: var(--landing-dark-text-secondary) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-section__heading > p,
+:root[data-theme="dark"] .app-shell--landing .landing-section__heading > div > p,
+:root[data-theme="dark"] .app-shell--landing .landing-upload__privacy {
+    color: var(--landing-dark-green) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .button--primary {
+    border-color: var(--landing-dark-green) !important;
+    color: #08150f !important;
+    background: var(--landing-dark-green) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .button--primary:hover:not(:disabled) {
+    border-color: var(--landing-dark-green-hover) !important;
+    background: var(--landing-dark-green-hover) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .button--secondary,
+:root[data-theme="dark"] .app-shell--landing .landing-upload .button--secondary {
+    border-color: var(--landing-dark-border-strong) !important;
+    color: #e8edf1 !important;
+    background: transparent !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .button--secondary:hover:not(:disabled),
+:root[data-theme="dark"] .app-shell--landing .landing-upload .button--secondary:hover:not(:disabled) {
+    border-color: #526a7d !important;
+    color: var(--landing-dark-green) !important;
+    background: rgba(255, 255, 255, .035) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-upload {
+    border-color: #405948 !important;
+    background: var(--landing-dark-card) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-upload:hover,
+:root[data-theme="dark"] .app-shell--landing .landing-upload.is-dragging {
+    border-color: var(--landing-dark-green) !important;
+    background: #182b39 !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-upload__icon {
+    color: var(--landing-dark-green) !important;
+    background: #1a3a39 !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-upload__file,
+:root[data-theme="dark"] .app-shell--landing .landing-tool-chooser {
+    border-color: var(--landing-dark-border) !important;
+    background: var(--landing-dark-surface-secondary) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-upload__file-actions button,
+:root[data-theme="dark"] .app-shell--landing .landing-tool-chooser button {
+    border-color: var(--landing-dark-border) !important;
+    color: var(--landing-dark-text) !important;
+    background: var(--landing-dark-surface) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-tool-chooser button:hover:not(:disabled) {
+    border-color: #3d5b50 !important;
+    background: var(--landing-dark-elevated) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-upload__file-details > span,
+:root[data-theme="dark"] .app-shell--landing .landing-upload__file-details small,
+:root[data-theme="dark"] .app-shell--landing .landing-tool-chooser small {
+    color: var(--landing-dark-text-muted) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-upload__file-details strong,
+:root[data-theme="dark"] .app-shell--landing .landing-tool-chooser strong {
+    color: var(--landing-dark-text) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-feature-card,
+:root[data-theme="dark"] .app-shell--landing .tool-dashboard-card,
+:root[data-theme="dark"] .app-shell--landing .testimonial-card {
+    border-color: #304456 !important;
+    background: var(--landing-dark-card) !important;
+    box-shadow: none !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-feature-card:hover,
+:root[data-theme="dark"] .app-shell--landing .tool-dashboard-card:hover,
+:root[data-theme="dark"] .app-shell--landing .testimonial-card:hover {
+    border-color: #3d5b50 !important;
+    background: var(--landing-dark-elevated) !important;
+    box-shadow: none !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-feature-card > span,
+:root[data-theme="dark"] .app-shell--landing .tool-card-icon,
+:root[data-theme="dark"] .app-shell--landing .testimonial-card__icon {
+    color: var(--landing-dark-green) !important;
+    background: var(--landing-dark-green-soft) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .sidebar {
+    border-color: var(--landing-dark-border) !important;
+    background: var(--landing-dark-surface) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .sidebar a:hover,
+:root[data-theme="dark"] .app-shell--landing .sidebar a.active {
+    color: var(--landing-dark-text) !important;
+    background: var(--landing-dark-green-soft) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .status-bar {
+    border-color: var(--landing-dark-border) !important;
+    color: var(--landing-dark-text-secondary) !important;
+    background: var(--landing-dark-surface) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .app-footer {
+    border-top-color: #293c4e !important;
+    color: #b9c5ce !important;
+    background: #0c1521 !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .app-footer__identity p {
+    color: var(--landing-dark-text) !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .app-footer__identity small,
+:root[data-theme="dark"] .app-shell--landing .app-footer > nav a {
+    color: #b9c5ce !important;
+}
+
+:root[data-theme="dark"] .app-shell--landing .app-footer > nav a:hover {
+    color: var(--landing-dark-green) !important;
+}

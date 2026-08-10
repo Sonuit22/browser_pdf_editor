@@ -45,6 +45,16 @@ const newArticleSlugs = [
     'browser-based-pdf-editing-vs-desktop-software',
 ] as const;
 
+const searchConsoleArticleSlugs = [
+    'sign-pdf-on-mobile',
+    'add-signature-and-date-to-pdf',
+    'add-initials-to-pdf-online',
+    'remove-pdf-pages-on-mobile',
+    'save-pdf-page-as-jpg-on-mobile',
+    'jpg-vs-png-for-pdf-pages',
+    'pdf-to-jpg-image-quality',
+] as const;
+
 const seoIntentArticles = [
     ['complete-guide-to-pdf-tools-2026', 'pdf tools'],
     ['how-to-merge-pdf-files-online', 'merge pdf'],
@@ -59,13 +69,13 @@ const seoIntentArticles = [
 ] as const;
 
 describe('Learning Center content registry', () => {
-    it('publishes all twenty-two requested complete articles', () => {
-        expect(publishedArticles).toHaveLength(22);
-        expect(publishedArticleMetadata).toHaveLength(22);
-        expect(new Set(publishedArticles.map((article) => article.slug)).size).toBe(22);
+    it('publishes the complete article collection', () => {
+        expect(publishedArticles).toHaveLength(29);
+        expect(publishedArticleMetadata).toHaveLength(29);
+        expect(new Set(publishedArticles.map((article) => article.slug)).size).toBe(29);
 
         for (const article of publishedArticles) {
-            expect(article.sections.length).toBeGreaterThanOrEqual(5);
+            expect(article.sections.length).toBeGreaterThanOrEqual(3);
             expect(article.faq.length).toBeGreaterThanOrEqual(3);
             expect(article.relatedSlugs.length).toBeGreaterThanOrEqual(2);
             expect(article.canonicalUrl).toBe(`/blog/${article.slug}`);
@@ -74,7 +84,7 @@ describe('Learning Center content registry', () => {
         }
     });
 
-    it.each(publishedArticles.filter((article) => !newArticleSlugs.includes(article.slug as typeof newArticleSlugs[number])))('$slug retains 700–1,200 useful words', (article) => {
+    it.each(publishedArticles.filter((article) => !newArticleSlugs.includes(article.slug as typeof newArticleSlugs[number]) && !searchConsoleArticleSlugs.includes(article.slug as typeof searchConsoleArticleSlugs[number])))('$slug retains 700–1,200 useful words', (article) => {
         expect(articleWordCount(article)).toBeGreaterThanOrEqual(700);
         expect(articleWordCount(article)).toBeLessThanOrEqual(1200);
     });
@@ -94,6 +104,27 @@ describe('Learning Center content registry', () => {
         expect(article.sections.every((section) => !section.steps)).toBe(true);
         expect(article.faq.length).toBeGreaterThanOrEqual(3);
         expect(article.faq.length).toBeLessThanOrEqual(5);
+        expect(article.relatedSlugs.length).toBeGreaterThanOrEqual(2);
+        expect(article.relatedSlugs.length).toBeLessThanOrEqual(3);
+        expect(article.description.length).toBeGreaterThanOrEqual(140);
+        expect(article.description.length).toBeLessThanOrEqual(160);
+    });
+
+    it.each(searchConsoleArticleSlugs)('%s follows the Search Console concise article brief', (slug) => {
+        const article = getArticleBySlug(slug);
+        expect(article).toBeDefined();
+        if (!article) return;
+
+        const stepCount = article.sections.flatMap((section) => section.steps ?? []).length;
+        expect(articleWordCount(article)).toBeGreaterThanOrEqual(400);
+        expect(articleWordCount(article)).toBeLessThanOrEqual(700);
+        expect(stepCount).toBeGreaterThanOrEqual(3);
+        expect(stepCount).toBeLessThanOrEqual(5);
+        expect(article.sections.some((section) => section.heading.startsWith('How to '))).toBe(true);
+        expect(article.sections.some((section) => section.heading === 'Why use PDF by ib')).toBe(true);
+        expect(article.sections.some((section) => section.heading === 'Privacy')).toBe(true);
+        expect(article.faq.length).toBeGreaterThanOrEqual(2);
+        expect(article.faq.length).toBeLessThanOrEqual(4);
         expect(article.relatedSlugs.length).toBeGreaterThanOrEqual(2);
         expect(article.relatedSlugs.length).toBeLessThanOrEqual(3);
         expect(article.description.length).toBeGreaterThanOrEqual(140);
