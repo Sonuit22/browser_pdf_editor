@@ -2503,3 +2503,59 @@ textarea:focus-visible,
 :root[data-theme="dark"] .app-shell--landing .app-footer > nav a:hover {
     color: var(--landing-dark-green) !important;
 }
+
+/* Border-free landing hero with balanced desktop gutters. */
+.app-shell--landing .landing-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, .72fr);
+    gap: clamp(36px, 4.5vw, 64px);
+    padding-inline: clamp(30px, 3.6vw, 52px);
+}
+
+.app-shell--landing .landing-hero__content {
+    padding-left: clamp(6px, 1vw, 14px);
+}
+
+.app-shell--landing .landing-upload {
+    width: min(100%, 540px);
+    min-height: 320px;
+    justify-self: end;
+    padding: 26px 24px;
+}
+
+:root[data-theme="dark"] .app-shell--landing .landing-hero {
+    border: 0 !important;
+    border-radius: 0;
+    background: transparent !important;
+}
+
+@media (max-width: 980px) {
+    .app-shell--landing .landing-hero {
+        grid-template-columns: minmax(0, 1fr) minmax(320px, .78fr);
+        gap: 28px;
+        padding-inline: 20px;
+    }
+
+    .app-shell--landing .landing-hero__content {
+        padding-left: 0;
+    }
+
+    .app-shell--landing .landing-upload {
+        width: 100%;
+        min-height: 320px;
+    }
+}
+
+@media (max-width: 720px) {
+    .app-shell--landing .landing-hero {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 30px;
+        padding: 32px 0 40px;
+    }
+
+    .app-shell--landing .landing-upload {
+        width: min(100%, 520px);
+        min-height: 320px;
+        justify-self: center;
+        padding-inline: 20px;
+    }
+}

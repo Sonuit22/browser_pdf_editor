@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowRight, BookOpen, Clock, Wrench } from 'lucide-react';
-import { useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useLayoutEffect } from 'react';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { ArticleCard } from '../blog/components/ArticleCard';
 import { ArticleRenderer } from '../blog/components/ArticleRenderer';
 import { BlogArticleSeo } from '../blog/components/BlogArticleSeo';
@@ -11,7 +11,13 @@ import NotFoundPage from './NotFoundPage';
 
 export default function BlogArticlePage() {
     const { slug } = useParams();
+    const { hash } = useLocation();
     const article = getArticleBySlug(slug);
+
+    useLayoutEffect(() => {
+        if (article && !hash) window.scrollTo(0, 0);
+    }, [article, hash]);
+
     useEffect(() => {
         if (article) trackEvent('blog_article_opened', { article_slug: article.slug, category: article.category.toLowerCase().replace(/\s+/g, '-') });
     }, [article]);
