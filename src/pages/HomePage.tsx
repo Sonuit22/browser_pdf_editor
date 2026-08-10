@@ -3,6 +3,7 @@ import {
     BadgeDollarSign,
     Bolt,
     CheckCircle2,
+    CloudOff,
     MonitorSmartphone,
     RotateCcw,
     ShieldCheck,
@@ -23,10 +24,10 @@ const features = [
     { title: 'Free', description: 'Most tools available without account.', icon: BadgeDollarSign },
 ];
 
-const testimonials = [
-    'Supported tools process files locally in the browser.',
-    'Tool status labels explain production readiness and known limitations.',
-    'Responsive controls support desktop, tablet, and phone layouts.',
+const privacyPrinciples = [
+    { title: 'Files stay local', description: 'Supported tools process your documents inside your browser.', icon: ShieldCheck },
+    { title: 'No PDF upload to our processing server', description: 'Your document content is not sent away for supported PDF workflows.', icon: CloudOff },
+    { title: 'No software installation', description: 'Open a tool in your browser and work from the device you already use.', icon: MonitorSmartphone },
 ];
 
 function formatSelectedFileSize(size: number) {
@@ -94,14 +95,10 @@ export default function HomePage() {
         <section className="landing-hero" aria-labelledby="landing-title">
             <div className="landing-hero__content">
                 <span className="landing-privacy-pill"><ShieldCheck size={16} aria-hidden="true" />Private by design</span>
-                <h1 id="landing-title">PDF by ib</h1>
-                <p className="landing-hero__tagline">
-                    <span>Edit PDFs securely in your browser.</span>
-                    <span>Supported files are processed locally.</span>
-                    <span>Your files stay on your device.</span>
-                </p>
+                <h1 id="landing-title">PDF tools that keep your files private.</h1>
+                <p className="landing-hero__tagline">Edit, merge, split, compress, sign and convert PDFs directly in your browser.</p>
                 <div className="landing-hero__actions">
-                    <Link className="button button--secondary landing-cta" to="/all-tools">View All Tools</Link>
+                    <a className="button button--primary landing-cta" href="#tools">Explore PDF Tools</a>
                 </div>
             </div>
 
@@ -184,16 +181,16 @@ export default function HomePage() {
             })}</div>
         </section>
 
-        <section className="landing-section landing-testimonials" aria-labelledby="testimonials-heading">
+        <section className="landing-section landing-testimonials" aria-labelledby="privacy-heading">
             <header className="landing-section__heading">
-                <p>Product principles</p>
-                <h2 id="testimonials-heading">Clear expectations for every workflow</h2>
+                <p>Privacy-first processing</p>
+                <h2 id="privacy-heading">Your documents. Your device.</h2>
             </header>
             <div className="testimonial-grid">
-                {testimonials.map((quote, index) => <figure className="testimonial-card" key={quote}>
-                    <blockquote>“{quote}”</blockquote>
-                    <figcaption><span aria-hidden="true">IB</span><div><strong>PDF by ib</strong><small>Product principle {index + 1}</small></div></figcaption>
-                </figure>)}
+                {privacyPrinciples.map(({ title, description, icon: Icon }) => <article className="testimonial-card" key={title}>
+                    <span className="testimonial-card__icon" aria-hidden="true"><Icon size={22} strokeWidth={1.8} /></span>
+                    <div><h3>{title}</h3><p>{description}</p></div>
+                </article>)}
             </div>
         </section>
     </div>;

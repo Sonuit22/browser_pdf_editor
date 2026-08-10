@@ -4,7 +4,7 @@ import { externalLinks, isExternalHttpLink, SUPPORT_EMAIL } from '../config/site
 
 export function Footer() {
     return <footer className="app-footer">
-        <p>© 2026 PDF by ib</p>
+        <div className="app-footer__identity"><p>© 2026 PDF by ib</p><small>Made in India 🇮🇳</small></div>
         <nav aria-label="Legal and support links">
             <Link to="/privacy">Privacy Policy</Link>
             <Link to="/terms">Terms of Use</Link>
