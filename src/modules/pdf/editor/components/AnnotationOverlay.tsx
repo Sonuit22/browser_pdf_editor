@@ -9,6 +9,8 @@ import { clampPdfPoint, clientPointToPdfPoint, pdfBoundsToViewport, pdfPageSize,
 import { constrainAnnotationBounds, constrainBounds, resizeBounds, resizeHandleForPageRotation, type ResizeHandle } from '../utils/touchGeometry';
 import type { PdfAnnotation, Point } from '../types/annotations';
 import { appendDistinctPathPoints, hexToRgb, normalizeHighlighterSettings, pathCommandsToSvg, pathPaint, smoothPathCommands } from '../utils/annotationRendering';
+import { Modal } from '../../../../components/ui/Modal';
+import { formatSigningDate, renderSigningVisual } from '../utils/signingVisual';
 
 type Gesture = { mode: 'create' | 'move' | 'resize' | 'rotate'; start: Point; startClient: Point; annotation: PdfAnnotation; handle?: ResizeHandle; moved: boolean };
 type InteractionState = Pick<Gesture, 'mode'> & { annotationType: PdfAnnotation['type'] };
@@ -48,6 +50,7 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
     const lastPreviewAtRef = useRef(0);
     const [draft, setDraft] = useState<PdfAnnotation | null>(null);
     const [menuId, setMenuId] = useState<string | null>(null);
+    const [editingId, setEditingId] = useState<string | null>(null);
     const [cursorPosition, setCursorPosition] = useState<CursorPosition | null>(null);
     const [isCursorOverPdf, setCursorOverPdf] = useState(false);
     const [activePointerType, setActivePointerType] = useState<string | null>(null);
@@ -332,26 +335,36 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
             setActivePointerType(null);
         }
     };
-    const editText = (id: string) => { setMenuId(null); window.setTimeout(() => overlayRef.current?.querySelector<HTMLTextAreaElement>(`[data-annotation-id="${id}"] textarea`)?.focus(), 0); };
+    const editObject = (id: string) => {
+        const annotation = annotations.find((item) => item.id === id);
+        if (!annotation) return;
+        setMenuId(null);
+        if (annotation.type === 'text') setEditingId(id);
+        else if (annotation.type === 'signature' && annotation.signatureKind === 'date') setEditingId(id);
+    };
     const rendered = draft && !annotations.some((annotation) => annotation.id === draft.id) ? [...annotations, draft] : annotations.map((annotation) => annotation.id === draft?.id ? draft : annotation);
     const isHighlighting = interaction?.mode === 'create' && interaction.annotationType === 'highlight';
     const showHighlighterCursor = isHighlighterActive && isCursorOverPdf && cursorPosition && (activePointerType === 'mouse' || isHighlighting);
     const liveCursorPosition = cursorPositionRef.current ?? cursorPosition;
     const cursorDiameter = highlighterSize;
     const cursorColor = hexToRgb(highlighterColor, '#ffe066');
+    const contextMenuId = selectedIds.length === 1 && annotations.some((annotation) => annotation.id === selectedIds[0]) ? selectedIds[0] : menuId;
+    const contextAnnotation = annotations.find((annotation) => annotation.id === contextMenuId);
+    const editingAnnotation = annotations.find((annotation) => annotation.id === editingId);
     const highlighterCursor = showHighlighterCursor && typeof document !== 'undefined'
         ? createPortal(<span ref={cursorIndicatorRef} className={`highlighter-pointer-indicator${liveCursorPosition?.pointerType === 'touch' ? ' is-touch' : ''}`} style={{ left: liveCursorPosition?.clientX, top: liveCursorPosition?.clientY, width: cursorDiameter, height: cursorDiameter, backgroundColor: `rgba(${cursorColor.r}, ${cursorColor.g}, ${cursorColor.b}, ${normalizedHighlighter.opacity})` }} aria-hidden="true" />, document.body)
         : null;
-    return <><div ref={overlayRef} className={`annotation-overlay annotation-overlay--${activeTool}${showHighlighterCursor && activePointerType === 'mouse' ? ' annotation-overlay--custom-highlighter-cursor' : ''}${isHighlighting && activePointerType !== 'mouse' ? ' annotation-overlay--highlighting' : ''}${interaction && interaction.mode !== 'create' ? ' annotation-overlay--object-gesture' : ''}${interaction ? ' annotation-overlay--active-interaction' : ''}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={cancelGesture} onLostPointerCapture={onLostPointerCapture} onPointerEnter={onPointerEnter} onPointerLeave={onPointerLeave}>{rendered.map((annotation) => <AnnotationItem key={annotation.id} annotation={annotation} viewport={layout.viewport} selected={selectedIds.includes(annotation.id)} onUpdate={(patch) => update(annotation.id, patch)} onDuplicate={() => duplicate(annotation.id)} onDelete={() => remove(annotation.id)} onForward={() => reorder(annotation.id, 'forward')} onBackward={() => reorder(annotation.id, 'backward')} onEdit={() => editText(annotation.id)} formValues={formValues} onFormValue={setFormValue} />)}
-        {menuId && <div className="mobile-object-menu" role="menu" aria-label="Object actions">{annotations.some((item) => item.id === menuId && item.type === 'text') && <button type="button" onClick={() => editText(menuId)}><Pencil size={17} />Edit</button>}<button type="button" onClick={() => { duplicate(menuId); setMenuId(null); }}><Copy size={17} />Duplicate</button><button type="button" onClick={() => { reorder(menuId, 'forward'); setMenuId(null); }}><ArrowUp size={17} />Bring Forward</button><button type="button" onClick={() => { reorder(menuId, 'backward'); setMenuId(null); }}><ArrowDown size={17} />Send Backward</button><button type="button" onClick={() => { remove(menuId); setMenuId(null); }}><Trash2 size={17} />Delete</button></div>}
-    </div>{highlighterCursor}</>;
+    return <><div ref={overlayRef} className={`annotation-overlay annotation-overlay--${activeTool}${showHighlighterCursor && activePointerType === 'mouse' ? ' annotation-overlay--custom-highlighter-cursor' : ''}${isHighlighting && activePointerType !== 'mouse' ? ' annotation-overlay--highlighting' : ''}${interaction && interaction.mode !== 'create' ? ' annotation-overlay--object-gesture' : ''}${interaction ? ' annotation-overlay--active-interaction' : ''}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={cancelGesture} onLostPointerCapture={onLostPointerCapture} onPointerEnter={onPointerEnter} onPointerLeave={onPointerLeave}>{rendered.map((annotation) => <AnnotationItem key={annotation.id} annotation={annotation} viewport={layout.viewport} selected={selectedIds.includes(annotation.id)} onUpdate={(patch) => update(annotation.id, patch)} onDuplicate={() => duplicate(annotation.id)} onDelete={() => remove(annotation.id)} onForward={() => reorder(annotation.id, 'forward')} onBackward={() => reorder(annotation.id, 'backward')} onEdit={() => editObject(annotation.id)} formValues={formValues} onFormValue={setFormValue} />)}
+        {contextMenuId && contextAnnotation && <div className="mobile-object-menu" role="toolbar" aria-label="Selected object actions" onPointerDown={(event) => event.stopPropagation()}>{(contextAnnotation.type === 'text' || contextAnnotation.type === 'signature' && contextAnnotation.signatureKind === 'date') && <button type="button" onClick={() => editObject(contextMenuId)}><Pencil size={18} aria-hidden="true" />{contextAnnotation.type === 'text' ? 'Edit text' : 'Change date'}</button>}<button type="button" onClick={() => duplicate(contextMenuId)}><Copy size={18} aria-hidden="true" />Duplicate</button><button type="button" onClick={() => { remove(contextMenuId); setMenuId(null); }}><Trash2 size={18} aria-hidden="true" />Delete</button></div>}
+    </div>{highlighterCursor}{editingAnnotation && (editingAnnotation.type === 'text' || editingAnnotation.type === 'signature' && editingAnnotation.signatureKind === 'date') && typeof document !== 'undefined' ? createPortal(<ObjectEditDialog annotation={editingAnnotation} onClose={() => setEditingId(null)} onApply={(patch) => { update(editingAnnotation.id, patch); setEditingId(null); }} />, document.body) : null}</>;
 }
 
 function AnnotationItem({ annotation, viewport, selected, onUpdate, onDuplicate, onDelete, onForward, onBackward, onEdit, formValues, onFormValue }: { annotation: PdfAnnotation; viewport: PdfPageLayout['viewport']; selected: boolean; onUpdate: (patch: Partial<PdfAnnotation>) => void; onDuplicate: () => void; onDelete: () => void; onForward: () => void; onBackward: () => void; onEdit: () => void; formValues: Record<string, string | boolean | string[]>; onFormValue: (name: string, value: string | boolean | string[]) => void }) {
     const box = pdfBoundsToViewport(annotation, viewport);
     const style = { left: box.left, top: box.top, width: box.width, height: box.height, opacity: annotation.opacity, zIndex: selected ? 2_147_480_000 : annotation.zIndex, transform: `rotate(${annotation.rotation}deg)` };
     const selectedClass = selected ? ' annotation-item--selected' : '';
-    const controls = selected && <ObjectControls onEdit={annotation.type === 'text' ? onEdit : undefined} onDuplicate={onDuplicate} onDelete={onDelete} onForward={onForward} onBackward={onBackward} />;
+    const editLabel = annotation.type === 'text' ? 'Edit text' : annotation.type === 'signature' && annotation.signatureKind === 'date' ? 'Change date' : undefined;
+    const controls = selected && <ObjectControls onEdit={editLabel ? onEdit : undefined} editLabel={editLabel} onDuplicate={onDuplicate} onDelete={onDelete} onForward={onForward} onBackward={onBackward} />;
     const selectionHandles = selected && <><ResizeHandles /><i className="rotation-handle" data-rotate-handle aria-label="Rotate object"><RotateCw size={14} /></i>{controls}</>;
     if (annotation.type === 'draw' || annotation.type === 'highlight') {
         const points = annotation.points.map((point) => pdfPointToViewport(point, viewport));
@@ -369,7 +382,23 @@ function AnnotationItem({ annotation, viewport, selected, onUpdate, onDuplicate,
 }
 
 function ResizeHandles() { return <>{(['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'] as const).map((handle) => <i key={handle} className={`resize-handle resize-handle--${handle}`} data-resize-handle={handle} aria-hidden="true" />)}</>; }
-function ObjectControls({ onEdit, onDuplicate, onDelete, onForward, onBackward }: { onEdit?: () => void; onDuplicate: () => void; onDelete: () => void; onForward: () => void; onBackward: () => void }) { const action = (callback: () => void) => (event: PointerEvent<HTMLButtonElement>) => { event.stopPropagation(); callback(); }; return <div className="object-quick-actions">{onEdit && <button type="button" aria-label="Edit text" onPointerDown={(event) => event.stopPropagation()} onClick={onEdit}><Pencil size={14} /></button>}<button type="button" aria-label="Duplicate object" onPointerDown={(event) => event.stopPropagation()} onClick={onDuplicate}><Copy size={14} /></button><button type="button" aria-label="Bring forward" onPointerDown={action(onForward)}><ArrowUp size={14} /></button><button type="button" aria-label="Send backward" onPointerDown={action(onBackward)}><ArrowDown size={14} /></button><button type="button" aria-label="Delete object" onPointerDown={action(onDelete)}><Trash2 size={14} /></button></div>; }
+function ObjectControls({ onEdit, editLabel, onDuplicate, onDelete, onForward, onBackward }: { onEdit?: () => void; editLabel?: string; onDuplicate: () => void; onDelete: () => void; onForward: () => void; onBackward: () => void }) { const action = (callback: () => void) => (event: PointerEvent<HTMLButtonElement>) => { event.stopPropagation(); callback(); }; return <div className="object-quick-actions">{onEdit && <button type="button" aria-label={editLabel ?? 'Edit object'} onPointerDown={(event) => event.stopPropagation()} onClick={onEdit}><Pencil size={14} /></button>}<button type="button" aria-label="Duplicate object" onPointerDown={(event) => event.stopPropagation()} onClick={onDuplicate}><Copy size={14} /></button><button type="button" aria-label="Bring forward" onPointerDown={action(onForward)}><ArrowUp size={14} /></button><button type="button" aria-label="Send backward" onPointerDown={action(onBackward)}><ArrowDown size={14} /></button><button type="button" aria-label="Delete object" onPointerDown={action(onDelete)}><Trash2 size={14} /></button></div>; }
+
+function ObjectEditDialog({ annotation, onClose, onApply }: { annotation: Extract<PdfAnnotation, { type: 'text' }> | Extract<PdfAnnotation, { type: 'signature' }> ; onClose: () => void; onApply: (patch: Partial<PdfAnnotation>) => void }) {
+    const isText = annotation.type === 'text';
+    const [text, setText] = useState(isText ? annotation.text : '');
+    const [fontSize, setFontSize] = useState(isText ? annotation.fontSize : 16);
+    const [color, setColor] = useState(isText ? annotation.color : '#111111');
+    const [dateValue, setDateValue] = useState(!isText ? annotation.dateValue ?? new Date().toISOString().slice(0, 10) : '');
+    const apply = () => {
+        if (isText) onApply({ text, fontSize, color, updatedAt: Date.now() });
+        else {
+            const visual = renderSigningVisual(formatSigningDate(dateValue), { width: 560, height: 160, font: '600 64px Arial, sans-serif' });
+            onApply({ source: visual.source, aspectRatio: visual.aspectRatio, dateValue, updatedAt: Date.now() });
+        }
+    };
+    return <Modal className="object-edit-modal" title={isText ? 'Edit text' : 'Change date'} onClose={onClose}><div className="object-edit-form">{isText ? <><label>Text<textarea rows={4} value={text} onChange={(event) => setText(event.target.value)} /></label><label>Font size<input type="number" min="6" max="96" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /></label><label>Text color<input type="color" value={color} onChange={(event) => setColor(event.target.value)} /></label></> : <label>Date<input type="date" value={dateValue} onChange={(event) => setDateValue(event.target.value)} /></label>}<div className="modal-actions"><button className="button button--secondary" type="button" onClick={onClose}>Cancel</button><button className="button button--primary" type="button" disabled={isText ? !text.trim() : !dateValue} onClick={apply}>Apply changes</button></div></div></Modal>;
+}
 function EditableText({ annotation, scale, selected, onUpdate }: { annotation: Extract<PdfAnnotation, { type: 'text' }>; scale: number; selected: boolean; onUpdate: (patch: Partial<PdfAnnotation>) => void }) {
     const [value, setValue] = useState(annotation.text);
     const [editing, setEditing] = useState(!annotation.text);

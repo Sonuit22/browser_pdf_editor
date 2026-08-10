@@ -6,6 +6,7 @@ import { UnsupportedBrowser } from './components/UnsupportedBrowser';
 import { hasPdfBrowserSupport } from './utils/browserSupport';
 import { toolRoutesBySurface } from './config/toolRegistry';
 import { landingUploadToolRoutes } from './config/landingUploadTools';
+import { RouteScrollManager } from './components/RouteScrollManager';
 
 const landingWorkspaceRoutes = new Set<string>(landingUploadToolRoutes);
 const pdfWorkspaceRoutes = Array.from(new Set([...toolRoutesBySurface['pdf-workspace'], ...landingUploadToolRoutes.filter((route) => route !== '/compress-pdf')]));
@@ -60,6 +61,7 @@ export default function App() {
                     <Route path="*" element={<NotFoundPage />} />
                 </Route>
             </Routes>
+            <RouteScrollManager />
         </Suspense></AppErrorBoundary>
     );
 }

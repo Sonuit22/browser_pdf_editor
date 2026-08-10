@@ -57,4 +57,20 @@ describe('responsive PDF editor workspace', () => {
         expect(viewer).toContain("pathname === '/sign-pdf' ? 'Document downloaded'");
         expect(viewer).toContain("pathname === '/sign-pdf' ? 'Download failed. Please try again.'");
     });
+
+    it('shows selected-object actions immediately on touch layouts', async () => {
+        const [overlay, css] = await Promise.all([
+            readFile('src/modules/pdf/editor/components/AnnotationOverlay.tsx', 'utf8'),
+            readFile('src/styles.css', 'utf8'),
+        ]);
+
+        expect(overlay).toContain("selectedIds.length === 1");
+        expect(overlay).toContain('aria-label="Selected object actions"');
+        expect(overlay).toContain('Edit text');
+        expect(overlay).toContain('Change date');
+        expect(overlay).toContain('>Delete</button>');
+        expect(overlay).toContain('ObjectEditDialog');
+        expect(css).toContain('grid-template-columns: repeat(auto-fit, minmax(92px, 1fr))');
+        expect(css).toContain('min-height: 44px');
+    });
 });
