@@ -21,7 +21,9 @@ export function PageThumbnailPanel({ pages, activePageId, selectedPageIds = [], 
     const dragging = useRef<PageId | null>(null);
     const [drop, setDrop] = useState<{ id: PageId; placement: 'before' | 'after' } | null>(null);
     const choose = (id: PageId, event: MouseEvent<HTMLButtonElement>) => onSelect(id, event.shiftKey ? 'range' : event.ctrlKey || event.metaKey ? 'toggle' : 'replace');
-    const placementFor = (element: HTMLElement, x: number, y: number) => layout === 'strip' ? x > element.getBoundingClientRect().left + element.clientWidth / 2 ? 'after' : 'before' : y > element.getBoundingClientRect().top + element.clientHeight / 2 ? 'after' : 'before';
+    const placementFor = (element: HTMLElement, x: number, y: number) => layout === 'strip'
+        ? y > element.getBoundingClientRect().top + element.clientHeight / 2 ? 'after' : 'before'
+        : x > element.getBoundingClientRect().left + element.clientWidth / 2 ? 'after' : 'before';
     const finish = (targetId: PageId, placement: 'before' | 'after') => { if (dragging.current && dragging.current !== targetId) onReorder?.([dragging.current], targetId, placement); dragging.current = null; setDrop(null); };
     const cancelDrag = useCallback(() => { dragging.current = null; setDrop(null); }, []);
     useEffect(() => {

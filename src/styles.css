@@ -1293,3 +1293,323 @@ body { overflow-x: hidden; }
         min-height: 44px;
     }
 }
+
+/* Responsive Edit PDF and Sign PDF workspace architecture */
+.pdf-toolbar__responsive-actions,
+.thumbnail-sidebar__header,
+.thumbnail-drawer-scrim {
+    display: none;
+}
+
+@media (max-width: 1199px) {
+    .tool-workspace-shell--editor {
+        width: 100%;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+        padding: 16px;
+    }
+    .tool-workspace-shell--editor > .right-panel {
+        display: none;
+    }
+    .tool-workspace-shell--editor .workspace-main,
+    .tool-workspace-shell--editor .editor-workspace,
+    .tool-workspace-shell--editor .pdf-viewer,
+    .tool-workspace-shell--editor .pdf-viewer__body,
+    .tool-workspace-shell--editor .pdf-canvas-stage {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+    .tool-workspace-shell--editor .editor-workspace {
+        min-height: 0;
+        place-content: stretch;
+        padding: 0;
+        overflow: visible;
+        border: 0;
+        box-shadow: none;
+    }
+    .tool-workspace-shell--editor .pdf-viewer {
+        min-height: min(760px, calc(100dvh - 112px));
+        display: flex;
+        flex-direction: column;
+        overflow: clip;
+    }
+    .tool-workspace-shell--editor .pdf-toolbar {
+        position: sticky;
+        top: 58px;
+        z-index: 24;
+        display: grid;
+        grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+        gap: 8px 12px;
+        padding: 8px 10px;
+        background: var(--surface);
+        box-shadow: 0 2px 8px rgba(15, 23, 42, .1);
+    }
+    .tool-workspace-shell--editor .pdf-toolbar__group {
+        min-width: 0;
+    }
+    .tool-workspace-shell--editor .pdf-toolbar__group--settings {
+        min-width: 0;
+        justify-content: flex-end;
+        margin-left: 0;
+    }
+    .tool-workspace-shell--editor .pdf-toolbar__desktop-close,
+    .tool-workspace-shell--editor .pdf-toolbar__desktop-info {
+        display: none;
+    }
+    .pdf-toolbar__responsive-actions {
+        grid-column: 1 / -1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding-top: 7px;
+        border-top: 1px solid var(--border);
+    }
+    .pdf-responsive-action,
+    .pdf-responsive-export {
+        min-width: 44px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        flex: none;
+        padding: 0 10px;
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        color: var(--text);
+        background: var(--surface-muted);
+        font-size: .78rem;
+        font-weight: 750;
+    }
+    .pdf-responsive-action--icon {
+        width: 44px;
+        padding: 0;
+    }
+    .pdf-responsive-action:disabled,
+    .pdf-responsive-export:disabled {
+        cursor: not-allowed;
+        opacity: .48;
+    }
+    .pdf-responsive-export {
+        min-width: 104px;
+        margin-left: auto;
+        border-color: var(--brand);
+        color: #fff;
+        background: var(--brand);
+    }
+    .tool-workspace-shell--editor .editor-toolbar {
+        height: 56px;
+        min-height: 56px;
+        max-height: 56px;
+        padding: 6px 8px;
+        overflow: hidden;
+    }
+    .tool-workspace-shell--editor .editor-toolbar__row {
+        width: 100%;
+        min-width: 0;
+        display: block;
+    }
+    .tool-workspace-shell--editor .editor-toolbar__tools,
+    .tool-workspace-shell--editor .signing-actions {
+        max-width: 100%;
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        overflow-y: hidden;
+        overscroll-behavior-inline: contain;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .tool-workspace-shell--editor .editor-toolbar__tools::-webkit-scrollbar,
+    .tool-workspace-shell--editor .signing-actions::-webkit-scrollbar {
+        display: none;
+    }
+    .tool-workspace-shell--editor .editor-tool,
+    .tool-workspace-shell--editor .signing-actions button {
+        min-height: 44px;
+        flex: none;
+    }
+    .tool-workspace-shell--editor .editor-toolbar__actions {
+        display: none;
+    }
+    .tool-workspace-shell--editor .signing-actions {
+        min-height: 56px;
+        padding: 6px 8px;
+        background: var(--surface);
+    }
+    .tool-workspace-shell--editor .pdf-viewer__body {
+        position: relative;
+        min-height: 460px;
+        flex: 1 1 auto;
+        display: block;
+        overflow: hidden;
+    }
+    .tool-workspace-shell--editor .pdf-canvas-stage {
+        height: 100%;
+        min-height: 460px;
+        place-items: center;
+        padding: 12px;
+        overflow: auto;
+        overscroll-behavior: contain;
+    }
+    .tool-workspace-shell--editor .thumbnail-sidebar {
+        position: fixed;
+        top: 58px;
+        bottom: 0;
+        left: 0;
+        z-index: 71;
+        width: min(300px, calc(100vw - 44px));
+        max-width: none;
+        padding: 10px;
+        border: 0;
+        border-right: 1px solid var(--border);
+        background: var(--surface);
+        box-shadow: 12px 0 30px rgba(15, 23, 42, .22);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        transform: translateX(-105%);
+        visibility: hidden;
+        transition: transform 180ms ease, visibility 180ms step-end;
+    }
+    .tool-workspace-shell--editor .thumbnail-sidebar.is-open {
+        transform: translateX(0);
+        visibility: visible;
+        transition: transform 180ms ease;
+    }
+    .thumbnail-sidebar__header {
+        position: sticky;
+        top: -10px;
+        z-index: 2;
+        min-height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: -10px -10px 10px;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+    }
+    .thumbnail-drawer-scrim {
+        position: fixed;
+        inset: 58px 0 0;
+        z-index: 70;
+        display: block;
+        border: 0;
+        border-radius: 0;
+        background: rgba(15, 23, 42, .48);
+    }
+    .tool-workspace-shell--editor .page-thumbnail-panel--strip {
+        width: 100%;
+    }
+    .tool-workspace-shell--editor .shared-page-thumbnail {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 190px;
+    }
+    .highlighter-settings,
+    .tool-settings-popover {
+        max-width: calc(100vw - 24px);
+    }
+}
+
+@media (max-width: 767px) {
+    .tool-workspace-shell--editor {
+        padding: 8px;
+    }
+    .tool-workspace-shell--editor .workspace-heading {
+        align-items: center;
+        flex-direction: row;
+        margin-bottom: 8px;
+    }
+    .tool-workspace-shell--editor .workspace-heading p,
+    .tool-workspace-shell--editor .workspace-heading > div:last-child a:last-child {
+        display: none;
+    }
+    .tool-workspace-shell--editor .workspace-heading h1 {
+        font-size: 1.18rem;
+    }
+    .tool-workspace-shell--editor .workspace-heading a {
+        min-height: 44px;
+        padding-inline: 9px;
+    }
+    .tool-workspace-shell--editor .pdf-viewer {
+        min-height: calc(100dvh - 118px);
+        border-radius: 6px;
+    }
+    .tool-workspace-shell--editor .pdf-toolbar {
+        grid-template-columns: minmax(0, 1fr);
+        top: 58px;
+        padding: 7px;
+    }
+    .tool-workspace-shell--editor .pdf-toolbar__group,
+    .tool-workspace-shell--editor .pdf-toolbar__group--settings {
+        justify-content: flex-start;
+        gap: 6px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .tool-workspace-shell--editor .pdf-toolbar__group::-webkit-scrollbar {
+        display: none;
+    }
+    .tool-workspace-shell--editor .pdf-toolbar__group--settings {
+        grid-row: 2;
+    }
+    .tool-workspace-shell--editor .pdf-toolbar__responsive-actions {
+        grid-row: 3;
+        gap: 5px;
+        padding-bottom: max(0px, env(safe-area-inset-bottom));
+    }
+    .pdf-responsive-action {
+        width: 44px;
+        padding: 0;
+    }
+    .pdf-responsive-action span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+    .pdf-responsive-export {
+        min-width: 94px;
+        padding-inline: 9px;
+    }
+    .tool-workspace-shell--editor .editor-tool span {
+        display: inline;
+    }
+    .tool-workspace-shell--editor .pdf-viewer__body,
+    .tool-workspace-shell--editor .pdf-canvas-stage {
+        min-height: 390px;
+    }
+    .tool-workspace-shell--editor .pdf-canvas-stage {
+        padding: 8px;
+        scrollbar-gutter: auto;
+    }
+    .highlighter-settings,
+    .tool-settings-popover {
+        inset: auto 8px max(8px, env(safe-area-inset-bottom)) !important;
+        width: auto !important;
+        max-width: none;
+        max-height: min(48dvh, 360px);
+        border-radius: 14px 14px 8px 8px;
+        overflow-y: auto;
+    }
+  .tool-workspace-shell--editor .modal-backdrop {
+        align-items: end;
+        padding: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom));
+    }
+  .tool-workspace-shell--editor .modal {
+        width: 100%;
+        max-height: min(78dvh, calc(100dvh - 16px));
+        border-radius: 16px 16px 8px 8px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .tool-workspace-shell--editor .thumbnail-sidebar {
+        transform: none !important;
+        visibility: visible !important;
+    }
+}

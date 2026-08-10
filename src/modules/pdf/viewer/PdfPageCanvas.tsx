@@ -51,16 +51,26 @@ function PdfPageCanvasComponent({ page, pageNumber, getPage, zoom, rotation, onR
         const element = containerRef.current;
         if (!element) return;
         let frame = 0;
-        const observer = new ResizeObserver(([entry]) => {
+        const measure = () => {
             cancelAnimationFrame(frame);
             frame = requestAnimationFrame(() => {
-                const width = Math.round(entry.contentRect.width);
-                const height = Math.round(entry.contentRect.height);
+                const styles = window.getComputedStyle(element);
+                const width = Math.max(0, Math.round(element.clientWidth - Number.parseFloat(styles.paddingLeft) - Number.parseFloat(styles.paddingRight)));
+                const height = Math.max(0, Math.round(element.clientHeight - Number.parseFloat(styles.paddingTop) - Number.parseFloat(styles.paddingBottom)));
                 setSize((current) => current.width === width && current.height === height ? current : { width, height });
             });
-        });
+        };
+        const observer = new ResizeObserver(measure);
         observer.observe(element);
-        return () => { observer.disconnect(); cancelAnimationFrame(frame); };
+        window.addEventListener('orientationchange', measure);
+        window.visualViewport?.addEventListener('resize', measure);
+        measure();
+        return () => {
+            observer.disconnect();
+            window.removeEventListener('orientationchange', measure);
+            window.visualViewport?.removeEventListener('resize', measure);
+            cancelAnimationFrame(frame);
+        };
     }, []);
 
     useEffect(() => {
@@ -72,12 +82,12 @@ function PdfPageCanvasComponent({ page, pageNumber, getPage, zoom, rotation, onR
                 const effectiveRotation = normalizePageRotation(page.rotation + rotation);
                 sourcePage = page.kind === 'source' ? await getPage(page) : null;
                 const baseViewport = sourcePage ? sourcePage.getViewport({ scale: 1, rotation: effectiveRotation }) : blankViewport(page, 1, effectiveRotation);
-                const padding = 32;
+                const fitMargin = 4;
                 const scale = typeof zoom === 'number'
                     ? zoom / 100
                     : zoom === 'fit-page'
-                        ? Math.max(0.1, Math.min((size.width - padding) / baseViewport.width, (size.height - padding) / baseViewport.height))
-                        : Math.max(0.1, (size.width - padding) / baseViewport.width);
+                        ? Math.max(0.1, Math.min((size.width - fitMargin) / baseViewport.width, (size.height - fitMargin) / baseViewport.height))
+                        : Math.max(0.1, (size.width - fitMargin) / baseViewport.width);
                 const viewport = sourcePage ? sourcePage.getViewport({ scale, rotation: effectiveRotation }) : blankViewport(page, scale, effectiveRotation);
                 const canvas = canvasRef.current;
                 const context = canvas?.getContext('2d');

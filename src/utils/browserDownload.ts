@@ -17,5 +17,5 @@ export function downloadBlob(blob: Blob, filename: string) {
     }
     window.setTimeout(() => {
         if (url) URL.revokeObjectURL(url);
-    }, 1_000);
+    }, 60_000);
 }

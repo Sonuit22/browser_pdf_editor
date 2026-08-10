@@ -27,6 +27,7 @@ export default function WorkspacePage() {
     const fromLanding = Boolean((location.state as { fromLandingFile?: boolean } | null)?.fromLandingFile);
     const awaitingLandingLoad = fromLanding && phase === 'idle' && Boolean(pendingPdfFile);
     const needsLandingReselect = shouldShowLandingFileReselect(fromLanding, phase, pendingPdfFile, landingFileWasLoaded);
+    const isResponsiveEditor = pathname === '/edit-pdf' || pathname === '/sign-pdf';
 
     useEffect(() => {
         if (fromLanding && pendingPdfFile) void consumePendingPdf();
@@ -36,7 +37,7 @@ export default function WorkspacePage() {
     }, [fromLanding, phase]);
 
     return (
-        <section className="tool-workspace-shell" aria-label={`${route.title} workspace`}>
+        <section className={`tool-workspace-shell${isResponsiveEditor ? ' tool-workspace-shell--editor' : ''}`} aria-label={`${route.title} workspace`}>
             <div className="workspace-main"><div className="workspace-heading"><div><p>Browser-based PDF tool</p><h1>{route.title}</h1></div><div><Link to="/" onClick={(event) => { event.preventDefault(); requestNavigation('back'); }}><ArrowLeft size={16} />Back</Link><Link to="/" onClick={(event) => { event.preventDefault(); requestNavigation('/'); }}><Home size={16} />Home</Link></div></div>
             <div className="editor-workspace">
                 {pathname === '/merge-pdf' ? <MergeWorkspace /> : <>

@@ -1,0 +1,39 @@
+import { readFile } from 'node:fs/promises';
+import { describe, expect, it } from 'vitest';
+
+describe('responsive PDF editor workspace', () => {
+    it('uses intentional tablet and phone breakpoints without changing desktop mode', async () => {
+        const css = await readFile('src/styles.css', 'utf8');
+
+        expect(css).toContain('@media (max-width: 1199px)');
+        expect(css).toContain('@media (max-width: 767px)');
+        expect(css).toContain('@media (min-width: 1200px)');
+        expect(css).toContain('.tool-workspace-shell--editor > .right-panel');
+        expect(css).toContain('.pdf-toolbar__responsive-actions');
+        expect(css).toContain('.thumbnail-sidebar.is-open');
+        expect(css).toContain('min-height: 44px');
+        expect(css).toContain('overflow-x: auto');
+    });
+
+    it('keeps critical actions outside the horizontally scrolling tool strip', async () => {
+        const [viewer, editorToolbar] = await Promise.all([
+            readFile('src/modules/pdf/viewer/PdfViewer.tsx', 'utf8'),
+            readFile('src/modules/pdf/editor/components/EditorToolbar.tsx', 'utf8'),
+        ]);
+
+        expect(viewer).toContain('aria-label="Critical editor actions"');
+        expect(viewer).toContain('className="pdf-responsive-export"');
+        expect(viewer).toContain('aria-controls="responsive-page-drawer"');
+        expect(viewer).toContain('exportingRef.current');
+        expect(editorToolbar).toContain('className="editor-toolbar__tools"');
+    });
+
+    it('measures Fit Width from the actual canvas viewport and handles orientation changes', async () => {
+        const canvas = await readFile('src/modules/pdf/viewer/PdfPageCanvas.tsx', 'utf8');
+
+        expect(canvas).toContain('element.clientWidth');
+        expect(canvas).toContain('window.visualViewport?.addEventListener');
+        expect(canvas).toContain("window.addEventListener('orientationchange', measure)");
+        expect(canvas).toContain('(size.width - fitMargin) / baseViewport.width');
+    });
+});
