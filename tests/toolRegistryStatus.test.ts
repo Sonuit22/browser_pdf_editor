@@ -23,9 +23,9 @@ describe('central tool status registry', () => {
         }
     });
 
-    it('exposes Protect PDF and Compress Image as real limited workspaces', () => {
+    it('exposes Protect PDF and Image Resizer as real limited workspaces', () => {
         expect(toolRegistry.find((tool) => tool.id === 'protect')).toMatchObject({ status: 'beta', enabled: true, surface: 'protect-workspace' });
-        expect(toolRegistry.find((tool) => tool.id === 'compress-image')).toMatchObject({ status: 'beta', enabled: true, surface: 'image-workspace' });
+        expect(toolRegistry.find((tool) => tool.id === 'image-resizer')).toMatchObject({ status: 'beta', enabled: true, surface: 'image-workspace' });
     });
 
     it('marks genuine limited conversions as Beta', () => {
@@ -45,7 +45,7 @@ describe('central tool status registry', () => {
             'pdf-workspace': ['/merge-pdf', '/split-pdf', '/remove-pages', '/extract-pages', '/organize-pdf', '/compress-pdf', '/sign-pdf', '/edit-pdf'],
             'conversion-workspace': ['/jpg-to-pdf', '/word-to-pdf', '/pdf-to-jpg', '/pdf-to-word', '/pdf-to-ppt'],
             'protect-workspace': ['/protect-pdf'],
-            'image-workspace': ['/compress-image'],
+            'image-workspace': ['/image-resizer'],
             'tool-info': ['/ppt-to-pdf'],
         });
         expect(Object.keys(conversionAccept).map((route) => `/${route}`).sort()).toEqual([...toolRoutesBySurface['conversion-workspace']].sort());

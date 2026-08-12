@@ -7,12 +7,12 @@ import { publishedArticleMetadata } from '../src/blog/content';
 const pagePaths = [
     '/', '/all-tools', '/merge-pdf', '/split-pdf', '/remove-pages', '/extract-pages', '/organize-pdf',
     '/compress-pdf', '/jpg-to-pdf', '/pdf-to-jpg', '/word-to-pdf', '/pdf-to-word', '/pdf-to-ppt',
-    '/ppt-to-pdf', '/protect-pdf', '/compress-image', '/sign-pdf', '/edit-pdf', '/faq', '/privacy', '/terms', '/about',
+    '/ppt-to-pdf', '/protect-pdf', '/image-resizer', '/sign-pdf', '/edit-pdf', '/faq', '/privacy', '/terms', '/about',
     '/contact', '/support', '/blog', '/missing',
 ];
 
 describe('route SEO configuration', () => {
-    it.each(['/', '/all-tools', '/merge-pdf', '/split-pdf', '/remove-pages', '/extract-pages', '/organize-pdf', '/jpg-to-pdf', '/pdf-to-jpg', '/protect-pdf', '/compress-image', '/sign-pdf', '/edit-pdf', '/faq', '/privacy', '/terms', '/about', '/contact'])('provides useful metadata for %s', (path) => {
+    it.each(['/', '/all-tools', '/merge-pdf', '/split-pdf', '/remove-pages', '/extract-pages', '/organize-pdf', '/jpg-to-pdf', '/pdf-to-jpg', '/protect-pdf', '/image-resizer', '/sign-pdf', '/edit-pdf', '/faq', '/privacy', '/terms', '/about', '/contact'])('provides useful metadata for %s', (path) => {
         const seo = getSeoForPath(path);
         expect(seo.title).toContain('PDF by ib');
         expect(seo.description.length).toBeGreaterThan(50);

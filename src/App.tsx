@@ -26,7 +26,7 @@ const PublicContentLayout = lazy(() => import('./layouts/PublicContentLayout'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
 const BlogArticlePage = lazy(() => import('./pages/BlogArticlePage'));
 const ProtectPdfPage = lazy(() => import('./modules/protection/ProtectPdfPage'));
-const CompressImagePage = lazy(() => import('./modules/imageCompression/CompressImagePage'));
+const ImageResizerPage = lazy(() => import('./modules/imageResizer/ImageResizerPage'));
 
 export default function App() {
     if (!hasPdfBrowserSupport()) return <UnsupportedBrowser />;
@@ -44,7 +44,7 @@ export default function App() {
                     {pdfWorkspaceRoutes.map((path) => <Route key={path} path={path} element={<WorkspacePage />} />)}
                     {toolRoutesBySurface['conversion-workspace'].map((path) => <Route key={path} path={path} element={<ConversionWorkspace />} />)}
                     {toolRoutesBySurface['protect-workspace'].map((path) => <Route key={path} path={path} element={<ProtectPdfPage />} />)}
-                    {toolRoutesBySurface['image-workspace'].map((path) => <Route key={path} path={path} element={<CompressImagePage />} />)}
+                    {toolRoutesBySurface['image-workspace'].map((path) => <Route key={path} path={path} element={<ImageResizerPage />} />)}
                     {toolRoutesBySurface['tool-info'].filter((path) => !landingWorkspaceRoutes.has(path)).map((path) => <Route key={path} path={path} element={<ToolInfoPage />} />)}
                     <Route path="contact" element={<SimplePage />} />
                     <Route path="support" element={<SimplePage />} />
@@ -55,6 +55,7 @@ export default function App() {
                     <Route path="/split" element={<Navigate to="/split-pdf" replace />} />
                     <Route path="/organize" element={<Navigate to="/organize-pdf" replace />} />
                     <Route path="/compress" element={<Navigate to="/compress-pdf" replace />} />
+                    <Route path="/compress-image" element={<Navigate to="/image-resizer" replace />} />
                     <Route path="/edit" element={<Navigate to="/edit-pdf" replace />} />
                     <Route path="*" element={<NotFoundPage />} />
                 </Route>

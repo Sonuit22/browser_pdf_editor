@@ -6,21 +6,21 @@ import { PDF as LibPDF } from '@libpdf/core';
 import { PDFDocument } from 'pdf-lib';
 import { protectPdf } from '../src/modules/protection/protectPdfService';
 
-describe('Protect PDF and Compress Image production surfaces', () => {
+describe('Protect PDF and Image Resizer production surfaces', () => {
     it('registers searchable aliases and dedicated routes', () => {
         const protect = toolRegistry.find((tool) => tool.id === 'protect');
-        const image = toolRegistry.find((tool) => tool.id === 'compress-image');
+        const image = toolRegistry.find((tool) => tool.id === 'image-resizer');
         expect(protect?.aliases).toEqual(expect.arrayContaining(['protect pdf', 'password pdf', 'secure pdf', 'lock pdf']));
-        expect(image?.aliases).toEqual(expect.arrayContaining(['compress image', 'reduce image size', 'compress jpg', 'compress photo', 'reduce photo size', 'jpg compressor', 'png compressor', 'webp compressor']));
+        expect(image?.aliases).toEqual(expect.arrayContaining(['resize image', 'image resizer', 'change image dimensions', 'reduce image size', 'compress image']));
         expect(filterTools('All', 'lock pdf').map((tool) => tool.id)).toContain('protect');
-        expect(filterTools('All', 'webp compressor').map((tool) => tool.id)).toContain('compress-image');
+        expect(filterTools('All', 'image resizer').map((tool) => tool.id)).toContain('image-resizer');
         expect(getSeoForPath('/protect-pdf').description).toContain('AES encryption');
-        expect(getSeoForPath('/compress-image').description).toContain('JPG, PNG, and WebP');
+        expect(getSeoForPath('/image-resizer').description).toContain('JPG, PNG, and WebP');
     });
 
     it('keeps processing client-side and avoids sensitive analytics fields', async () => {
         const protect = await readFile('src/modules/protection/protectPdfService.ts', 'utf8');
-        const image = await readFile('src/modules/imageCompression/imageCompressionService.ts', 'utf8');
+        const image = await readFile('src/modules/imageResizer/imageResizeService.ts', 'utf8');
         const analytics = await readFile('src/utils/analytics.ts', 'utf8');
         expect(protect).toContain("algorithm: 'AES-256'");
         expect(protect).not.toMatch(/fetch\(|XMLHttpRequest|localStorage/);
@@ -29,8 +29,8 @@ describe('Protect PDF and Compress Image production surfaces', () => {
         expect(analytics).not.toMatch(/password\??:|filename\??:|file_name\??:/);
     });
 
-    it('bounds target-size image compression attempts', async () => {
-        const source = await readFile('src/modules/imageCompression/imageCompressionService.ts', 'utf8');
+    it('bounds target-size image resizing attempts', async () => {
+        const source = await readFile('src/modules/imageResizer/imageResizeService.ts', 'utf8');
         expect(source).toContain('const maxAttempts = settings.targetBytes ? 5 : 1');
         expect(source).toContain('quality <= 40');
         expect(source).toContain('settings.targetBytes * 1.08');

@@ -11,7 +11,8 @@ describe('public launch files', () => {
         expect(sitemap).not.toMatch(/localhost|pdfeditorbyib|browserpdfeditor\.vercel\.app|<loc>[^<]*\?/);
         expect(sitemap).not.toMatch(/\/ppt-to-pdf</);
         expect(sitemap).toContain('<loc>https://pdfbyib.com/protect-pdf</loc>');
-        expect(sitemap).toContain('<loc>https://pdfbyib.com/compress-image</loc>');
+        expect(sitemap).toContain('<loc>https://pdfbyib.com/image-resizer</loc>');
+        expect(sitemap).not.toContain('<loc>https://pdfbyib.com/compress-image</loc>');
         expect(sitemap).toContain('<loc>https://pdfbyib.com/compress-pdf</loc>');
         expect(sitemap).toContain('<loc>https://pdfbyib.com/merge-pdf</loc>');
         expect(sitemap).not.toContain('<loc>https://pdfbyib.com/merge</loc>');

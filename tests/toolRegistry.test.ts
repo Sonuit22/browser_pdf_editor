@@ -23,7 +23,7 @@ describe('tool registry', () => {
         expect(toolRegistry.map((tool) => tool.title)).toEqual([
             'Merge PDF', 'Split PDF', 'Remove Pages from PDF', 'Extract Pages', 'Organize PDF', 'Compress PDF',
             'JPG to PDF', 'Word to PDF', 'PPT to PDF', 'PDF to JPG', 'PDF to Word', 'PDF to PPT',
-            'Protect PDF', 'Sign PDF', 'Edit PDF', 'Compress Image',
+            'Protect PDF', 'Sign PDF', 'Edit PDF', 'Image Resizer',
         ]);
     });
 });

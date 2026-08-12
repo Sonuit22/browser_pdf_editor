@@ -1,10 +1,30 @@
 export type ImageOutputFormat = 'original' | 'image/jpeg' | 'image/png' | 'image/webp';
-export type ImageCompressionSettings = { quality: number; width: number; height: number; format: ImageOutputFormat; targetBytes: number | null };
-export type ImageCompressionOutput = { blob: Blob; width: number; height: number; mimeType: string; quality: number; attempts: number };
+export type ImageResizeSettings = { quality: number; width: number; height: number; format: ImageOutputFormat; targetBytes: number | null };
+export type ImageResizeOutput = { blob: Blob; width: number; height: number; mimeType: string; quality: number; attempts: number };
 
 const abortError = () => new DOMException('Image compression cancelled.', 'AbortError');
 const active = (signal: AbortSignal) => { if (signal.aborted) throw abortError(); };
 const canvasBlob = (canvas: HTMLCanvasElement, mimeType: string, quality: number) => new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('The browser could not encode this image.')), mimeType, quality));
+
+export async function createImagePreview(bitmap: ImageBitmap) {
+    const scale = Math.min(1, 1200 / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    try {
+        const context = canvas.getContext('2d');
+        if (!context) throw new Error('This browser cannot create an image preview.');
+        context.imageSmoothingEnabled = true; context.imageSmoothingQuality = 'high';
+        context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        return await canvasBlob(canvas, 'image/webp', .84);
+    } finally { canvas.width = 0; canvas.height = 0; }
+}
+
+export async function createOutputPreview(blob: Blob) {
+    const bitmap = await createImageBitmap(blob);
+    try { return await createImagePreview(bitmap); }
+    finally { bitmap.close(); }
+}
 
 export async function decodeImage(file: File) {
     try {
@@ -22,7 +42,7 @@ function resolveMime(format: ImageOutputFormat, originalMime: string) {
     return format === 'original' ? originalMime : format;
 }
 
-async function encode(bitmap: ImageBitmap, settings: ImageCompressionSettings, originalMime: string, quality: number, signal: AbortSignal) {
+async function encode(bitmap: ImageBitmap, settings: ImageResizeSettings, originalMime: string, quality: number, signal: AbortSignal) {
     active(signal);
     if (settings.width * settings.height > 32_000_000) throw new Error('The requested output dimensions require too much memory. Choose smaller dimensions.');
     const mimeType = resolveMime(settings.format, originalMime);
@@ -40,7 +60,7 @@ async function encode(bitmap: ImageBitmap, settings: ImageCompressionSettings, o
     } finally { canvas.width = 0; canvas.height = 0; }
 }
 
-export async function compressImage(bitmap: ImageBitmap, originalMime: string, settings: ImageCompressionSettings, signal: AbortSignal): Promise<ImageCompressionOutput> {
+export async function resizeImage(bitmap: ImageBitmap, originalMime: string, settings: ImageResizeSettings, signal: AbortSignal): Promise<ImageResizeOutput> {
     const mimeType = resolveMime(settings.format, originalMime);
     if (settings.targetBytes && mimeType === 'image/png') throw new Error('Target Size is available for JPEG and WebP output. PNG uses lossless encoding.');
     const maxAttempts = settings.targetBytes ? 5 : 1;

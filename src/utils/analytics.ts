@@ -17,11 +17,11 @@ export type AnalyticsEventName =
     | 'protect_pdf_succeeded'
     | 'protect_pdf_failed'
     | 'protected_pdf_downloaded'
-    | 'compress_image_opened'
-    | 'compress_image_started'
-    | 'compress_image_succeeded'
-    | 'compress_image_failed'
-    | 'compressed_image_downloaded';
+    | 'image_resizer_opened'
+    | 'image_resizer_started'
+    | 'image_resizer_succeeded'
+    | 'image_resizer_failed'
+    | 'resized_image_downloaded';
 
 type AnalyticsProperties = {
     tool?: string;
