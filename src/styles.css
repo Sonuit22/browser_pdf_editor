@@ -186,17 +186,21 @@ body { overflow-x: hidden; }
 .compression-presets input { position: absolute; opacity: 0; pointer-events: none; }
 .compression-presets span { min-height: 90px; display: grid; align-content: center; gap: 5px; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
 .compression-presets small { color: var(--text-muted); line-height: 1.35; }
+.compression-presets strong { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.compression-presets strong em { padding: 2px 6px; border-radius: 999px; color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); font-size: .62rem; font-style: normal; }
 .compression-presets label:hover span { transform: translateY(-1px); border-color: var(--border-strong); }
 .compression-presets label.is-selected span { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 18%, transparent); }
 .compression-presets input:focus-visible + span { outline: 3px solid color-mix(in srgb, var(--primary) 40%, transparent); outline-offset: 2px; }
-.compression-custom-controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0; padding: 0; border: 0; }
+.compression-customize-wrap { display: grid; gap: 14px; }
+.compression-custom-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0; padding: 0; border: 0; }
 .compression-custom-controls > label { min-width: 0; display: grid; align-content: start; gap: 8px; padding: 14px; border: 1px solid var(--border); border-radius: 10px; }
 .compression-custom-controls label > span { font-weight: 800; }
 .compression-custom-controls output { color: var(--primary); }
 .compression-custom-controls :is(select, input[type="number"]), .compression-target :is(input[type="number"], select) { width: 100%; min-height: 44px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; color: var(--text); background: var(--surface); }
-.compression-quality-number { max-width: 110px; }
 .compression-custom-controls input[type="range"] { width: 100%; min-height: 32px; accent-color: var(--primary); cursor: pointer; }
 .compression-custom-controls input[type="range"]::-webkit-slider-thumb { width: 24px; height: 24px; }
+.compression-quality-control { display: grid; grid-template-columns: minmax(0, 1fr) 72px auto; align-items: center; gap: 7px; }
+.compression-quality-control input[type="number"] { min-width: 0; }
 .compression-custom-controls small { color: var(--text-muted); line-height: 1.45; }
 .compression-custom-controls:disabled { opacity: .55; }
 .compression-target { display: grid; gap: 9px; padding: 14px; border: 1px solid var(--border); border-radius: 10px; }
@@ -226,7 +230,6 @@ body { overflow-x: hidden; }
 @media (max-width: 800px) {
     .compression-presets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .compression-custom-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .compression-custom-controls > label:last-child { grid-column: 1 / -1; }
 }
 
 @media (max-width: 1100px), (any-pointer: coarse) {
@@ -240,7 +243,6 @@ body { overflow-x: hidden; }
     .compression-file-actions .button { flex: 1; min-height: 44px; }
     .compression-mode-tabs { width: 100%; }
     .compression-presets, .compression-custom-controls { grid-template-columns: 1fr; }
-    .compression-custom-controls > label:last-child { grid-column: auto; }
     .compression-progress { grid-template-columns: auto minmax(0, 1fr); }
     .compression-progress .button { grid-column: 1 / -1; min-height: 44px; }
     .compression-result dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }

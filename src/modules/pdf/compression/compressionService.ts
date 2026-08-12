@@ -59,7 +59,7 @@ export async function analyzePdfForCompression(document: PDFDocumentProxy, signa
     const imagePageRatio = imagePages / sampleCount;
     const averageTextCharacters = textCharacters / sampleCount;
     return {
-        kind: imagePageRatio >= .6 && averageTextCharacters < 1_500 ? 'image-heavy' : 'text-vector',
+        kind: imagePageRatio >= .6 && averageTextCharacters < 80 ? 'image-heavy' : 'text-vector',
         sampledPages: sampleCount,
         imagePageRatio,
         averageTextCharacters,
@@ -127,7 +127,7 @@ async function createScannedPdf(document: PDFDocumentProxy, settings: Compressio
 
 function nextTargetSettings(current: CompressionSettings, actualBytes: number, targetBytes: number) {
     const ratio = clamp(Math.sqrt(targetBytes / actualBytes), .55, .94);
-    const nextQuality = clamp(Math.round(current.imageQuality * ratio), 30, 100);
+    const nextQuality = clamp(Math.round(current.imageQuality * ratio), 40, 100);
     if (nextQuality < current.imageQuality) return { ...current, imageQuality: nextQuality };
     return { ...current, dpi: clamp(Math.round(current.dpi * .85), 72, 300), imageScale: clamp(current.imageScale - 25, 25, 100) };
 }
@@ -161,7 +161,7 @@ export async function compressPdf(options: {
             bestSettings = settings;
         }
         const target = options.settings.targetBytes;
-        if (!target || candidate.size <= target * 1.08 || settings.imageQuality <= 30 && settings.dpi <= 72 && settings.imageScale <= 25) break;
+        if (!target || candidate.size <= target * 1.08 || settings.imageQuality <= 40 && settings.dpi <= 72 && settings.imageScale <= 50) break;
         settings = nextTargetSettings(settings, candidate.size, target);
     }
     if (!best) throw new Error('Compression did not produce an output file.');

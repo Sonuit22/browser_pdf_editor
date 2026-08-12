@@ -9,7 +9,7 @@ describe('custom browser PDF compression workflow', () => {
 
     it('keeps process, result, recompress, and explicit download as separate states', async () => {
         const source = await readFile('src/modules/pdf/compression/CompressionWorkspace.tsx', 'utf8');
-        expect(source).toContain('Compress &amp; Preview Size');
+        expect(source).toContain('Compress &amp; Check Size');
         expect(source).toContain('Compression Result');
         expect(source).toContain('Recompress');
         expect(source).toContain('Download Compressed PDF');
