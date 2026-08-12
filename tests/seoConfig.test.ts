@@ -21,7 +21,7 @@ describe('route SEO configuration', () => {
 
     it('marks missing and incomplete tool routes as noindex', () => {
         expect(getSeoForPath('/missing')).toMatchObject({ index: false, canonical: false });
-        expect(getSeoForPath('/compress-pdf').index).toBe(false);
+        expect(getSeoForPath('/compress-pdf').index).toBe(true);
         expect(getSeoForPath('/protect-pdf').index).toBe(false);
     });
 

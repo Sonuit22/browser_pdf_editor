@@ -20,11 +20,11 @@ describe('landing upload tool chooser', () => {
         expect(findToolByRoute(route)?.route).toBe(route);
     });
 
-    it('keeps unfinished compression accurately marked while allowing landing-file intake', () => {
+    it('routes the browser compression tool into its working PDF workspace', () => {
         expect(findToolByRoute('/compress-pdf')).toMatchObject({
-            surface: 'tool-info',
-            status: 'coming-soon',
-            enabled: false,
+            surface: 'pdf-workspace',
+            status: 'beta',
+            enabled: true,
         });
     });
 

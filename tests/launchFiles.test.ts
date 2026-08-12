@@ -9,7 +9,8 @@ describe('public launch files', () => {
         expect(robots).toContain('Allow: /');
         expect(robots).toContain('https://pdfbyib.com/sitemap.xml');
         expect(sitemap).not.toMatch(/localhost|pdfeditorbyib|browserpdfeditor\.vercel\.app|<loc>[^<]*\?/);
-        expect(sitemap).not.toMatch(/\/compress-pdf<|\/protect-pdf<|\/ppt-to-pdf</);
+        expect(sitemap).not.toMatch(/\/protect-pdf<|\/ppt-to-pdf</);
+        expect(sitemap).toContain('<loc>https://pdfbyib.com/compress-pdf</loc>');
         expect(sitemap).toContain('<loc>https://pdfbyib.com/merge-pdf</loc>');
         expect(sitemap).not.toContain('<loc>https://pdfbyib.com/merge</loc>');
         expect(sitemap).toContain('<loc>https://pdfbyib.com/privacy</loc>');

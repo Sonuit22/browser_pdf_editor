@@ -16,11 +16,12 @@ import { Link } from 'react-router-dom';
 import { useShell } from '../contexts/ShellContext';
 import { ToolGuideLink } from '../blog/components/ToolGuideLink';
 import { shouldShowLandingFileReselect } from '../utils/pendingPdfLifecycle';
+import { CompressionWorkspace } from '../modules/pdf/compression/CompressionWorkspace';
 
 export default function WorkspacePage() {
     const location = useLocation();
     const { pathname } = location;
-    const { phase, error, progress, retry, pendingPdfFile, consumePendingPdf, info } = usePdfEngine();
+    const { phase, error, progress, retry, pendingPdfFile, consumePendingPdf } = usePdfEngine();
     const route = workspaceRoutes[pathname] ?? workspaceRoutes['/'];
     const { requestNavigation } = useShell();
     const [landingFileWasLoaded, setLandingFileWasLoaded] = useState(false);
@@ -43,7 +44,7 @@ export default function WorkspacePage() {
                 {pathname === '/merge-pdf' ? <MergeWorkspace /> : <>
                     {(phase === 'loading' || awaitingLandingLoad) && <div className="pdf-loading" role="status"><LoadingSpinner label="Loading PDF" /><strong>Loading PDF</strong><span>{progress}%</span></div>}
                     {phase === 'ready' && (pathname === '/compress-pdf'
-                        ? <section className="landing-selected-file" aria-label="Compress PDF file ready"><h2>PDF ready</h2><p><strong title={info?.filename}>{info?.filename}</strong></p><p>{info?.fileSize} · {info?.pageCount} page{info?.pageCount === 1 ? '' : 's'}</p><p>Compression controls are not available yet. Your PDF remains on this device.</p></section>
+                        ? <CompressionWorkspace />
                         : ['/organize-pdf', '/remove-pages', '/extract-pages'].includes(pathname) ? <OrganizationWorkspace /> : pathname === '/split-pdf' ? <SplitWorkspace /> : <PdfViewer />)}
                     {!awaitingLandingLoad && phase !== 'loading' && phase !== 'ready' && <>
                         {phase === 'error' && error && <div className="pdf-error"><ErrorState description={error} /><Button type="button" variant="secondary" onClick={() => { if (pendingPdfFile) void consumePendingPdf(); else retry(); }}>Retry</Button></div>}

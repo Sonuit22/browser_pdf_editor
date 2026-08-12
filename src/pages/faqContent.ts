@@ -3,7 +3,7 @@ export const faqEntries = [
     ['Is PDF by ib free?', 'Yes. The currently available browser-based tools can be used without an account or payment, subject to any limits shown by the tool.'],
     ['Which browsers are supported?', 'Current versions of Chrome, Edge, Firefox, and Safari are supported when JavaScript and modern browser file APIs are available. Device memory and browser capabilities may affect some workflows.'],
     ['Why can large PDF files be slow?', 'Large PDFs require more of your device processor and memory. Files with many pages, large images, or complex graphics may work better in smaller batches.'],
-    ['Why does compression not always produce a much smaller file?', 'Compress PDF is currently marked Coming Soon and is not enabled. When available, results will depend on how the original PDF stores images, fonts, and other content.'],
+    ['Why does compression not always produce a much smaller file?', 'PDFs containing mostly text, vectors, or already optimized images may not shrink meaningfully. PDF by ib avoids rasterizing those documents only to report a smaller number.'],
     ['Can I use PDF by ib on a phone or tablet?', 'Yes. PDF by ib supports desktop, tablet, and mobile browsers, although some advanced workflows depend on browser and device capabilities.'],
     ['Why are some conversion tools marked Beta or Coming Soon?', 'Beta tools are available with documented limitations. Coming Soon tools do not yet provide a complete production workflow and keep their processing controls disabled.'],
     ['Are password-protected PDFs supported?', 'No, not reliably. A PDF that requires a password may not open in the current browser engine, and creating password-protected PDFs is currently marked Coming Soon.'],

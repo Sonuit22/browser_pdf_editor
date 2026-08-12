@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { UnsupportedBrowser } from './components/UnsupportedBrowser';
@@ -9,7 +9,7 @@ import { landingUploadToolRoutes } from './config/landingUploadTools';
 import { RouteScrollManager } from './components/RouteScrollManager';
 
 const landingWorkspaceRoutes = new Set<string>(landingUploadToolRoutes);
-const pdfWorkspaceRoutes = Array.from(new Set([...toolRoutesBySurface['pdf-workspace'], ...landingUploadToolRoutes.filter((route) => route !== '/compress-pdf')]));
+const pdfWorkspaceRoutes = Array.from(new Set([...toolRoutesBySurface['pdf-workspace'], ...landingUploadToolRoutes]));
 
 const WorkspacePage = lazy(() => import('./pages/WorkspacePage'));
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -26,11 +26,6 @@ const PublicContentLayout = lazy(() => import('./layouts/PublicContentLayout'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
 const BlogArticlePage = lazy(() => import('./pages/BlogArticlePage'));
 
-function CompressRoute() {
-    const location = useLocation();
-    return (location.state as { fromLandingFile?: boolean } | null)?.fromLandingFile ? <WorkspacePage /> : <ToolInfoPage />;
-}
-
 export default function App() {
     if (!hasPdfBrowserSupport()) return <UnsupportedBrowser />;
     return (
@@ -45,7 +40,6 @@ export default function App() {
                     <Route path="/all-tools" element={<AllToolsPage />} />
                     <Route path="/about" element={<AboutPage />} />
                     {pdfWorkspaceRoutes.map((path) => <Route key={path} path={path} element={<WorkspacePage />} />)}
-                    <Route path="/compress-pdf" element={<CompressRoute />} />
                     {toolRoutesBySurface['conversion-workspace'].map((path) => <Route key={path} path={path} element={<ConversionWorkspace />} />)}
                     {toolRoutesBySurface['tool-info'].filter((path) => !landingWorkspaceRoutes.has(path)).map((path) => <Route key={path} path={path} element={<ToolInfoPage />} />)}
                     <Route path="contact" element={<SimplePage />} />
