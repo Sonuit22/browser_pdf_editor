@@ -6,7 +6,7 @@ export const faqEntries = [
     ['Why does compression not always produce a much smaller file?', 'PDFs containing mostly text, vectors, or already optimized images may not shrink meaningfully. PDF by ib avoids rasterizing those documents only to report a smaller number.'],
     ['Can I use PDF by ib on a phone or tablet?', 'Yes. PDF by ib supports desktop, tablet, and mobile browsers, although some advanced workflows depend on browser and device capabilities.'],
     ['Why are some conversion tools marked Beta or Coming Soon?', 'Beta tools are available with documented limitations. Coming Soon tools do not yet provide a complete production workflow and keep their processing controls disabled.'],
-    ['Are password-protected PDFs supported?', 'No, not reliably. A PDF that requires a password may not open in the current browser engine, and creating password-protected PDFs is currently marked Coming Soon.'],
+    ['Are password-protected PDFs supported?', 'Yes. Protect PDF can add AES-256 password encryption to supported unencrypted PDFs in your browser. Already protected PDFs cannot currently be unlocked.'],
     ['What happens to my file after processing?', 'Your file may remain temporarily in browser memory while its workspace is open. It is cleared when you reset or leave the workspace, refresh, or close the page, subject to normal browser behavior.'],
     ['How can I report a bug?', 'Use the Report a bug link in the footer. Include the tool, browser, device, and reproduction steps, but do not attach a confidential document.'],
     ['How can I request a feature?', 'Use the Feature request link in the footer and describe the problem you want the feature to solve.'],

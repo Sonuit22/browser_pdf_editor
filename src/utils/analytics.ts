@@ -11,7 +11,17 @@ export type AnalyticsEventName =
     | 'blog_search_used'
     | 'blog_category_filtered'
     | 'blog_tool_cta_clicked'
-    | 'blog_related_article_clicked';
+    | 'blog_related_article_clicked'
+    | 'protect_pdf_opened'
+    | 'protect_pdf_started'
+    | 'protect_pdf_succeeded'
+    | 'protect_pdf_failed'
+    | 'protected_pdf_downloaded'
+    | 'compress_image_opened'
+    | 'compress_image_started'
+    | 'compress_image_succeeded'
+    | 'compress_image_failed'
+    | 'compressed_image_downloaded';
 
 type AnalyticsProperties = {
     tool?: string;

@@ -3,9 +3,9 @@ import {
     Presentation, Scissors, Signature, Trash2, type LucideIcon,
 } from 'lucide-react';
 
-export type ToolCategory = 'PDF management' | 'PDF conversion' | 'PDF editing and security';
+export type ToolCategory = 'PDF management' | 'PDF conversion' | 'PDF editing and security' | 'Image tools';
 export type ToolStatus = 'available' | 'beta' | 'coming-soon';
-export type ToolSurface = 'pdf-workspace' | 'conversion-workspace' | 'tool-info';
+export type ToolSurface = 'pdf-workspace' | 'conversion-workspace' | 'protect-workspace' | 'image-workspace' | 'tool-info';
 export type ToolDefinition = {
     id: string; title: string; category: ToolCategory; aliases: string[];
     icon: LucideIcon; route: string; surface: ToolSurface; browserOnly: true; implemented: boolean; enabled: boolean;
@@ -31,9 +31,10 @@ export const toolRegistry: ToolDefinition[] = [
     tool('pdf-jpg', 'PDF to JPG', 'Export selected PDF pages as JPG images.', 'PDF conversion', ['jpeg image zip'], FileImage, '/pdf-to-jpg', 'conversion-workspace', 'beta', ['Large documents may need to be converted in smaller page ranges on memory-constrained devices.']),
     tool('pdf-word', 'PDF to Word', 'Extract editable text from a PDF into a DOCX file.', 'PDF conversion', ['docx editable text'], FileText, '/pdf-to-word', 'conversion-workspace', 'beta', ['Complex formatting, tables, columns, and images may not be preserved.']),
     tool('pdf-ppt', 'PDF to PPT', 'Place each PDF page as an image on a PowerPoint slide.', 'PDF conversion', ['powerpoint slides pptx'], Presentation, '/pdf-to-ppt', 'conversion-workspace', 'beta', ['Slides contain page images; text and page elements are not individually editable.']),
-    tool('protect', 'Protect PDF', 'Add password protection where browser support permits.', 'PDF editing and security', ['password secure'], LockKeyhole, '/protect-pdf', 'tool-info', 'coming-soon', ['Password encryption is not available in the current browser engine.']),
+    tool('protect', 'Protect PDF', 'Encrypt a PDF with a password locally in your browser.', 'PDF editing and security', ['protect pdf', 'password pdf', 'secure pdf', 'lock pdf'], LockKeyhole, '/protect-pdf', 'protect-workspace', 'beta', ['AES-256 password protection supports unencrypted PDFs. Some unusual PDFs may be incompatible; unlocking is not available.']),
     tool('sign', 'Sign PDF', 'Add drawn, typed, or uploaded signatures to a PDF.', 'PDF editing and security', ['signature initials date checkmark'], Signature, '/sign-pdf', 'pdf-workspace', 'beta', ['Complex signed documents and touch placement may vary slightly across browsers.']),
     tool('edit', 'Edit PDF', 'Add text, images, shapes, drawings, and highlights.', 'PDF editing and security', ['text image draw shape highlight'], FilePenLine, '/edit-pdf', 'pdf-workspace', 'beta', ['Advanced edits on complex PDFs and touch interactions may vary across browsers.']),
+    tool('compress-image', 'Compress Image', 'Reduce JPG, PNG, or WebP image size locally in your browser.', 'Image tools', ['compress image', 'reduce image size', 'compress jpg', 'compress photo', 'reduce photo size', 'image compressor', 'jpg compressor', 'png compressor', 'webp compressor'], FileImage, '/compress-image', 'image-workspace', 'beta', ['Output size varies with image content. PNG output is lossless, and very large images depend on available browser memory.']),
 ];
 
 export function filterTools(category: ToolCategory | 'All', query: string) {
@@ -48,5 +49,7 @@ export function findToolByRoute(route: string) {
 export const toolRoutesBySurface: Record<ToolSurface, string[]> = {
     'pdf-workspace': toolRegistry.filter((item) => item.surface === 'pdf-workspace').map((item) => item.route),
     'conversion-workspace': toolRegistry.filter((item) => item.surface === 'conversion-workspace').map((item) => item.route),
+    'protect-workspace': toolRegistry.filter((item) => item.surface === 'protect-workspace').map((item) => item.route),
+    'image-workspace': toolRegistry.filter((item) => item.surface === 'image-workspace').map((item) => item.route),
     'tool-info': toolRegistry.filter((item) => item.surface === 'tool-info').map((item) => item.route),
 };

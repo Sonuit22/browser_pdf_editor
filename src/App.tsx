@@ -25,6 +25,8 @@ const ToolShell = lazy(() => import('./layouts/ToolShell'));
 const PublicContentLayout = lazy(() => import('./layouts/PublicContentLayout'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
 const BlogArticlePage = lazy(() => import('./pages/BlogArticlePage'));
+const ProtectPdfPage = lazy(() => import('./modules/protection/ProtectPdfPage'));
+const CompressImagePage = lazy(() => import('./modules/imageCompression/CompressImagePage'));
 
 export default function App() {
     if (!hasPdfBrowserSupport()) return <UnsupportedBrowser />;
@@ -41,6 +43,8 @@ export default function App() {
                     <Route path="/about" element={<AboutPage />} />
                     {pdfWorkspaceRoutes.map((path) => <Route key={path} path={path} element={<WorkspacePage />} />)}
                     {toolRoutesBySurface['conversion-workspace'].map((path) => <Route key={path} path={path} element={<ConversionWorkspace />} />)}
+                    {toolRoutesBySurface['protect-workspace'].map((path) => <Route key={path} path={path} element={<ProtectPdfPage />} />)}
+                    {toolRoutesBySurface['image-workspace'].map((path) => <Route key={path} path={path} element={<CompressImagePage />} />)}
                     {toolRoutesBySurface['tool-info'].filter((path) => !landingWorkspaceRoutes.has(path)).map((path) => <Route key={path} path={path} element={<ToolInfoPage />} />)}
                     <Route path="contact" element={<SimplePage />} />
                     <Route path="support" element={<SimplePage />} />

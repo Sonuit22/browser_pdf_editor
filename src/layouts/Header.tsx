@@ -1,14 +1,14 @@
 import { ArrowLeft, BookOpen, Home, Menu, Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { toolRegistry } from '../config/toolRegistry';
+import { filterTools } from '../config/toolRegistry';
 import { ThemeToggle } from '../components/ThemeToggle';
 
 export function Header({ isSidebarOpen, showNavigation = false, onMenuToggle, onNavigateRequest }: { isSidebarOpen: boolean; showNavigation?: boolean; onMenuToggle: () => void; onRequestUpload?: () => void; onNavigateRequest: (destination: string | 'back') => void }) {
     const location = useLocation();
     const [query, setQuery] = useState('');
     const [mobileSearch, setMobileSearch] = useState(false);
-    const results = useMemo(() => query.trim() ? toolRegistry.filter((tool) => tool.title.toLowerCase().includes(query.trim().toLowerCase())) : [], [query]);
+    const results = useMemo(() => query.trim() ? filterTools('All', query) : [], [query]);
     const leaveSearch = () => { setQuery(''); setMobileSearch(false); };
     return <header className={`app-header${showNavigation ? ' app-header--tools' : ' app-header--public'}`}><div className="app-header__inner">
         {showNavigation && <button className="icon-button menu-button" type="button" onClick={onMenuToggle} aria-label="Toggle PDF tools" aria-controls="tool-sidebar" aria-expanded={isSidebarOpen} title="PDF tools"><Menu size={21} aria-hidden="true" /></button>}

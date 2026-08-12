@@ -7,12 +7,12 @@ import { publishedArticleMetadata } from '../src/blog/content';
 const pagePaths = [
     '/', '/all-tools', '/merge-pdf', '/split-pdf', '/remove-pages', '/extract-pages', '/organize-pdf',
     '/compress-pdf', '/jpg-to-pdf', '/pdf-to-jpg', '/word-to-pdf', '/pdf-to-word', '/pdf-to-ppt',
-    '/ppt-to-pdf', '/protect-pdf', '/sign-pdf', '/edit-pdf', '/faq', '/privacy', '/terms', '/about',
+    '/ppt-to-pdf', '/protect-pdf', '/compress-image', '/sign-pdf', '/edit-pdf', '/faq', '/privacy', '/terms', '/about',
     '/contact', '/support', '/blog', '/missing',
 ];
 
 describe('route SEO configuration', () => {
-    it.each(['/', '/all-tools', '/merge-pdf', '/split-pdf', '/remove-pages', '/extract-pages', '/organize-pdf', '/jpg-to-pdf', '/pdf-to-jpg', '/sign-pdf', '/edit-pdf', '/faq', '/privacy', '/terms', '/about', '/contact'])('provides useful metadata for %s', (path) => {
+    it.each(['/', '/all-tools', '/merge-pdf', '/split-pdf', '/remove-pages', '/extract-pages', '/organize-pdf', '/jpg-to-pdf', '/pdf-to-jpg', '/protect-pdf', '/compress-image', '/sign-pdf', '/edit-pdf', '/faq', '/privacy', '/terms', '/about', '/contact'])('provides useful metadata for %s', (path) => {
         const seo = getSeoForPath(path);
         expect(seo.title).toContain('PDF by ib');
         expect(seo.description.length).toBeGreaterThan(50);
@@ -22,7 +22,7 @@ describe('route SEO configuration', () => {
     it('marks missing and incomplete tool routes as noindex', () => {
         expect(getSeoForPath('/missing')).toMatchObject({ index: false, canonical: false });
         expect(getSeoForPath('/compress-pdf').index).toBe(true);
-        expect(getSeoForPath('/protect-pdf').index).toBe(false);
+        expect(getSeoForPath('/protect-pdf').index).toBe(true);
     });
 
     it('creates one normalized production canonical origin', () => {

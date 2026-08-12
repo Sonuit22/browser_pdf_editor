@@ -18,12 +18,12 @@ describe('tool registry', () => {
         expect(toolRegistry.some((tool) => tool.category === 'PDF Utilities')).toBe(false);
     });
 
-    it('contains only the approved fifteen tools', () => {
-        expect(toolRegistry).toHaveLength(15);
+    it('contains the approved tool catalogue', () => {
+        expect(toolRegistry).toHaveLength(16);
         expect(toolRegistry.map((tool) => tool.title)).toEqual([
             'Merge PDF', 'Split PDF', 'Remove Pages from PDF', 'Extract Pages', 'Organize PDF', 'Compress PDF',
             'JPG to PDF', 'Word to PDF', 'PPT to PDF', 'PDF to JPG', 'PDF to Word', 'PDF to PPT',
-            'Protect PDF', 'Sign PDF', 'Edit PDF',
+            'Protect PDF', 'Sign PDF', 'Edit PDF', 'Compress Image',
         ]);
     });
 });

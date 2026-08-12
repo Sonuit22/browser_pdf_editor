@@ -178,9 +178,9 @@
   {
     "title": "How to Password Protect a PDF File",
     "slug": "how-to-protect-a-pdf-with-password",
-    "description": "Learn PDF password protection with PDF by ib, understand encryption and permission limits, and review safe handling while Protect PDF is Coming Soon.",
+    "description": "Learn how to protect a PDF with a strong password using local browser-based AES encryption in PDF by ib, plus safe sharing and compatibility tips.",
     "publishedDate": "2026-07-29",
-    "updatedDate": "2026-08-05",
+    "updatedDate": "2026-08-12",
     "author": "PDF by ib",
     "category": "Security",
     "tags": ["Protect PDF", "PDF Password", "Document Security"],
