@@ -207,5 +207,33 @@
       <pubDate>Mon, 10 Aug 2026 00:00:00 GMT</pubDate>
       <description>Improve PDF-to-JPG quality by choosing a suitable rendering scale, protecting small text, limiting repeated saves, and checking image dimensions.</description>
     </item>
+    <item>
+      <title>How to Add a Watermark to a PDF Online</title>
+      <link>https://pdfbyib.com/blog/how-to-add-watermark-to-pdf</link>
+      <guid isPermaLink="true">https://pdfbyib.com/blog/how-to-add-watermark-to-pdf</guid>
+      <pubDate>Sat, 15 Aug 2026 00:00:00 GMT</pubDate>
+      <description>Add a text or image watermark to PDF pages, control color and placement, and export the document locally in your browser with PDF by ib on your device.</description>
+    </item>
+    <item>
+      <title>How to Fill Out a PDF Form Online</title>
+      <link>https://pdfbyib.com/blog/how-to-fill-out-pdf-form-online</link>
+      <guid isPermaLink="true">https://pdfbyib.com/blog/how-to-fill-out-pdf-form-online</guid>
+      <pubDate>Sat, 15 Aug 2026 00:00:00 GMT</pubDate>
+      <description>Fill supported PDF form fields, add text and checkmarks, and download a completed copy locally in your browser with the PDF by ib Form Filler.</description>
+    </item>
+    <item>
+      <title>How to Unlock a Password-Protected PDF</title>
+      <link>https://pdfbyib.com/blog/how-to-unlock-password-protected-pdf</link>
+      <guid isPermaLink="true">https://pdfbyib.com/blog/how-to-unlock-password-protected-pdf</guid>
+      <pubDate>Sat, 15 Aug 2026 00:00:00 GMT</pubDate>
+      <description>Unlock a supported password-protected PDF with the correct password and export an unprotected copy locally in your browser using PDF by ib securely.</description>
+    </item>
+    <item>
+      <title>How to Resize an Image Without Losing Quality</title>
+      <link>https://pdfbyib.com/blog/how-to-resize-image-without-losing-quality</link>
+      <guid isPermaLink="true">https://pdfbyib.com/blog/how-to-resize-image-without-losing-quality</guid>
+      <pubDate>Sat, 15 Aug 2026 00:00:00 GMT</pubDate>
+      <description>Resize JPG, PNG, or WebP images by dimensions or percentage while protecting clarity and processing files locally with PDF by ib Image Resizer.</description>
+    </item>
   </channel>
 </rss>

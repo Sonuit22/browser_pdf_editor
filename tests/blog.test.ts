@@ -53,6 +53,10 @@ const searchConsoleArticleSlugs = [
     'save-pdf-page-as-jpg-on-mobile',
     'jpg-vs-png-for-pdf-pages',
     'pdf-to-jpg-image-quality',
+    'how-to-add-watermark-to-pdf',
+    'how-to-fill-out-pdf-form-online',
+    'how-to-unlock-password-protected-pdf',
+    'how-to-resize-image-without-losing-quality',
 ] as const;
 
 const seoIntentArticles = [
@@ -70,9 +74,9 @@ const seoIntentArticles = [
 
 describe('Learning Center content registry', () => {
     it('publishes the complete article collection', () => {
-        expect(publishedArticles).toHaveLength(29);
-        expect(publishedArticleMetadata).toHaveLength(29);
-        expect(new Set(publishedArticles.map((article) => article.slug)).size).toBe(29);
+        expect(publishedArticles).toHaveLength(33);
+        expect(publishedArticleMetadata).toHaveLength(33);
+        expect(new Set(publishedArticles.map((article) => article.slug)).size).toBe(33);
 
         for (const article of publishedArticles) {
             expect(article.sections.length).toBeGreaterThanOrEqual(3);

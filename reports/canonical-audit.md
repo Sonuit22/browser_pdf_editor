@@ -58,3 +58,7 @@
 | /blog/save-pdf-page-as-jpg-on-mobile | https://pdfbyib.com/blog/save-pdf-page-as-jpg-on-mobile | https://pdfbyib.com/blog/save-pdf-page-as-jpg-on-mobile | PASS |
 | /blog/jpg-vs-png-for-pdf-pages | https://pdfbyib.com/blog/jpg-vs-png-for-pdf-pages | https://pdfbyib.com/blog/jpg-vs-png-for-pdf-pages | PASS |
 | /blog/pdf-to-jpg-image-quality | https://pdfbyib.com/blog/pdf-to-jpg-image-quality | https://pdfbyib.com/blog/pdf-to-jpg-image-quality | PASS |
+| /blog/how-to-add-watermark-to-pdf | https://pdfbyib.com/blog/how-to-add-watermark-to-pdf | https://pdfbyib.com/blog/how-to-add-watermark-to-pdf | PASS |
+| /blog/how-to-fill-out-pdf-form-online | https://pdfbyib.com/blog/how-to-fill-out-pdf-form-online | https://pdfbyib.com/blog/how-to-fill-out-pdf-form-online | PASS |
+| /blog/how-to-unlock-password-protected-pdf | https://pdfbyib.com/blog/how-to-unlock-password-protected-pdf | https://pdfbyib.com/blog/how-to-unlock-password-protected-pdf | PASS |
+| /blog/how-to-resize-image-without-losing-quality | https://pdfbyib.com/blog/how-to-resize-image-without-losing-quality | https://pdfbyib.com/blog/how-to-resize-image-without-losing-quality | PASS |
