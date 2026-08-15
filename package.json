@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run generate:public && npm run validate && npm run typecheck && npm run lint && vite build",
+    "build": "npm run generate:public && npm run validate && npm run typecheck && npm run lint && vite build && npm run generate:route-html && npm run audit:canonicals",
     "generate:public": "node tools/generate-public-files.mjs",
+    "generate:route-html": "node tools/generate-route-html.mjs",
+    "audit:canonicals": "node tools/audit-canonicals.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "eslint . --max-warnings=0",

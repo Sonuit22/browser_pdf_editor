@@ -19,11 +19,11 @@ describe('tool registry', () => {
     });
 
     it('contains the approved tool catalogue', () => {
-        expect(toolRegistry).toHaveLength(19);
+        expect(toolRegistry).toHaveLength(20);
         expect(toolRegistry.map((tool) => tool.title)).toEqual([
             'Merge PDF', 'Split PDF', 'Remove Pages from PDF', 'Extract Pages', 'Organize PDF', 'Compress PDF',
             'JPG to PDF', 'Word to PDF', 'PPT to PDF', 'PDF to JPG', 'PDF to Word', 'PDF to PPT',
-            'Protect PDF', 'Unlock PDF', 'Sign PDF', 'Edit PDF', 'Fill Form PDF', 'Translate PDF', 'Image Resizer',
+            'Protect PDF', 'Unlock PDF', 'Sign PDF', 'Edit PDF', 'PDF Form Filler', 'Watermark PDF', 'Translate PDF', 'Image Resizer',
         ]);
     });
 });

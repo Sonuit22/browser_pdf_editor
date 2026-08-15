@@ -2,6 +2,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "cleanUrls": true,
+  "trailingSlash": false,
   "git": {
     "deploymentEnabled": {
       "main": true,
@@ -40,9 +42,29 @@
         {
           "key": "Cross-Origin-Opener-Policy",
           "value": "same-origin"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.pdfbyib.com" }],
+      "destination": "https://pdfbyib.com/:path*",
+      "permanent": true
+    },
+    { "source": "/compress-image", "destination": "/image-resizer", "permanent": true },
+    { "source": "/merge", "destination": "/merge-pdf", "permanent": true },
+    { "source": "/split", "destination": "/split-pdf", "permanent": true },
+    { "source": "/organize", "destination": "/organize-pdf", "permanent": true },
+    { "source": "/compress", "destination": "/compress-pdf", "permanent": true },
+    { "source": "/edit", "destination": "/edit-pdf", "permanent": true },
+    { "source": "/privacy.html", "destination": "/privacy", "permanent": true },
+    { "source": "/terms.html", "destination": "/terms", "permanent": true }
   ],
   "rewrites": [
     {

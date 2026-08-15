@@ -42,7 +42,7 @@ describe('central tool status registry', () => {
         expect(toolRegistry.filter((tool) => tool.enabled).every((tool) => tool.surface !== 'tool-info')).toBe(true);
         expect(new Set(toolRegistry.map((tool) => tool.route)).size).toBe(toolRegistry.length);
         expect(toolRoutesBySurface).toEqual({
-            'pdf-workspace': ['/merge-pdf', '/split-pdf', '/remove-pages', '/extract-pages', '/organize-pdf', '/compress-pdf', '/sign-pdf', '/edit-pdf', '/fill-pdf-form'],
+            'pdf-workspace': ['/merge-pdf', '/split-pdf', '/remove-pages', '/extract-pages', '/organize-pdf', '/compress-pdf', '/sign-pdf', '/edit-pdf', '/fill-pdf-form', '/watermark-pdf'],
             'conversion-workspace': ['/jpg-to-pdf', '/word-to-pdf', '/pdf-to-jpg', '/pdf-to-word', '/pdf-to-ppt'],
             'protect-workspace': ['/protect-pdf'],
             'unlock-workspace': ['/unlock-pdf'],

@@ -23,6 +23,7 @@ import { getProcessingErrorMessage } from '../../../utils/processingErrors';
 import { FillFormToolbar } from '../forms/FillFormToolbar';
 import { createFilledPdf, filledFilename } from '../forms/fillFormService';
 import { downloadPdf } from '../organization/utils/pdfDownload';
+import { WatermarkToolbar } from '../utilities/components/WatermarkToolbar';
 
 const zoomOptions: Array<[string, ZoomPreset]> = [['Fit width', 'fit-width'], ['Fit page', 'fit-page'], ['25%', 25], ['50%', 50], ['75%', 75], ['100%', 100], ['125%', 125], ['150%', 150], ['200%', 200], ['300%', 300]];
 const rotationOptions: PdfRotation[] = [0, 90, 180, 270, 360];
@@ -141,7 +142,7 @@ export function PdfViewer() {
                     <button type="button" className="pdf-responsive-export" onClick={() => void exportDocument()} disabled={exporting} aria-label={pathname === '/fill-pdf-form' ? 'Download filled PDF' : 'Export edited PDF'}><Download size={18} aria-hidden="true" />{exporting ? `${exportProgress}%` : pathname === '/fill-pdf-form' ? 'Download' : 'Export'}</button>
                 </div>
             </div>
-            {pathname === '/sign-pdf' ? <SigningToolbar onExport={() => void exportDocument()} exporting={exporting} /> : pathname === '/fill-pdf-form' ? <FillFormToolbar onExport={() => void exportDocument()} exporting={exporting} /> : <EditorToolbar onExport={() => void exportDocument()} exporting={exporting} />}
+            {pathname === '/sign-pdf' ? <SigningToolbar onExport={() => void exportDocument()} exporting={exporting} /> : pathname === '/fill-pdf-form' ? <FillFormToolbar onExport={() => void exportDocument()} exporting={exporting} /> : pathname === '/watermark-pdf' ? <WatermarkToolbar onExport={() => void exportDocument()} exporting={exporting} /> : <EditorToolbar onExport={() => void exportDocument()} exporting={exporting} />}
             {exporting && <p className="pdf-export-progress" role="status">Preparing export: {exportProgress}%</p>}
             {pageCount >= 200 && <p className="pdf-export-progress" role="status">Large document: rendering the active page and nearby thumbnails on demand.</p>}
             {exportError && <p className="pdf-export-error" role="alert">{exportError}</p>}

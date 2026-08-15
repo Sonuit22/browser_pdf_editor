@@ -32,7 +32,7 @@ describe('Unlock PDF', () => {
     });
 });
 
-describe('Fill Form PDF', () => {
+describe('PDF Form Filler', () => {
     it('registers Fill Form as Beta and keeps Translate honestly unavailable', () => {
         expect(filterTools('All', 'complete pdf form').map((tool) => tool.id)).toContain('fill-form');
         expect(filterTools('All', 'pdf language translator').map((tool) => tool.id)).toContain('translate');

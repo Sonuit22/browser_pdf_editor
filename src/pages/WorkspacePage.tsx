@@ -17,6 +17,7 @@ import { useShell } from '../contexts/ShellContext';
 import { ToolGuideLink } from '../blog/components/ToolGuideLink';
 import { shouldShowLandingFileReselect } from '../utils/pendingPdfLifecycle';
 import { CompressionWorkspace } from '../modules/pdf/compression/CompressionWorkspace';
+import { WatermarkWorkspace } from '../modules/pdf/utilities/components/WatermarkWorkspace';
 
 export default function WorkspacePage() {
     const location = useLocation();
@@ -28,7 +29,7 @@ export default function WorkspacePage() {
     const fromLanding = Boolean((location.state as { fromLandingFile?: boolean } | null)?.fromLandingFile);
     const awaitingLandingLoad = fromLanding && phase === 'idle' && Boolean(pendingPdfFile);
     const needsLandingReselect = shouldShowLandingFileReselect(fromLanding, phase, pendingPdfFile, landingFileWasLoaded);
-    const isResponsiveEditor = pathname === '/edit-pdf' || pathname === '/sign-pdf' || pathname === '/fill-pdf-form';
+    const isResponsiveEditor = pathname === '/edit-pdf' || pathname === '/sign-pdf' || pathname === '/fill-pdf-form' || pathname === '/watermark-pdf';
 
     useEffect(() => {
         if (fromLanding && pendingPdfFile) void consumePendingPdf();
@@ -45,6 +46,7 @@ export default function WorkspacePage() {
                     {(phase === 'loading' || awaitingLandingLoad) && <div className="pdf-loading" role="status"><LoadingSpinner label="Loading PDF" /><strong>Loading PDF</strong><span>{progress}%</span></div>}
                     {phase === 'ready' && (pathname === '/compress-pdf'
                         ? <CompressionWorkspace />
+                        : pathname === '/watermark-pdf' ? <WatermarkWorkspace />
                         : ['/organize-pdf', '/remove-pages', '/extract-pages'].includes(pathname) ? <OrganizationWorkspace /> : pathname === '/split-pdf' ? <SplitWorkspace /> : <PdfViewer />)}
                     {!awaitingLandingLoad && phase !== 'loading' && phase !== 'ready' && <>
                         {phase === 'error' && error && <div className="pdf-error"><ErrorState description={error} /><Button type="button" variant="secondary" onClick={() => { if (pendingPdfFile) void consumePendingPdf(); else retry(); }}>Retry</Button></div>}

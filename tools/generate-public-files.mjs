@@ -1,13 +1,9 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { indexableRoutes } from './site-routes.mjs';
 
 const defaultSiteUrl = 'https://pdfbyib.com';
 const configuredSiteUrl = (process.env.VITE_SITE_URL || defaultSiteUrl).trim().replace(/\/+$/, '');
 const siteUrl = /^https:\/\/(?!localhost|127\.0\.0\.1)[a-z0-9.-]+(?::\d+)?$/i.test(configuredSiteUrl) ? configuredSiteUrl : defaultSiteUrl;
-const indexableRoutes = [
-    '/', '/all-tools', '/merge-pdf', '/split-pdf', '/remove-pages', '/extract-pages', '/organize-pdf', '/compress-pdf',
-    '/jpg-to-pdf', '/pdf-to-jpg', '/word-to-pdf', '/pdf-to-word', '/pdf-to-ppt',
-    '/sign-pdf', '/edit-pdf', '/fill-pdf-form', '/protect-pdf', '/unlock-pdf', '/image-resizer', '/faq', '/privacy', '/terms', '/about', '/contact', '/blog',
-];
 const articleManifest = JSON.parse(await readFile('src/blog/content/articleManifest.json', 'utf8'));
 const today = new Date().toISOString().slice(0, 10);
 const publishedArticles = articleManifest.filter((article) => {

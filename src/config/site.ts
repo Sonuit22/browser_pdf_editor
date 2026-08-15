@@ -25,8 +25,14 @@ export const externalLinks = {
 } as const;
 
 export function absoluteSiteUrl(path = '/') {
-    const normalizedPath = path === '/' ? '/' : `/${path.replace(/^\/+|\/+$/g, '')}`;
+    const normalizedPath = normalizeCanonicalPath(path);
     return `${SITE_URL}${normalizedPath}`;
+}
+
+export function normalizeCanonicalPath(value = '/') {
+    const pathOnly = value.split(/[?#]/, 1)[0].replace(/\\/g, '/');
+    const normalized = `/${pathOnly.replace(/^\/+|\/+$/g, '')}`.replace(/\/{2,}/g, '/');
+    return normalized === '/' ? '/' : normalized;
 }
 
 export function isExternalHttpLink(value: string) {

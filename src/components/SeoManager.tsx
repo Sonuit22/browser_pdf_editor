@@ -51,7 +51,9 @@ export function SeoManager() {
             appendPropertyMeta('article:section', seo.article.category);
             seo.article.tags.forEach((tag) => appendPropertyMeta('article:tag', tag));
         }
-        let canonicalLink = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+        const canonicalLinks = [...document.head.querySelectorAll<HTMLLinkElement>('link[rel="canonical"]')];
+        let canonicalLink = canonicalLinks.shift();
+        canonicalLinks.forEach((link) => link.remove());
         if (seo.canonical === false) {
             canonicalLink?.remove();
         } else {

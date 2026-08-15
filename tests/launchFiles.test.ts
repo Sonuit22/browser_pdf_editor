@@ -31,9 +31,16 @@ describe('public launch files', () => {
     });
 
     it('keeps nested routes on the SPA and applies baseline security headers', async () => {
-        const config = JSON.parse(await readFile('vercel.json', 'utf8')) as { rewrites: Array<{ source: string; destination: string }>; headers: Array<{ headers: Array<{ key: string; value: string }> }> };
+        const config = JSON.parse(await readFile('vercel.json', 'utf8')) as { cleanUrls: boolean; trailingSlash: boolean; redirects: Array<{ source: string; destination: string; permanent: boolean }>; rewrites: Array<{ source: string; destination: string }>; headers: Array<{ headers: Array<{ key: string; value: string }> }> };
         expect(config.rewrites).toContainEqual({ source: '/:path*', destination: '/index.html' });
+        expect(config.cleanUrls).toBe(true);
+        expect(config.trailingSlash).toBe(false);
+        expect(config.redirects).toEqual(expect.arrayContaining([
+            expect.objectContaining({ source: '/compress-image', destination: '/image-resizer', permanent: true }),
+            expect.objectContaining({ source: '/privacy.html', destination: '/privacy', permanent: true }),
+            expect.objectContaining({ source: '/terms.html', destination: '/terms', permanent: true }),
+        ]));
         const headerNames = config.headers.flatMap((entry) => entry.headers.map((header) => header.key));
-        expect(headerNames).toEqual(expect.arrayContaining(['X-Content-Type-Options', 'Referrer-Policy', 'Permissions-Policy', 'X-Frame-Options']));
+        expect(headerNames).toEqual(expect.arrayContaining(['X-Content-Type-Options', 'Referrer-Policy', 'Permissions-Policy', 'X-Frame-Options', 'Strict-Transport-Security']));
     });
 });

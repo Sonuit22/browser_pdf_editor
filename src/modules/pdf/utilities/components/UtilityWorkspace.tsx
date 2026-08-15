@@ -18,13 +18,10 @@ const cropModes = ['current', 'selected', 'all', 'custom'] as const;
 export function UtilityWorkspace() {
     const utilities = usePdfUtilities();
     const { pages, selectedPageIds, activePageId, activePage } = usePdfPageOperations();
-    const imageInput = useRef<HTMLInputElement>(null);
     const targetInput = { pages, selectedPageIds, activePageId };
-    const watermarkTarget = resolveUtilityTarget({ ...utilities.watermark, ...targetInput });
     const pageNumberTarget = resolveUtilityTarget({ ...utilities.pageNumbers, ...targetInput });
     const headerFooterTarget = resolveUtilityTarget({ ...utilities.headerFooter, ...targetInput });
     const cropTarget = resolveCropTarget({ ...utilities.crop, ...targetInput });
-    const applyWatermark = () => { if (watermarkTarget.canApply) utilities.updateWatermark({ enabled: true, pageIds: watermarkTarget.pageIds }); };
     const applyNumbers = () => { if (pageNumberTarget.canApply) utilities.updatePageNumbers({ enabled: true, pageIds: pageNumberTarget.pageIds }); };
     const applyHeaderFooter = () => { if (headerFooterTarget.canApply) utilities.updateHeaderFooter({ enabled: true, pageIds: headerFooterTarget.pageIds }); };
     const crop = utilities.crop.draftByPageId[activePageId ?? ''] ?? utilities.cropsByPageId[activePageId ?? ''] ?? { left: 0, right: 0, top: 0, bottom: 0 };
@@ -37,30 +34,10 @@ export function UtilityWorkspace() {
         if (activePageId) utilities.cancelCrop(activePageId);
         utilities.updateCropSettings({ isEditing: false });
     };
-    const updateImage = async (event: ChangeEvent<HTMLInputElement>) => {
-        const [file] = Array.from(event.target.files ?? []);
-        event.target.value = '';
-        if (!file) return;
-        try {
-            if ((file.type && !['image/png', 'image/jpeg'].includes(file.type)) || !/\.(png|jpe?g)$/i.test(file.name)) throw new Error('Choose a PNG or JPEG watermark image.');
-            const image = await readBrowserImage(file);
-            utilities.updateWatermark({ kind: 'image', imageSource: image.data });
-        } catch (error) {
-            notify(error instanceof Error ? error.message : 'The watermark image could not be loaded.', 'error');
-        }
-    };
     return <section className="utility-workspace" aria-label="PDF utility tools">
         <div className="utility-workspace__intro"><div><p className="eyebrow">Free daily-use tools</p><h2>Document utilities</h2><p>Settings are previewed for the open document and exported entirely in this browser.</p></div></div>
         <div className="utility-grid">
-            <UtilitySection icon={Stamp} title="Watermark">
-                <TargetControls id="watermark-target" target={utilities.watermark} resolution={watermarkTarget} onChange={utilities.updateWatermark} modes={utilityModes} />
-                <label>Type<select value={utilities.watermark.kind} onChange={(event) => utilities.updateWatermark({ kind: event.target.value as 'text' | 'image' })}><option value="text">Text</option><option value="image">Image</option></select></label>
-                {utilities.watermark.kind === 'text' ? <label>Text<input maxLength={160} value={utilities.watermark.text} onChange={(event) => utilities.updateWatermark({ text: event.target.value })} /></label> : <><input ref={imageInput} className="sr-only" type="file" accept="image/png,image/jpeg" onChange={(event) => void updateImage(event)} /><Button type="button" variant="secondary" size="compact" onClick={() => imageInput.current?.click()}><ImagePlus size={16} aria-hidden="true" />Choose image</Button></>}
-                <PositionFields value={utilities.watermark.position} x={utilities.watermark.x} y={utilities.watermark.y} onChange={(patch) => utilities.updateWatermark(patch)} />
-                <div className="utility-inline"><label>Size<input type="number" min="8" max="144" value={utilities.watermark.fontSize} onChange={(event) => utilities.updateWatermark({ fontSize: Number(event.target.value) })} /></label><label>Opacity<input type="number" min="0" max="1" step="0.05" value={utilities.watermark.opacity} onChange={(event) => utilities.updateWatermark({ opacity: Number(event.target.value) })} /></label><label>Rotation<input type="number" min="-180" max="180" value={utilities.watermark.rotation} onChange={(event) => utilities.updateWatermark({ rotation: Number(event.target.value) })} /></label><label>Color<input type="color" value={utilities.watermark.color} onChange={(event) => utilities.updateWatermark({ color: event.target.value })} /></label></div>
-                <label>Layer<select value="over-pdf-content" disabled><option value="over-pdf-content">Over PDF content</option></select></label><p className="utility-note">This is the single supported composite order. Added annotations render afterward, so the watermark is under added annotations.</p>
-                <Actions onApply={applyWatermark} onReset={utilities.resetWatermark} disabled={!watermarkTarget.canApply} />
-            </UtilitySection>
+            <WatermarkSection />
             <UtilitySection icon={Hash} title="Page numbers">
                 <TargetControls id="page-numbers-target" target={utilities.pageNumbers} resolution={pageNumberTarget} onChange={utilities.updatePageNumbers} modes={utilityModes} />
                 <label>Numbering<select value={utilities.pageNumbers.numberingMode} onChange={(event) => utilities.updatePageNumbers({ numberingMode: event.target.value as 'physical' | 'sequential' })}><option value="physical">Physical document pages</option><option value="sequential">Sequential targeted pages</option></select></label>
@@ -81,6 +58,35 @@ export function UtilityWorkspace() {
         </div>
         <PdfViewer />
     </section>;
+}
+
+export function WatermarkSection() {
+    const utilities = usePdfUtilities();
+    const { pages, selectedPageIds, activePageId } = usePdfPageOperations();
+    const imageInput = useRef<HTMLInputElement>(null);
+    const watermarkTarget = resolveUtilityTarget({ ...utilities.watermark, pages, selectedPageIds, activePageId });
+    const applyWatermark = () => { if (watermarkTarget.canApply) utilities.updateWatermark({ enabled: true, pageIds: watermarkTarget.pageIds }); };
+    const updateImage = async (event: ChangeEvent<HTMLInputElement>) => {
+        const [file] = Array.from(event.target.files ?? []);
+        event.target.value = '';
+        if (!file) return;
+        try {
+            if ((file.type && !['image/png', 'image/jpeg'].includes(file.type)) || !/\.(png|jpe?g)$/i.test(file.name)) throw new Error('Choose a PNG or JPEG watermark image.');
+            const image = await readBrowserImage(file);
+            utilities.updateWatermark({ kind: 'image', imageSource: image.data });
+        } catch (error) {
+            notify(error instanceof Error ? error.message : 'The watermark image could not be loaded.', 'error');
+        }
+    };
+    return <UtilitySection icon={Stamp} title="Watermark">
+        <TargetControls id="watermark-target" target={utilities.watermark} resolution={watermarkTarget} onChange={utilities.updateWatermark} modes={utilityModes} />
+        <label>Type<select value={utilities.watermark.kind} onChange={(event) => utilities.updateWatermark({ kind: event.target.value as 'text' | 'image' })}><option value="text">Text</option><option value="image">Image</option></select></label>
+        {utilities.watermark.kind === 'text' ? <label>Text<input maxLength={160} value={utilities.watermark.text} onChange={(event) => utilities.updateWatermark({ text: event.target.value })} /></label> : <><input ref={imageInput} className="sr-only" type="file" accept="image/png,image/jpeg" onChange={(event) => void updateImage(event)} /><Button type="button" variant="secondary" size="compact" onClick={() => imageInput.current?.click()}><ImagePlus size={16} aria-hidden="true" />Choose image</Button></>}
+        <PositionFields value={utilities.watermark.position} x={utilities.watermark.x} y={utilities.watermark.y} onChange={(patch) => utilities.updateWatermark(patch)} />
+        <div className="utility-inline"><label>Size<input type="number" min="8" max="144" value={utilities.watermark.fontSize} onChange={(event) => utilities.updateWatermark({ fontSize: Number(event.target.value) })} /></label><label>Opacity<input type="number" min="0" max="1" step="0.05" value={utilities.watermark.opacity} onChange={(event) => utilities.updateWatermark({ opacity: Number(event.target.value) })} /></label><label>Rotation<input type="number" min="-180" max="180" value={utilities.watermark.rotation} onChange={(event) => utilities.updateWatermark({ rotation: Number(event.target.value) })} /></label><label>Color<input type="color" value={utilities.watermark.color} onChange={(event) => utilities.updateWatermark({ color: event.target.value })} /></label></div>
+        <label>Layer<select value="over-pdf-content" disabled><option value="over-pdf-content">Over PDF content</option></select></label><p className="utility-note">Watermarks are composited over the original PDF content. Added editor annotations render afterward.</p>
+        <Actions onApply={applyWatermark} onReset={utilities.resetWatermark} disabled={!watermarkTarget.canApply} />
+    </UtilitySection>;
 }
 
 function UtilitySection({ icon: Icon, title, children }: { icon: typeof Stamp; title: string; children: ReactNode }) { return <section className="utility-section"><div className="utility-section__title"><Icon size={18} aria-hidden="true" /><h3>{title}</h3></div>{children}</section>; }
