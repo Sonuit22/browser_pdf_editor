@@ -1,7 +1,5 @@
 import { useCallback, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import {
-    BadgeDollarSign,
-    Bolt,
     CheckCircle2,
     CloudOff,
     MonitorSmartphone,
@@ -16,13 +14,6 @@ import { landingUploadTools } from '../config/landingUploadTools';
 import { usePdfEngine } from '../modules/pdf/hooks/usePdfEngine';
 import { validatePdfFileSelection } from '../modules/pdf/services/pdfValidationService';
 import { MAX_PDF_FILE_SIZE } from '../modules/pdf/types/pdf';
-
-const features = [
-    { title: 'Privacy First', description: 'Everything stays inside your browser.', icon: ShieldCheck },
-    { title: 'Fast', description: 'No waiting for server uploads.', icon: Bolt },
-    { title: 'Works Everywhere', description: 'Desktop, tablet and mobile.', icon: MonitorSmartphone },
-    { title: 'Free', description: 'Most tools available without account.', icon: BadgeDollarSign },
-];
 
 const privacyPrinciples = [
     { title: 'Files stay local', description: 'Supported tools process your documents inside your browser.', icon: ShieldCheck },
@@ -143,19 +134,6 @@ export default function HomePage() {
                 </>}
                 {uploadError && <p className="landing-upload__error" role="alert">{uploadError}</p>}
             </section>
-        </section>
-
-        <section className="landing-section landing-features" aria-labelledby="features-heading">
-            <header className="landing-section__heading">
-                <p>Built for everyday documents</p>
-                <h2 id="features-heading">Simple tools. Private workflow.</h2>
-            </header>
-            <div className="landing-feature-grid">
-                {features.map(({ title, description, icon: Icon }) => <article className="landing-feature-card" key={title}>
-                    <span aria-hidden="true"><Icon size={22} strokeWidth={1.8} /></span>
-                    <div><h3>{title}</h3><p>{description}</p></div>
-                </article>)}
-            </div>
         </section>
 
         <section id="tools" className="landing-section tool-catalogue" aria-labelledby="all-tools-heading">

@@ -828,43 +828,6 @@ body { overflow-x: hidden; }
     font-weight: 650;
     white-space: nowrap;
 }
-.landing-feature-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 14px;
-}
-.landing-feature-card {
-    min-height: 138px;
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    padding: 20px;
-    border: 1px solid #e0e6e2;
-    border-radius: 13px;
-    background: #fff;
-    box-shadow: 0 6px 20px rgba(17, 45, 29, .045);
-}
-.landing-feature-card > span {
-    width: 42px;
-    height: 42px;
-    display: grid;
-    place-items: center;
-    flex: none;
-    border-radius: 11px;
-    color: var(--brand);
-    background: rgba(23, 138, 73, .09);
-}
-.landing-feature-card h3 {
-    margin: 2px 0 7px;
-    color: var(--ink);
-    font-size: .98rem;
-}
-.landing-feature-card p {
-    margin: 0;
-    color: #657069;
-    font-size: .82rem;
-    line-height: 1.5;
-}
 .tool-catalogue {
     scroll-margin-top: 78px;
 }
@@ -1028,7 +991,6 @@ body { overflow-x: hidden; }
 :root[data-theme="dark"] .landing-hero h1,
 :root[data-theme="dark"] .landing-section__heading h2,
 :root[data-theme="dark"] .tool-catalogue > .landing-section__heading h2,
-:root[data-theme="dark"] .landing-feature-card h3,
 :root[data-theme="dark"] .tool-dashboard-card > strong,
 :root[data-theme="dark"] .testimonial-card figcaption strong {
     color: #f8fafc;
@@ -1036,13 +998,11 @@ body { overflow-x: hidden; }
 :root[data-theme="dark"] .landing-hero__tagline,
 :root[data-theme="dark"] .landing-local-note,
 :root[data-theme="dark"] .landing-section__heading--row > span,
-:root[data-theme="dark"] .landing-feature-card p,
 :root[data-theme="dark"] .tool-dashboard-card > p,
 :root[data-theme="dark"] .testimonial-card blockquote {
     color: #b7c3bb;
 }
 :root[data-theme="dark"] .landing-upload,
-:root[data-theme="dark"] .landing-feature-card,
 :root[data-theme="dark"] .tool-dashboard-card,
 :root[data-theme="dark"] .testimonial-card {
     border-color: #33443a !important;
@@ -1061,7 +1021,6 @@ body { overflow-x: hidden; }
     background: #17242e !important;
 }
 :root[data-theme="dark"] .tool-card-icon,
-:root[data-theme="dark"] .landing-feature-card > span,
 :root[data-theme="dark"] .landing-upload__icon {
     color: #8fddb0;
     background: rgba(99, 197, 174, .1);
@@ -1077,9 +1036,6 @@ body { overflow-x: hidden; }
         grid-template-columns: minmax(0, 1fr) minmax(320px, .8fr);
         gap: 34px;
         padding-inline: 28px;
-    }
-    .landing-feature-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .tool-card-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
@@ -1421,12 +1377,6 @@ body { overflow-x: hidden; }
     .landing-hero__actions .button {
         width: min(100%, 310px);
         margin-inline: auto;
-    }
-    .landing-feature-grid {
-        grid-template-columns: 1fr;
-    }
-    .landing-feature-card {
-        min-height: 0;
     }
     .tool-card-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -2288,14 +2238,12 @@ textarea:focus-visible,
 
 .landing-upload__icon,
 .tool-card-icon,
-.landing-feature-card > span,
 .testimonial-card__icon {
     color: var(--primary) !important;
     background: var(--soft-green) !important;
 }
 
 .landing-upload h2,
-.landing-feature-card h3,
 .testimonial-card h3,
 .tool-dashboard-card > strong {
     color: var(--text) !important;
@@ -2303,7 +2251,6 @@ textarea:focus-visible,
 
 .landing-upload > p,
 .landing-upload__formats,
-.landing-feature-card p,
 .testimonial-card p,
 .tool-dashboard-card > p {
     color: var(--text-muted) !important;
@@ -2354,7 +2301,6 @@ textarea:focus-visible,
     font-weight: 700;
 }
 
-.landing-feature-card,
 .tool-dashboard-card,
 .testimonial-card,
 .blog-card {
@@ -2364,7 +2310,6 @@ textarea:focus-visible,
     box-shadow: 0 2px 8px rgba(27, 31, 29, .035) !important;
 }
 
-.landing-feature-card:hover,
 .tool-dashboard-card:hover,
 .blog-card:hover {
     transform: translateY(-2px);
@@ -2550,7 +2495,6 @@ textarea:focus-visible,
 
 :root[data-theme="dark"] .landing-hero,
 :root[data-theme="dark"] .landing-upload,
-:root[data-theme="dark"] .landing-feature-card,
 :root[data-theme="dark"] .tool-dashboard-card,
 :root[data-theme="dark"] .testimonial-card,
 :root[data-theme="dark"] .blog-card,
@@ -2768,7 +2712,6 @@ textarea:focus-visible,
 :root[data-theme="dark"] .app-shell--landing .landing-hero h1,
 :root[data-theme="dark"] .app-shell--landing .landing-section__heading h2,
 :root[data-theme="dark"] .app-shell--landing .tool-catalogue > .landing-section__heading h2,
-:root[data-theme="dark"] .app-shell--landing .landing-feature-card h3,
 :root[data-theme="dark"] .app-shell--landing .testimonial-card h3,
 :root[data-theme="dark"] .app-shell--landing .tool-dashboard-card > strong,
 :root[data-theme="dark"] .app-shell--landing .landing-upload h2 {
@@ -2777,7 +2720,6 @@ textarea:focus-visible,
 
 :root[data-theme="dark"] .app-shell--landing .landing-hero__tagline,
 :root[data-theme="dark"] .app-shell--landing .landing-section__heading--row > span,
-:root[data-theme="dark"] .app-shell--landing .landing-feature-card p,
 :root[data-theme="dark"] .app-shell--landing .testimonial-card p,
 :root[data-theme="dark"] .app-shell--landing .tool-dashboard-card > p,
 :root[data-theme="dark"] .app-shell--landing .landing-upload > p,
@@ -2861,7 +2803,6 @@ textarea:focus-visible,
     color: var(--landing-dark-text) !important;
 }
 
-:root[data-theme="dark"] .app-shell--landing .landing-feature-card,
 :root[data-theme="dark"] .app-shell--landing .tool-dashboard-card,
 :root[data-theme="dark"] .app-shell--landing .testimonial-card {
     border-color: #304456 !important;
@@ -2869,7 +2810,6 @@ textarea:focus-visible,
     box-shadow: none !important;
 }
 
-:root[data-theme="dark"] .app-shell--landing .landing-feature-card:hover,
 :root[data-theme="dark"] .app-shell--landing .tool-dashboard-card:hover,
 :root[data-theme="dark"] .app-shell--landing .testimonial-card:hover {
     border-color: #3d5b50 !important;
@@ -2877,7 +2817,6 @@ textarea:focus-visible,
     box-shadow: none !important;
 }
 
-:root[data-theme="dark"] .app-shell--landing .landing-feature-card > span,
 :root[data-theme="dark"] .app-shell--landing .tool-card-icon,
 :root[data-theme="dark"] .app-shell--landing .testimonial-card__icon {
     color: var(--landing-dark-green) !important;
