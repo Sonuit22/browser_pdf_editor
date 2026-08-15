@@ -3,7 +3,7 @@ import { ArrowLeft, Download, FileImage, FileUp, Home, RefreshCw, ShieldCheck, T
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
-import { notify } from '../../components/feedback/notifications';
+import { DOWNLOAD_SUCCESS_MESSAGE, notify } from '../../components/feedback/notifications';
 import { useShell } from '../../contexts/ShellContext';
 import { downloadBlob } from '../../utils/browserDownload';
 import { trackEvent } from '../../utils/analytics';
@@ -117,7 +117,7 @@ export default function ImageResizerPage() {
         try {
             const base = file.name.replace(/\.[^.]+$/, '');
             downloadBlob(result.blob, `${base}-resized.${extension(result.mimeType)}`);
-            notify('Image downloaded');
+            notify(DOWNLOAD_SUCCESS_MESSAGE);
             trackEvent('resized_image_downloaded', { tool: 'image-resizer' });
         } catch { setError('The resized image could not be downloaded. Check browser download permissions.'); }
     };

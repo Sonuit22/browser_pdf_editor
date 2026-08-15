@@ -3,7 +3,7 @@ import { ArrowLeft, Download, Eye, EyeOff, FileLock2, FileUp, Home, ShieldCheck,
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
-import { notify } from '../../components/feedback/notifications';
+import { DOWNLOAD_SUCCESS_MESSAGE, notify } from '../../components/feedback/notifications';
 import { useShell } from '../../contexts/ShellContext';
 import { downloadBlob } from '../../utils/browserDownload';
 import { trackEvent } from '../../utils/analytics';
@@ -66,7 +66,7 @@ export default function ProtectPdfPage() {
     };
     const download = () => {
         if (!result || !file) return;
-        try { downloadBlob(result, protectedName(file.name)); notify('Document downloaded'); trackEvent('protected_pdf_downloaded', { tool: 'protect' }); }
+        try { downloadBlob(result, protectedName(file.name)); notify(DOWNLOAD_SUCCESS_MESSAGE); trackEvent('protected_pdf_downloaded', { tool: 'protect' }); }
         catch { setError('The protected PDF could not be downloaded. Check browser download permissions.'); }
     };
 

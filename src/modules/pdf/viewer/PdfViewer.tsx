@@ -13,7 +13,7 @@ import { PageThumbnailPanel } from '../organization/components/PageThumbnailPane
 import { usePdfUtilities } from '../utilities/hooks/usePdfUtilities';
 import { UtilityPreviewOverlay } from '../utilities/components/UtilityPreviewOverlay';
 import { CropOverlay } from '../utilities/components/CropOverlay';
-import { notify } from '../../../components/feedback/notifications';
+import { DOWNLOAD_SUCCESS_MESSAGE, notify } from '../../../components/feedback/notifications';
 import { Modal } from '../../../components/ui/Modal';
 import { RightPanel } from '../../../layouts/RightPanel';
 import { SigningToolbar } from '../editor/components/SigningToolbar';
@@ -105,7 +105,7 @@ export function PdfViewer() {
             } else {
                 await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile, filename: editedFilename(info.filename), utilities, sourceFilename: info.filename, formValues, flattenForms, onProgress: setExportProgress });
             }
-            notify(pathname === '/sign-pdf' ? 'Document downloaded' : pathname === '/fill-pdf-form' ? 'Document downloaded' : flattenForms ? 'PDF exported with flattened form fields.' : 'PDF export completed.');
+            notify(DOWNLOAD_SUCCESS_MESSAGE);
             completed = true;
         } catch (error) {
             const message = getProcessingErrorMessage(error, 'Export failed. Keep the document open, check available browser memory, and try again.');
@@ -149,7 +149,7 @@ export function PdfViewer() {
             <div className={`pdf-viewer__body${pagesOpen ? ' has-pages-open' : ''}`}>
                 {pagesOpen && <button className="thumbnail-drawer-scrim" type="button" onClick={() => setPagesOpen(false)} aria-label="Close pages drawer" />}
                 <aside id="responsive-page-drawer" className={`thumbnail-sidebar${pagesOpen ? ' is-open' : ''}`} aria-label="Page thumbnails"><div className="thumbnail-sidebar__header"><strong>Pages</strong><button className="icon-button" type="button" onClick={() => setPagesOpen(false)} aria-label="Close pages drawer"><X size={18} aria-hidden="true" /></button></div><PageThumbnailPanel pages={pages} activePageId={activePageId} getPage={getPage} reorderEnabled annotationsByPageId={annotationsByPageId} previewAnnotation={annotationPreview} formValues={formValues} onSelect={handleThumbnailSelect} onReorder={handleThumbnailReorder} /></aside>
-                <PdfPageCanvas page={activePage} pageNumber={currentPage} getPage={getPage} zoom={zoom} rotation={rotation} onRenderError={handleRenderError}>{(layout) => <><AnnotationOverlay pageId={activePage.id} layout={layout} onPreviewChange={handleAnnotationPreview} /><CropOverlay page={activePage} layout={layout} /><UtilityPreviewOverlay pageId={activePage.id} pageNumber={currentPage} pageCount={pageCount} filename={info.filename} /></>}</PdfPageCanvas>
+                <PdfPageCanvas page={activePage} pageNumber={currentPage} getPage={getPage} zoom={zoom} rotation={rotation} onRenderError={handleRenderError}>{(layout) => <><AnnotationOverlay pageId={activePage.id} layout={layout} onPreviewChange={handleAnnotationPreview} /><CropOverlay page={activePage} layout={layout} /><UtilityPreviewOverlay pageId={activePage.id} pageNumber={currentPage} pageCount={pageCount} filename={info.filename} pageWidth={activePage.width} pageHeight={activePage.height} viewport={layout.viewport} /></>}</PdfPageCanvas>
             </div>
             {closeConfirmOpen && <Modal title="Discard unsaved work" onClose={() => setCloseConfirmOpen(false)}><p>Close this document and discard unsaved edits?</p><div className="modal-actions"><Button variant="secondary" type="button" onClick={() => setCloseConfirmOpen(false)}>Keep editing</Button><Button type="button" onClick={() => { setCloseConfirmOpen(false); closeDocument(); }}>Discard work</Button></div></Modal>}
             {documentToolsOpen && <Modal title="Document tools" onClose={() => setDocumentToolsOpen(false)}><RightPanel /></Modal>}

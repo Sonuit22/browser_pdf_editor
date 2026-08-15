@@ -54,7 +54,7 @@ describe('responsive PDF editor workspace', () => {
         expect(css).toContain('touch-action: none');
         expect(css).toContain('.pdf-viewer--signing .annotation-image-wrap');
         expect(css).toContain('@media (max-height: 500px) and (orientation: landscape)');
-        expect(viewer).toContain("pathname === '/sign-pdf' ? 'Document downloaded'");
+        expect(viewer).toContain('notify(DOWNLOAD_SUCCESS_MESSAGE)');
         expect(viewer).toContain("pathname === '/sign-pdf' ? 'Download failed. Please try again.'");
     });
 

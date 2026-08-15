@@ -80,7 +80,7 @@ export function SplitWorkspace() {
             const next = downloaded.includes(index) ? downloaded : [...downloaded, index];
             setDownloaded(next);
             if (next.length === outputs.length) {
-                notify(`${outputs.length} split PDF file${outputs.length === 1 ? '' : 's'} downloaded.`);
+                notify('Document downloaded successfully');
                 closeDocument();
             }
         } catch (error) {

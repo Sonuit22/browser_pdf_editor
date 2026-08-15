@@ -3,7 +3,7 @@ import { ArrowLeft, Download, Eye, EyeOff, FileKey2, FileUp, Home, ShieldCheck, 
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
-import { notify } from '../../components/feedback/notifications';
+import { DOWNLOAD_SUCCESS_MESSAGE, notify } from '../../components/feedback/notifications';
 import { useShell } from '../../contexts/ShellContext';
 import { downloadBlob } from '../../utils/browserDownload';
 import { trackEvent } from '../../utils/analytics';
@@ -62,7 +62,7 @@ export default function UnlockPdfPage() {
     };
     const download = () => {
         if (!result || !file) return;
-        try { downloadBlob(result.blob, unlockedFilename(file.name)); notify('Document downloaded'); trackEvent('unlocked_pdf_downloaded', { tool: 'unlock' }); }
+        try { downloadBlob(result.blob, unlockedFilename(file.name)); notify(DOWNLOAD_SUCCESS_MESSAGE); trackEvent('unlocked_pdf_downloaded', { tool: 'unlock' }); }
         catch { setError('The unlocked PDF could not be downloaded. Check browser download permissions.'); }
     };
 

@@ -11,6 +11,7 @@ import { resetCompletedToolSource } from '../../utils/toolReset';
 import { downloadBlob } from '../../utils/browserDownload';
 import { getProcessingErrorMessage } from '../../utils/processingErrors';
 import { ToolGuideLink } from '../../blog/components/ToolGuideLink';
+import { DOWNLOAD_SUCCESS_MESSAGE, notify } from '../../components/feedback/notifications';
 
 export default function ConversionWorkspace() {
     const location = useLocation();
@@ -180,6 +181,7 @@ export default function ConversionWorkspace() {
         if (!output) return;
         try {
             downloadBlob(output.blob, output.name);
+            notify(DOWNLOAD_SUCCESS_MESSAGE);
         } catch (cause) {
             setError(getProcessingErrorMessage(cause, 'The converted file could not be downloaded. Check browser download permissions and try again.'));
         }

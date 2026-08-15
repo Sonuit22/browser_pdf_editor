@@ -11,7 +11,7 @@ import type { PageId, WorkingPage } from '../types/pages';
 import { A4_PORTRAIT, LETTER_PORTRAIT } from '../types/pages';
 import { safePdfFilename } from '../utils/pageUtils';
 import { usePdfUtilities } from '../../utilities/hooks/usePdfUtilities';
-import { notify } from '../../../../components/feedback/notifications';
+import { DOWNLOAD_SUCCESS_MESSAGE, notify } from '../../../../components/feedback/notifications';
 import { useLocation } from 'react-router-dom';
 import { getProcessingErrorMessage } from '../../../../utils/processingErrors';
 
@@ -51,7 +51,7 @@ export function OrganizationWorkspace() {
         setMessage(null);
         try {
             await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile: operations.getSourceFile, filename: safePdfFilename(info.filename, suffix), utilities, sourceFilename: info.filename });
-            notify('PDF downloaded successfully.');
+            notify(DOWNLOAD_SUCCESS_MESSAGE);
             completed = true;
         } catch (error) {
             setMessage(getProcessingErrorMessage(error, 'The selected pages could not be exported. Keep the document open and try again.'));

@@ -16,7 +16,7 @@ import type { PdfAnnotation, Point } from '../types/annotations';
 import { safePdfFilename } from '../../organization/utils/pageUtils';
 import { downloadPdf } from '../../organization/utils/pdfDownload';
 import type { HeaderFooterSettings, UtilitySettings } from '../../utilities/types/utilities';
-import { cropBoxFromMargins, expandTemplate, formatPageNumber, isPageTargeted, metadataValue, positionFor } from '../../utilities/utils/utilityFormatters';
+import { cropBoxFromMargins, expandTemplate, formatPageNumber, isPageTargeted, metadataValue, watermarkPlacement, watermarkSize } from '../../utilities/utils/utilityFormatters';
 import { hexToRgb, pathCommandsToSvg, pathPaint, smoothPathCommands } from '../utils/annotationRendering';
 
 type PdfExportInput = {
@@ -152,16 +152,18 @@ async function drawUtilities(pdf: PDFDocument, page: PDFPage, pageId: string, pa
     const pageNumber = pageIndex + 1;
     if (utilities.watermark.enabled && isPageTargeted(utilities.watermark.pageIds, pageId)) {
         const watermark = utilities.watermark;
-        const point = positionFor(page.getWidth(), page.getHeight(), watermark.position, 36, { x: watermark.x, y: watermark.y });
         if (watermark.kind === 'image' && watermark.imageSource) {
             const bytes = await fetch(watermark.imageSource).then((response) => response.arrayBuffer());
             const image = watermark.imageSource.startsWith('data:image/png') ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes);
             const scale = Math.min(180 / image.width, 120 / image.height, 1);
-            page.drawImage(image, { x: point.x - image.width * scale / 2, y: point.y - image.height * scale / 2, width: image.width * scale, height: image.height * scale, opacity: watermark.opacity, rotate: degrees(watermark.rotation) });
+            const size = { width: image.width * scale, height: image.height * scale };
+            const placement = watermarkPlacement(page.getWidth(), page.getHeight(), watermark.position, size, 36, { x: watermark.x, y: watermark.y });
+            page.drawImage(image, { ...placement, ...size, opacity: watermark.opacity, rotate: degrees(watermark.rotation) });
         } else if (watermark.text.trim()) {
             const text = watermark.text.slice(0, 160);
-            const x = point.x - text.length * watermark.fontSize * .28;
-            page.drawText(text, { x, y: point.y, size: watermark.fontSize, color: color(watermark.color), opacity: watermark.opacity, rotate: degrees(watermark.rotation) });
+            const size = watermarkSize('text', text, watermark.fontSize);
+            const placement = watermarkPlacement(page.getWidth(), page.getHeight(), watermark.position, size, 36, { x: watermark.x, y: watermark.y });
+            page.drawText(text, { ...placement, size: watermark.fontSize, color: color(watermark.color), opacity: watermark.opacity, rotate: degrees(watermark.rotation) });
         }
     }
     if (utilities.pageNumbers.enabled && isPageTargeted(utilities.pageNumbers.pageIds, pageId)) {

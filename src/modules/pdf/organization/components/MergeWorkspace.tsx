@@ -72,7 +72,7 @@ export function MergeWorkspace() {
                 },
                 fileInputs: [inputRef.current],
             });
-            setMessage({ text: 'Merged PDF downloaded.', error: false });
+            setMessage({ text: 'Document downloaded successfully', error: false });
         } catch (error) {
             if (mountedRef.current) setMessage({ text: getProcessingErrorMessage(error, 'The PDFs could not be merged. Keep the files selected and try again.'), error: true });
         } finally {

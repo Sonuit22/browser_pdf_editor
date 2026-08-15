@@ -50,8 +50,8 @@ export function Modal({ title, children, onClose, className = '' }: ModalProps) 
     }, []);
 
     return (
-        <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
-            <section ref={dialogRef} className={`modal${className ? ` ${className}` : ''}`} role="dialog" aria-modal="true" aria-labelledby={titleId} onMouseDown={(event) => event.stopPropagation()}>
+        <div className="modal-backdrop" role="presentation" onPointerDown={onClose}>
+            <section ref={dialogRef} className={`modal${className ? ` ${className}` : ''}`} role="dialog" aria-modal="true" aria-labelledby={titleId} onPointerDown={(event) => event.stopPropagation()}>
                 <div className="modal__header">
                     <h2 id={titleId}>{title}</h2>
                     <button ref={closeButtonRef} className="icon-button" type="button" onClick={onClose} aria-label="Close dialog" title="Close dialog">

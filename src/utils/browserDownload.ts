@@ -1,4 +1,9 @@
+let lastDownload: { key: string; startedAt: number } | null = null;
+
 export function downloadBlob(blob: Blob, filename: string) {
+    const key = `${filename}:${blob.type}:${blob.size}`;
+    const now = Date.now();
+    if (lastDownload?.key === key && now - lastDownload.startedAt < 1_000) return false;
     let url: string | null = null;
     let anchor: HTMLAnchorElement | null = null;
     try {
@@ -9,6 +14,7 @@ export function downloadBlob(blob: Blob, filename: string) {
         anchor.style.display = 'none';
         document.body.append(anchor);
         anchor.click();
+        lastDownload = { key, startedAt: now };
     } catch {
         if (url) URL.revokeObjectURL(url);
         throw new Error('The download could not be started. Check browser download permissions and try again.');
@@ -18,4 +24,5 @@ export function downloadBlob(blob: Blob, filename: string) {
     window.setTimeout(() => {
         if (url) URL.revokeObjectURL(url);
     }, 60_000);
+    return true;
 }
