@@ -28,7 +28,7 @@ export default function WorkspacePage() {
     const fromLanding = Boolean((location.state as { fromLandingFile?: boolean } | null)?.fromLandingFile);
     const awaitingLandingLoad = fromLanding && phase === 'idle' && Boolean(pendingPdfFile);
     const needsLandingReselect = shouldShowLandingFileReselect(fromLanding, phase, pendingPdfFile, landingFileWasLoaded);
-    const isResponsiveEditor = pathname === '/edit-pdf' || pathname === '/sign-pdf';
+    const isResponsiveEditor = pathname === '/edit-pdf' || pathname === '/sign-pdf' || pathname === '/fill-pdf-form';
 
     useEffect(() => {
         if (fromLanding && pendingPdfFile) void consumePendingPdf();

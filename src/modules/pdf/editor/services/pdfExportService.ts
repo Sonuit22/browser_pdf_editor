@@ -56,8 +56,9 @@ function annotationCenter(annotation: PdfAnnotation): Point {
     return { x: annotation.x + annotation.width / 2, y: annotation.y + annotation.height / 2 };
 }
 
-async function drawAnnotations(pdf: PDFDocument, page: PDFPage, annotations: PdfAnnotation[]) {
+export async function drawAnnotations(pdf: PDFDocument, page: PDFPage, annotations: PdfAnnotation[]) {
     for (const annotation of annotations) {
+        if (annotation.native) continue;
         const shared = { opacity: annotation.opacity, rotate: degrees(annotation.rotation) };
         const center = annotationCenter(annotation);
         const rotatedOrigin = rotatePdfPoint({ x: annotation.x, y: annotation.y }, center, annotation.rotation);
@@ -191,7 +192,7 @@ function applyMetadata(pdf: PDFDocument, utilities?: UtilitySettings) {
     pdf.setProducer(metadataValue(metadata.producer));
 }
 
-function applyAcroForm(pdf: PDFDocument, formValues: Record<string, string | boolean | string[]> | undefined, flattenForms: boolean | undefined) {
+export function applyAcroForm(pdf: PDFDocument, formValues: Record<string, string | boolean | string[]> | undefined, flattenForms: boolean | undefined) {
     const form = pdf.getForm();
     for (const field of form.getFields()) {
         const value = formValues?.[field.getName()];

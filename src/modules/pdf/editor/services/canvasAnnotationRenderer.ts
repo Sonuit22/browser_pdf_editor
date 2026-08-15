@@ -266,7 +266,7 @@ function drawStamp(context: CanvasRenderingContext2D, annotation: Extract<PdfAnn
     });
 }
 
-function drawFormField(context: CanvasRenderingContext2D, annotation: Extract<PdfAnnotation, { type: 'form-text' | 'form-signature' | 'form-checkbox' }>, viewport: PageViewport, formValues: Record<string, string | boolean | string[]>) {
+function drawFormField(context: CanvasRenderingContext2D, annotation: Extract<PdfAnnotation, { type: 'form-text' | 'form-signature' | 'form-checkbox' | 'form-radio' | 'form-choice' }>, viewport: PageViewport, formValues: Record<string, string | boolean | string[]>) {
     withBoxTransform(context, annotation, viewport, (width, height) => {
         const value = formValues[annotation.name] ?? annotation.defaultValue;
         const strokeWidth = Math.max(1, annotation.strokeWidth * viewport.scale);
@@ -278,8 +278,16 @@ function drawFormField(context: CanvasRenderingContext2D, annotation: Extract<Pd
         context.lineWidth = strokeWidth;
         context.strokeRect(strokeWidth / 2, strokeWidth / 2, Math.max(0, width - strokeWidth), Math.max(0, height - strokeWidth));
         context.fillStyle = '#172433';
-        if (annotation.type === 'form-checkbox') {
-            if (value) {
+        if (annotation.type === 'form-checkbox' || annotation.type === 'form-radio') {
+            const selected = annotation.type === 'form-checkbox' ? Boolean(value) : String(value) === annotation.option;
+            if (annotation.type === 'form-radio') {
+                context.beginPath(); context.arc(width / 2, height / 2, Math.max(2, Math.min(width, height) * .36), 0, Math.PI * 2); context.stroke();
+            }
+            if (selected) {
+                if (annotation.type === 'form-radio') {
+                    context.beginPath(); context.arc(width / 2, height / 2, Math.max(1, Math.min(width, height) * .18), 0, Math.PI * 2); context.fill();
+                    context.restore(); return;
+                }
                 context.lineCap = 'round';
                 context.lineJoin = 'round';
                 context.lineWidth = Math.max(1.5, Math.min(width, height) * .12);
@@ -318,7 +326,7 @@ export async function renderAnnotationsToCanvas({ context, viewport, pixelRatio,
             else if (annotation.type === 'draw' || annotation.type === 'highlight') drawPath(context, annotation, viewport);
             else if (annotation.type === 'image' || annotation.type === 'signature') await drawImage(context, annotation, viewport, cache, signal);
             else if (annotation.type === 'stamp') drawStamp(context, annotation, viewport);
-            else if (annotation.type === 'form-text' || annotation.type === 'form-signature' || annotation.type === 'form-checkbox') drawFormField(context, annotation, viewport, formValues);
+            else if (annotation.type === 'form-text' || annotation.type === 'form-signature' || annotation.type === 'form-checkbox' || annotation.type === 'form-radio' || annotation.type === 'form-choice') drawFormField(context, annotation, viewport, formValues);
             else drawShape(context, annotation, viewport);
             if (signal?.aborted) return;
         }

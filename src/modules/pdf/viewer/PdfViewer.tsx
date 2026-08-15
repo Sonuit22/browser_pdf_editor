@@ -20,6 +20,9 @@ import { SigningToolbar } from '../editor/components/SigningToolbar';
 import { useLocation } from 'react-router-dom';
 import type { PdfAnnotation } from '../editor/types/annotations';
 import { getProcessingErrorMessage } from '../../../utils/processingErrors';
+import { FillFormToolbar } from '../forms/FillFormToolbar';
+import { createFilledPdf, filledFilename } from '../forms/fillFormService';
+import { downloadPdf } from '../organization/utils/pdfDownload';
 
 const zoomOptions: Array<[string, ZoomPreset]> = [['Fit width', 'fit-width'], ['Fit page', 'fit-page'], ['25%', 25], ['50%', 50], ['75%', 75], ['100%', 100], ['125%', 125], ['150%', 150], ['200%', 200], ['300%', 300]];
 const rotationOptions: PdfRotation[] = [0, 90, 180, 270, 360];
@@ -91,13 +94,22 @@ export function PdfViewer() {
         setExportProgress(0);
         setExportError(null);
         try {
-            await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile, filename: editedFilename(info.filename), utilities, sourceFilename: info.filename, formValues, flattenForms, onProgress: setExportProgress });
-            notify(pathname === '/sign-pdf' ? 'Document downloaded' : flattenForms ? 'PDF exported with flattened form fields.' : 'PDF export completed.');
+            if (pathname === '/fill-pdf-form') {
+                const sourceDocumentId = pages.find((page) => page.sourceDocumentId)?.sourceDocumentId;
+                const file = sourceDocumentId ? getSourceFile(sourceDocumentId) : null;
+                if (!file) throw new Error('The original PDF is no longer available.');
+                const bytes = await createFilledPdf(file, pages, annotationsByPageId, formValues);
+                downloadPdf(bytes, filledFilename(info.filename));
+                setExportProgress(100);
+            } else {
+                await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile, filename: editedFilename(info.filename), utilities, sourceFilename: info.filename, formValues, flattenForms, onProgress: setExportProgress });
+            }
+            notify(pathname === '/sign-pdf' ? 'Document downloaded' : pathname === '/fill-pdf-form' ? 'Document downloaded' : flattenForms ? 'PDF exported with flattened form fields.' : 'PDF export completed.');
             completed = true;
         } catch (error) {
             const message = getProcessingErrorMessage(error, 'Export failed. Keep the document open, check available browser memory, and try again.');
             setExportError(message);
-            notify(pathname === '/sign-pdf' ? 'Download failed. Please try again.' : message, 'error');
+            notify(pathname === '/sign-pdf' ? 'Download failed. Please try again.' : pathname === '/fill-pdf-form' ? 'Download failed. Please try again.' : message, 'error');
         } finally {
             exportingRef.current = false;
             setExporting(false);
@@ -107,7 +119,7 @@ export function PdfViewer() {
 
     const jumpToPage = (value: number) => setActivePage(pages[Math.min(Math.max(1, value), pageCount) - 1]?.id ?? null);
     return (
-        <section className={`pdf-viewer${pathname === '/sign-pdf' ? ' pdf-viewer--signing' : ''}`} aria-label={`${info.filename} viewer`}>
+        <section className={`pdf-viewer${pathname === '/sign-pdf' ? ' pdf-viewer--signing' : ''}${pathname === '/fill-pdf-form' ? ' pdf-viewer--fill-form' : ''}`} aria-label={`${info.filename} viewer`}>
             <div className="pdf-toolbar" aria-label="PDF viewer controls">
                 <div className="pdf-toolbar__group">
                     <button className="icon-button" type="button" onClick={() => jumpToPage(currentPage - 1)} disabled={currentPage === 1} aria-label="Previous page" title="Previous page"><ChevronLeft size={19} aria-hidden="true" /></button>
@@ -126,10 +138,10 @@ export function PdfViewer() {
                     <button type="button" className="pdf-responsive-action pdf-responsive-action--icon" onClick={editor.undo} disabled={!editor.canUndo} aria-label="Undo"><Undo2 size={18} aria-hidden="true" /></button>
                     <button type="button" className="pdf-responsive-action pdf-responsive-action--icon" onClick={editor.redo} disabled={!editor.canRedo} aria-label="Redo"><Redo2 size={18} aria-hidden="true" /></button>
                     <button type="button" className="pdf-responsive-action" disabled={exporting} onClick={() => dirty ? setCloseConfirmOpen(true) : closeDocument()}><X size={17} aria-hidden="true" /><span>Close</span></button>
-                    <button type="button" className="pdf-responsive-export" onClick={() => void exportDocument()} disabled={exporting} aria-label="Export edited PDF"><Download size={18} aria-hidden="true" />{exporting ? `${exportProgress}%` : 'Export'}</button>
+                    <button type="button" className="pdf-responsive-export" onClick={() => void exportDocument()} disabled={exporting} aria-label={pathname === '/fill-pdf-form' ? 'Download filled PDF' : 'Export edited PDF'}><Download size={18} aria-hidden="true" />{exporting ? `${exportProgress}%` : pathname === '/fill-pdf-form' ? 'Download' : 'Export'}</button>
                 </div>
             </div>
-            {pathname === '/sign-pdf' ? <SigningToolbar onExport={() => void exportDocument()} exporting={exporting} /> : <EditorToolbar onExport={() => void exportDocument()} exporting={exporting} />}
+            {pathname === '/sign-pdf' ? <SigningToolbar onExport={() => void exportDocument()} exporting={exporting} /> : pathname === '/fill-pdf-form' ? <FillFormToolbar onExport={() => void exportDocument()} exporting={exporting} /> : <EditorToolbar onExport={() => void exportDocument()} exporting={exporting} />}
             {exporting && <p className="pdf-export-progress" role="status">Preparing export: {exportProgress}%</p>}
             {pageCount >= 200 && <p className="pdf-export-progress" role="status">Large document: rendering the active page and nearby thumbnails on demand.</p>}
             {exportError && <p className="pdf-export-error" role="alert">{exportError}</p>}

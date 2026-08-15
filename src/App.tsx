@@ -26,6 +26,7 @@ const PublicContentLayout = lazy(() => import('./layouts/PublicContentLayout'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
 const BlogArticlePage = lazy(() => import('./pages/BlogArticlePage'));
 const ProtectPdfPage = lazy(() => import('./modules/protection/ProtectPdfPage'));
+const UnlockPdfPage = lazy(() => import('./modules/protection/UnlockPdfPage'));
 const ImageResizerPage = lazy(() => import('./modules/imageResizer/ImageResizerPage'));
 
 export default function App() {
@@ -44,6 +45,7 @@ export default function App() {
                     {pdfWorkspaceRoutes.map((path) => <Route key={path} path={path} element={<WorkspacePage />} />)}
                     {toolRoutesBySurface['conversion-workspace'].map((path) => <Route key={path} path={path} element={<ConversionWorkspace />} />)}
                     {toolRoutesBySurface['protect-workspace'].map((path) => <Route key={path} path={path} element={<ProtectPdfPage />} />)}
+                    {toolRoutesBySurface['unlock-workspace'].map((path) => <Route key={path} path={path} element={<UnlockPdfPage />} />)}
                     {toolRoutesBySurface['image-workspace'].map((path) => <Route key={path} path={path} element={<ImageResizerPage />} />)}
                     {toolRoutesBySurface['tool-info'].filter((path) => !landingWorkspaceRoutes.has(path)).map((path) => <Route key={path} path={path} element={<ToolInfoPage />} />)}
                     <Route path="contact" element={<SimplePage />} />

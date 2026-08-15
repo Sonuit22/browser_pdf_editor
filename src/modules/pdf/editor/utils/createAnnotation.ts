@@ -1,6 +1,7 @@
 import type { DrawSettings, EditorTool, HighlighterSettings, PdfAnnotation, Point, ShapeSettings, TextSettings } from '../types/annotations';
 import { createAnnotationId } from './annotationUtils';
 import { normalizeHighlighterSettings, screenStrokeWidthToPdf } from './annotationRendering';
+import { formatSigningDate, renderSigningVisual } from './signingVisual';
 
 const base = (pageId: string, type: PdfAnnotation['type'], point: Point): Omit<PdfAnnotation, 'type'> & { type: PdfAnnotation['type'] } => ({
     id: createAnnotationId(), pageId, type, x: point.x, y: point.y, width: 2, height: 2,
@@ -11,6 +12,12 @@ const base = (pageId: string, type: PdfAnnotation['type'], point: Point): Omit<P
 
 export function createAnnotation(tool: EditorTool, pageId: string, point: Point, highlighter: HighlighterSettings = { color: '#ffe066', opacity: .3, strokeWidth: 20 }, viewportScale = 1, settings?: { text: TextSettings; draw: DrawSettings; shape: ShapeSettings }): PdfAnnotation | null {
     if (tool === 'text') return { ...base(pageId, 'text', point), type: 'text', width: 180, height: 72, text: '', fontSize: settings?.text.fontSize ?? 16, fontFamily: 'Helvetica', bold: false, italic: false, underline: false, color: settings?.text.color ?? '#111111', backgroundColor: '#ffffff', backgroundOpacity: 0, borderColor: '#178a49', borderWidth: 0, padding: 6, lineHeight: 1.3, letterSpacing: 0, align: 'left' };
+    if (tool === 'checkmark' || tool === 'date') {
+        const dateValue = tool === 'date' ? new Date().toISOString().slice(0, 10) : undefined;
+        const visual = renderSigningVisual(tool === 'date' ? formatSigningDate(dateValue ?? '') : '✓', tool === 'date' ? { width: 560, height: 160, font: '600 64px Arial, sans-serif' } : { width: 180, height: 180, font: '700 132px Arial, sans-serif' });
+        const width = tool === 'date' ? 150 : 52;
+        return { ...base(pageId, 'signature', point), type: 'signature', source: visual.source, signatureKind: tool, aspectRatio: visual.aspectRatio, dateValue, width, height: width / visual.aspectRatio, opacity: 1 };
+    }
     if (tool === 'highlight') {
         const settings = normalizeHighlighterSettings(highlighter);
         return { ...base(pageId, 'highlight', point), type: 'highlight', color: settings.color, opacity: settings.opacity, strokeWidth: screenStrokeWidthToPdf(settings.strokeWidth, viewportScale), points: [point] };

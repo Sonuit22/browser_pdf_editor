@@ -1,11 +1,11 @@
 import {
-    Archive, FileImage, FilePenLine, FileText, Files, Images, LockKeyhole,
+    Archive, FileImage, FilePenLine, FileText, Files, Images, Languages, ListChecks, LockKeyhole, LockKeyholeOpen,
     Presentation, Scissors, Signature, Trash2, type LucideIcon,
 } from 'lucide-react';
 
 export type ToolCategory = 'PDF management' | 'PDF conversion' | 'PDF editing and security' | 'Image tools';
 export type ToolStatus = 'available' | 'beta' | 'coming-soon';
-export type ToolSurface = 'pdf-workspace' | 'conversion-workspace' | 'protect-workspace' | 'image-workspace' | 'tool-info';
+export type ToolSurface = 'pdf-workspace' | 'conversion-workspace' | 'protect-workspace' | 'unlock-workspace' | 'image-workspace' | 'tool-info';
 export type ToolDefinition = {
     id: string; title: string; category: ToolCategory; aliases: string[];
     icon: LucideIcon; route: string; surface: ToolSurface; browserOnly: true; implemented: boolean; enabled: boolean;
@@ -31,9 +31,12 @@ export const toolRegistry: ToolDefinition[] = [
     tool('pdf-jpg', 'PDF to JPG', 'Export selected PDF pages as JPG images.', 'PDF conversion', ['jpeg image zip'], FileImage, '/pdf-to-jpg', 'conversion-workspace', 'beta', ['Large documents may need to be converted in smaller page ranges on memory-constrained devices.']),
     tool('pdf-word', 'PDF to Word', 'Extract editable text from a PDF into a DOCX file.', 'PDF conversion', ['docx editable text'], FileText, '/pdf-to-word', 'conversion-workspace', 'beta', ['Complex formatting, tables, columns, and images may not be preserved.']),
     tool('pdf-ppt', 'PDF to PPT', 'Place each PDF page as an image on a PowerPoint slide.', 'PDF conversion', ['powerpoint slides pptx'], Presentation, '/pdf-to-ppt', 'conversion-workspace', 'beta', ['Slides contain page images; text and page elements are not individually editable.']),
-    tool('protect', 'Protect PDF', 'Encrypt a PDF with a password locally in your browser.', 'PDF editing and security', ['protect pdf', 'password pdf', 'secure pdf', 'lock pdf'], LockKeyhole, '/protect-pdf', 'protect-workspace', 'beta', ['AES-256 password protection supports unencrypted PDFs. Some unusual PDFs may be incompatible; unlocking is not available.']),
+    tool('protect', 'Protect PDF', 'Encrypt a PDF with a password locally in your browser.', 'PDF editing and security', ['protect pdf', 'password pdf', 'secure pdf', 'lock pdf'], LockKeyhole, '/protect-pdf', 'protect-workspace', 'beta', ['AES-256 password protection supports unencrypted PDFs. Some unusual PDFs may be incompatible; use Unlock PDF separately to remove supported protection.']),
+    tool('unlock', 'Unlock PDF', 'Remove PDF protection using the correct password.', 'PDF editing and security', ['unlock pdf', 'remove pdf password', 'decrypt pdf', 'open protected pdf'], LockKeyholeOpen, '/unlock-pdf', 'unlock-workspace', 'available', ['The supplied password must grant permission to remove protection. Unsupported encryption and certificate-protected PDFs cannot be unlocked.']),
     tool('sign', 'Sign PDF', 'Add drawn, typed, or uploaded signatures to a PDF.', 'PDF editing and security', ['signature initials date checkmark'], Signature, '/sign-pdf', 'pdf-workspace', 'beta', ['Complex signed documents and touch placement may vary slightly across browsers.']),
     tool('edit', 'Edit PDF', 'Add text, images, shapes, drawings, and highlights.', 'PDF editing and security', ['text image draw shape highlight'], FilePenLine, '/edit-pdf', 'pdf-workspace', 'beta', ['Advanced edits on complex PDFs and touch interactions may vary across browsers.']),
+    tool('fill-form', 'Fill Form PDF', 'Fill forms, text, dates and checkmarks in your browser.', 'PDF editing and security', ['fill pdf', 'fill pdf form', 'pdf form filler', 'complete pdf form', 'type on pdf'], ListChecks, '/fill-pdf-form', 'pdf-workspace', 'beta', ['AcroForm text fields, checkboxes, radio buttons, and choice fields are supported. XFA and unsupported field types are preserved but cannot be edited.']),
+    tool('translate', 'Translate PDF', 'Translate text-based PDFs into another language.', 'PDF conversion', ['translate pdf', 'pdf translator', 'translate document', 'pdf language translator'], Languages, '/translate-pdf', 'tool-info', 'coming-soon', ['A privacy-safe translation and readable PDF reconstruction pipeline is not available yet. No document text is sent to an external service.']),
     tool('image-resizer', 'Image Resizer', 'Resize JPG, PNG, or WebP images by dimensions, percentage, or target size.', 'Image tools', ['resize image', 'image resizer', 'change image dimensions', 'reduce image size', 'compress image', 'compress jpg', 'compress photo', 'reduce photo size'], FileImage, '/image-resizer', 'image-workspace', 'beta', ['Target file size is best effort, and very large images depend on available browser memory.']),
 ];
 
@@ -50,6 +53,7 @@ export const toolRoutesBySurface: Record<ToolSurface, string[]> = {
     'pdf-workspace': toolRegistry.filter((item) => item.surface === 'pdf-workspace').map((item) => item.route),
     'conversion-workspace': toolRegistry.filter((item) => item.surface === 'conversion-workspace').map((item) => item.route),
     'protect-workspace': toolRegistry.filter((item) => item.surface === 'protect-workspace').map((item) => item.route),
+    'unlock-workspace': toolRegistry.filter((item) => item.surface === 'unlock-workspace').map((item) => item.route),
     'image-workspace': toolRegistry.filter((item) => item.surface === 'image-workspace').map((item) => item.route),
     'tool-info': toolRegistry.filter((item) => item.surface === 'tool-info').map((item) => item.route),
 };

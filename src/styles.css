@@ -421,6 +421,17 @@ body { overflow-x: hidden; }
 .signing-actions { display: flex; flex-wrap: wrap; gap: 7px; padding: 9px; border-bottom: 1px solid var(--border, #ddd); }
 .signing-actions button, .signature-tabs button { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 7px 10px; border: 1px solid var(--border, #ccc); border-radius: 6px; background: transparent; color: inherit; }
 .signing-actions svg { color: var(--brand); }
+.fill-form-toolbar-wrap { border-bottom: 1px solid var(--border, #ddd); background: var(--surface); }
+.fill-form-privacy, .fill-form-status { margin: 0; padding: 7px 10px; color: var(--text-muted); font-size: .76rem; }
+.fill-form-privacy { color: var(--primary); font-weight: 750; }
+.fill-form-actions { display: flex; flex-wrap: wrap; gap: 7px; padding: 0 9px 9px; }
+.fill-form-actions button { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid var(--border, #ccc); border-radius: 6px; background: transparent; color: inherit; font-weight: 700; }
+.fill-form-actions button:is(:hover, .is-active) { border-color: var(--primary); color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, transparent); }
+.fill-form-actions .fill-form-download { margin-left: auto; border-color: var(--primary); color: #fff; background: var(--primary); }
+.fill-form-actions .fill-form-download:hover { color: #fff; background: var(--primary-hover); }
+.fill-form-status { padding-top: 0; }
+.standalone-notice { margin: 0; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; color: var(--text-muted); background: var(--surface-muted); }
+.annotation-choice { min-width: 60px; }
 .signature-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
 .signature-tabs button { flex: 1; justify-content: center; text-transform: capitalize; }
 .signature-tabs button.is-active { border-color: var(--brand); background: rgba(23,138,73,.12); color: var(--brand); }
@@ -437,8 +448,8 @@ body { overflow-x: hidden; }
 @media (max-width: 520px) {
     .page-thumbnail-panel--grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 8px; }
     .split-controls, .split-controls label { width: 100%; }
-    .signing-actions { flex-wrap: nowrap; overflow-x: auto; }
-    .signing-actions button { flex: none; }
+    .signing-actions, .fill-form-actions { flex-wrap: nowrap; overflow-x: auto; }
+    .signing-actions button, .fill-form-actions button { flex: none; }
     .tool-workspace-shell, .workspace-main, .editor-workspace, .document-operation, .upload-area { width: 100%; max-width: 100%; min-width: 0; }
     .editor-workspace { overflow-x: hidden; }
     .editor-workspace > * { max-width: 100%; min-width: 0; }
@@ -1640,6 +1651,10 @@ body { overflow-x: hidden; }
     .tool-workspace-shell--editor > .right-panel {
         display: none;
     }
+    .tool-workspace-shell--editor .workspace-heading a,
+    .tool-workspace-shell--editor .upload-area button {
+        min-height: 44px;
+    }
     .tool-workspace-shell--editor .workspace-main,
     .tool-workspace-shell--editor .editor-workspace,
     .tool-workspace-shell--editor .pdf-viewer,
@@ -1741,7 +1756,8 @@ body { overflow-x: hidden; }
         display: block;
     }
     .tool-workspace-shell--editor .editor-toolbar__tools,
-    .tool-workspace-shell--editor .signing-actions {
+    .tool-workspace-shell--editor .signing-actions,
+    .tool-workspace-shell--editor .fill-form-actions {
         max-width: 100%;
         flex-wrap: nowrap !important;
         overflow-x: auto;
@@ -1751,11 +1767,13 @@ body { overflow-x: hidden; }
         -webkit-overflow-scrolling: touch;
     }
     .tool-workspace-shell--editor .editor-toolbar__tools::-webkit-scrollbar,
-    .tool-workspace-shell--editor .signing-actions::-webkit-scrollbar {
+    .tool-workspace-shell--editor .signing-actions::-webkit-scrollbar,
+    .tool-workspace-shell--editor .fill-form-actions::-webkit-scrollbar {
         display: none;
     }
     .tool-workspace-shell--editor .editor-tool,
-    .tool-workspace-shell--editor .signing-actions button {
+    .tool-workspace-shell--editor .signing-actions button,
+    .tool-workspace-shell--editor .fill-form-actions button {
         min-height: 44px;
         flex: none;
     }
@@ -1767,6 +1785,12 @@ body { overflow-x: hidden; }
         padding: 6px 8px;
         background: var(--surface);
     }
+    .tool-workspace-shell--editor .fill-form-actions {
+        min-height: 56px;
+        flex-wrap: nowrap;
+        padding: 6px 8px;
+    }
+    .tool-workspace-shell--editor .fill-form-actions .fill-form-download { margin-left: 0; }
     .tool-workspace-shell--editor .pdf-viewer__body {
         position: relative;
         min-height: 460px;

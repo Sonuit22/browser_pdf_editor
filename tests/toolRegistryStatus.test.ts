@@ -16,7 +16,7 @@ describe('central tool status registry', () => {
     });
 
     it('does not expose incomplete processing tools as usable', () => {
-        for (const id of ['ppt-pdf']) {
+        for (const id of ['ppt-pdf', 'translate']) {
             expect(toolRegistry.find((tool) => tool.id === id)).toMatchObject({
                 status: 'coming-soon', badge: 'Coming Soon', enabled: false, surface: 'tool-info',
             });
@@ -42,11 +42,12 @@ describe('central tool status registry', () => {
         expect(toolRegistry.filter((tool) => tool.enabled).every((tool) => tool.surface !== 'tool-info')).toBe(true);
         expect(new Set(toolRegistry.map((tool) => tool.route)).size).toBe(toolRegistry.length);
         expect(toolRoutesBySurface).toEqual({
-            'pdf-workspace': ['/merge-pdf', '/split-pdf', '/remove-pages', '/extract-pages', '/organize-pdf', '/compress-pdf', '/sign-pdf', '/edit-pdf'],
+            'pdf-workspace': ['/merge-pdf', '/split-pdf', '/remove-pages', '/extract-pages', '/organize-pdf', '/compress-pdf', '/sign-pdf', '/edit-pdf', '/fill-pdf-form'],
             'conversion-workspace': ['/jpg-to-pdf', '/word-to-pdf', '/pdf-to-jpg', '/pdf-to-word', '/pdf-to-ppt'],
             'protect-workspace': ['/protect-pdf'],
+            'unlock-workspace': ['/unlock-pdf'],
             'image-workspace': ['/image-resizer'],
-            'tool-info': ['/ppt-to-pdf'],
+            'tool-info': ['/ppt-to-pdf', '/translate-pdf'],
         });
         expect(Object.keys(conversionAccept).map((route) => `/${route}`).sort()).toEqual([...toolRoutesBySurface['conversion-workspace']].sort());
     });
