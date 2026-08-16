@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { FileMinus2 } from 'lucide-react';
 import { filterTools, toolRegistry } from '../src/config/toolRegistry';
 
 describe('tool registry', () => {
@@ -25,5 +26,9 @@ describe('tool registry', () => {
             'JPG to PDF', 'Word to PDF', 'PPT to PDF', 'PDF to JPG', 'PDF to Word', 'PDF to PPT',
             'Protect PDF', 'Unlock PDF', 'Sign PDF', 'Edit PDF', 'PDF Form Filler', 'Watermark PDF', 'Translate PDF', 'Image Resizer',
         ]);
+    });
+
+    it('uses the dedicated document-minus symbol for Remove Pages', () => {
+        expect(toolRegistry.find((tool) => tool.id === 'remove-pages')?.icon).toBe(FileMinus2);
     });
 });

@@ -1,6 +1,6 @@
 import {
-    Archive, FileImage, FilePenLine, FileText, Files, Images, Languages, ListChecks, LockKeyhole, LockKeyholeOpen,
-    Presentation, Scissors, Signature, Stamp, Trash2, type LucideIcon,
+    Archive, FileImage, FileMinus2, FilePenLine, FileText, Files, Images, Languages, ListChecks, LockKeyhole, LockKeyholeOpen,
+    Presentation, Scissors, Signature, Stamp, type LucideIcon,
 } from 'lucide-react';
 
 export type ToolCategory = 'PDF management' | 'PDF conversion' | 'PDF editing and security' | 'Image tools';
@@ -21,7 +21,7 @@ const tool = (id: string, title: string, description: string, category: ToolCate
 export const toolRegistry: ToolDefinition[] = [
     tool('merge', 'Merge PDF', 'Combine multiple PDF files into one document.', 'PDF management', ['combine'], Files, '/merge-pdf', 'pdf-workspace'),
     tool('split', 'Split PDF', 'Separate a PDF using page ranges or selected pages.', 'PDF management', ['separate'], Scissors, '/split-pdf', 'pdf-workspace'),
-    tool('remove-pages', 'Remove Pages from PDF', 'Delete unwanted pages from a PDF.', 'PDF management', ['remove pages delete pages'], Trash2, '/remove-pages', 'pdf-workspace'),
+    tool('remove-pages', 'Remove Pages from PDF', 'Delete unwanted pages from a PDF.', 'PDF management', ['remove pages delete pages'], FileMinus2, '/remove-pages', 'pdf-workspace'),
     tool('extract-pages', 'Extract Pages', 'Create a new PDF from selected pages.', 'PDF management', ['copy pages'], Archive, '/extract-pages', 'pdf-workspace'),
     tool('organize', 'Organize PDF', 'Reorder, rotate, duplicate, or remove PDF pages.', 'PDF management', ['reorder rotate delete'], Files, '/organize-pdf', 'pdf-workspace', 'beta', ['Touch devices include move controls because direct drag behavior varies by browser.']),
     tool('compress', 'Compress PDF', 'Reduce image-heavy PDF file size with adjustable local compression.', 'PDF management', ['reduce size dpi image quality'], Archive, '/compress-pdf', 'pdf-workspace', 'beta', ['Image controls apply only to detected image-heavy or scanned PDFs. Scanned-page compression rasterizes those pages and may not retain OCR, links, forms, or annotations. Text/vector PDFs are preserved rather than destructively rasterized.']),

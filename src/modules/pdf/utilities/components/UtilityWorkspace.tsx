@@ -60,12 +60,16 @@ export function UtilityWorkspace() {
     </section>;
 }
 
-export function WatermarkSection() {
+export function WatermarkSection({ onApplied }: { onApplied?: () => void } = {}) {
     const utilities = usePdfUtilities();
     const { pages, selectedPageIds, activePageId } = usePdfPageOperations();
     const imageInput = useRef<HTMLInputElement>(null);
     const watermarkTarget = resolveUtilityTarget({ ...utilities.watermark, pages, selectedPageIds, activePageId });
-    const applyWatermark = () => { if (watermarkTarget.canApply) utilities.updateWatermark({ enabled: true, pageIds: watermarkTarget.pageIds }); };
+    const applyWatermark = () => {
+        if (!watermarkTarget.canApply) return;
+        utilities.updateWatermark({ enabled: true, pageIds: watermarkTarget.pageIds });
+        onApplied?.();
+    };
     const updateImage = async (event: ChangeEvent<HTMLInputElement>) => {
         const [file] = Array.from(event.target.files ?? []);
         event.target.value = '';
@@ -85,13 +89,13 @@ export function WatermarkSection() {
         <PositionFields value={utilities.watermark.position} x={utilities.watermark.x} y={utilities.watermark.y} onChange={(patch) => utilities.updateWatermark(patch)} />
         <div className="utility-inline"><label>Size<input type="number" min="8" max="144" value={utilities.watermark.fontSize} disabled={utilities.watermark.kind === 'image'} onChange={(event) => utilities.updateWatermark({ fontSize: Number(event.target.value) })} /></label><label>Opacity<input type="number" min="0" max="1" step="0.05" value={utilities.watermark.opacity} onChange={(event) => utilities.updateWatermark({ opacity: Number(event.target.value) })} /></label><label>Rotation<input type="number" min="-180" max="180" value={utilities.watermark.rotation} onChange={(event) => utilities.updateWatermark({ rotation: Number(event.target.value) })} /></label><label>Color<input aria-label="Watermark color" type="color" value={utilities.watermark.color} disabled={utilities.watermark.kind === 'image'} onInput={(event) => utilities.updateWatermark({ color: event.currentTarget.value })} onChange={(event) => utilities.updateWatermark({ color: event.currentTarget.value })} /></label></div>
         <label>Layer<select value="over-pdf-content" disabled><option value="over-pdf-content">Over PDF content</option></select></label><p className="utility-note">Watermarks are composited over the original PDF content. Added editor annotations render afterward.</p>
-        <Actions onApply={applyWatermark} onReset={utilities.resetWatermark} disabled={!watermarkTarget.canApply} />
+        <Actions applyLabel="Apply and preview" onApply={applyWatermark} onReset={utilities.resetWatermark} disabled={!watermarkTarget.canApply} />
     </UtilitySection>;
 }
 
 function UtilitySection({ icon: Icon, title, children }: { icon: typeof Stamp; title: string; children: ReactNode }) { return <section className="utility-section"><div className="utility-section__title"><Icon size={18} aria-hidden="true" /><h3>{title}</h3></div>{children}</section>; }
 
-function Actions({ onApply, onReset, disabled = false }: { onApply: () => void; onReset: () => void; disabled?: boolean }) { return <div className="utility-actions"><Button type="button" size="compact" onClick={onApply} disabled={disabled}>Apply</Button><Button type="button" size="compact" variant="secondary" onClick={onReset}>Reset</Button></div>; }
+function Actions({ applyLabel = 'Apply', onApply, onReset, disabled = false }: { applyLabel?: string; onApply: () => void; onReset: () => void; disabled?: boolean }) { return <div className="utility-actions"><Button type="button" size="compact" onClick={onApply} disabled={disabled}>{applyLabel}</Button><Button type="button" size="compact" variant="secondary" onClick={onReset}>Reset</Button></div>; }
 
 function PositionFields({ value, x, y, onChange }: { value: UtilityPosition; x: number; y: number; onChange: (patch: { position?: UtilityPosition; x?: number; y?: number }) => void }) { return <><label>Position<select value={value} onChange={(event) => onChange({ position: event.target.value as UtilityPosition })}>{positions.map(([label, position]) => <option key={position} value={position}>{label}</option>)}</select></label>{value === 'custom' && <div className="utility-inline"><label>X %<input type="number" min="0" max="100" value={x} onChange={(event) => onChange({ x: Number(event.target.value) })} /></label><label>Y %<input type="number" min="0" max="100" value={y} onChange={(event) => onChange({ y: Number(event.target.value) })} /></label></div>}</>; }
 

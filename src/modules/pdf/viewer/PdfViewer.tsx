@@ -24,6 +24,8 @@ import { FillFormToolbar } from '../forms/FillFormToolbar';
 import { createFilledPdf, filledFilename } from '../forms/fillFormService';
 import { downloadPdf } from '../organization/utils/pdfDownload';
 import { WatermarkToolbar } from '../utilities/components/WatermarkToolbar';
+import type { UtilitySettings } from '../utilities/types/utilities';
+import { watermarkSettingsForExport } from '../utilities/utils/watermarkExportSettings';
 
 const zoomOptions: Array<[string, ZoomPreset]> = [['Fit width', 'fit-width'], ['Fit page', 'fit-page'], ['25%', 25], ['50%', 50], ['75%', 75], ['100%', 100], ['125%', 125], ['150%', 150], ['200%', 200], ['300%', 300]];
 const rotationOptions: PdfRotation[] = [0, 90, 180, 270, 360];
@@ -31,7 +33,7 @@ const rotationOptions: PdfRotation[] = [0, 90, 180, 270, 360];
 export function PdfViewer() {
     const { pathname } = useLocation();
     const { info, zoom, rotation, setZoom, setRotation, closeDocument, failViewer } = usePdfEngine();
-    const { documentId, pages, activePageId, activePage, isInitializing, setActivePage, reorderPages, getPage, getSourceFile } = usePdfPageOperations();
+    const { documentId, pages, selectedPageIds, activePageId, activePage, isInitializing, setActivePage, reorderPages, getPage, getSourceFile } = usePdfPageOperations();
     const editor = usePdfEditor();
     const { annotationsByPageId, formValues, flattenForms, dirty } = editor;
     const utilities = usePdfUtilities();
@@ -45,6 +47,7 @@ export function PdfViewer() {
     const exportingRef = useRef(false);
     const currentPage = Math.max(1, pages.findIndex((page) => page.id === activePageId) + 1);
     const pageCount = pages.length;
+    const isWatermarkWorkspace = pathname === '/watermark-pdf';
     const handleAnnotationPreview = useCallback((annotation: PdfAnnotation | null) => setAnnotationPreview(annotation), []);
     const handleRenderError = useCallback(() => failViewer('A page could not be rendered safely. Please retry the document.'), [failViewer]);
     const handleThumbnailSelect = useCallback((pageId: string) => {
@@ -103,7 +106,13 @@ export function PdfViewer() {
                 downloadPdf(bytes, filledFilename(info.filename));
                 setExportProgress(100);
             } else {
-                await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile, filename: editedFilename(info.filename), utilities, sourceFilename: info.filename, formValues, flattenForms, onProgress: setExportProgress });
+                let exportUtilities: UtilitySettings = utilities;
+                if (isWatermarkWorkspace) {
+                    const prepared = watermarkSettingsForExport(utilities, pages, selectedPageIds, activePageId);
+                    utilities.updateWatermark({ enabled: true, pageIds: prepared.watermark.pageIds });
+                    exportUtilities = prepared.settings;
+                }
+                await exportWorkingPdf({ pages, annotationsByPageId, getSourceFile, filename: editedFilename(info.filename), utilities: exportUtilities, sourceFilename: info.filename, formValues, flattenForms, onProgress: setExportProgress });
             }
             notify(DOWNLOAD_SUCCESS_MESSAGE);
             completed = true;
@@ -120,7 +129,7 @@ export function PdfViewer() {
 
     const jumpToPage = (value: number) => setActivePage(pages[Math.min(Math.max(1, value), pageCount) - 1]?.id ?? null);
     return (
-        <section className={`pdf-viewer${pathname === '/sign-pdf' ? ' pdf-viewer--signing' : ''}${pathname === '/fill-pdf-form' ? ' pdf-viewer--fill-form' : ''}`} aria-label={`${info.filename} viewer`}>
+        <section className={`pdf-viewer${pathname === '/sign-pdf' ? ' pdf-viewer--signing' : ''}${pathname === '/fill-pdf-form' ? ' pdf-viewer--fill-form' : ''}${isWatermarkWorkspace ? ' pdf-viewer--watermark' : ''}`} aria-label={`${info.filename} viewer`}>
             <div className="pdf-toolbar" aria-label="PDF viewer controls">
                 <div className="pdf-toolbar__group">
                     <button className="icon-button" type="button" onClick={() => jumpToPage(currentPage - 1)} disabled={currentPage === 1} aria-label="Previous page" title="Previous page"><ChevronLeft size={19} aria-hidden="true" /></button>
@@ -136,10 +145,9 @@ export function PdfViewer() {
                 <div className="pdf-toolbar__responsive-actions" role="toolbar" aria-label="Critical editor actions">
                     <button type="button" className="pdf-responsive-action" onClick={() => setPagesOpen(true)} aria-expanded={pagesOpen} aria-controls="responsive-page-drawer"><Files size={17} aria-hidden="true" /><span>Pages</span></button>
                     <button type="button" className="pdf-responsive-action" onClick={() => setDocumentToolsOpen(true)}><Info size={17} aria-hidden="true" /><span>Info</span></button>
-                    <button type="button" className="pdf-responsive-action pdf-responsive-action--icon" onClick={editor.undo} disabled={!editor.canUndo} aria-label="Undo"><Undo2 size={18} aria-hidden="true" /></button>
-                    <button type="button" className="pdf-responsive-action pdf-responsive-action--icon" onClick={editor.redo} disabled={!editor.canRedo} aria-label="Redo"><Redo2 size={18} aria-hidden="true" /></button>
+                    {!isWatermarkWorkspace && <><button type="button" className="pdf-responsive-action pdf-responsive-action--icon" onClick={editor.undo} disabled={!editor.canUndo} aria-label="Undo"><Undo2 size={18} aria-hidden="true" /></button><button type="button" className="pdf-responsive-action pdf-responsive-action--icon" onClick={editor.redo} disabled={!editor.canRedo} aria-label="Redo"><Redo2 size={18} aria-hidden="true" /></button></>}
                     <button type="button" className="pdf-responsive-action" disabled={exporting} onClick={() => dirty ? setCloseConfirmOpen(true) : closeDocument()}><X size={17} aria-hidden="true" /><span>Close</span></button>
-                    <button type="button" className="pdf-responsive-export" onClick={() => void exportDocument()} disabled={exporting} aria-label={pathname === '/fill-pdf-form' ? 'Download filled PDF' : 'Export edited PDF'}><Download size={18} aria-hidden="true" />{exporting ? `${exportProgress}%` : pathname === '/fill-pdf-form' ? 'Download' : 'Export'}</button>
+                    <button type="button" className="pdf-responsive-export" onClick={() => void exportDocument()} disabled={exporting} aria-label={pathname === '/fill-pdf-form' ? 'Download filled PDF' : isWatermarkWorkspace ? 'Download watermarked PDF' : 'Export edited PDF'}><Download size={18} aria-hidden="true" />{exporting ? `${exportProgress}%` : pathname === '/fill-pdf-form' || isWatermarkWorkspace ? 'Download' : 'Export'}</button>
                 </div>
             </div>
             {pathname === '/sign-pdf' ? <SigningToolbar onExport={() => void exportDocument()} exporting={exporting} /> : pathname === '/fill-pdf-form' ? <FillFormToolbar onExport={() => void exportDocument()} exporting={exporting} /> : pathname === '/watermark-pdf' ? <WatermarkToolbar onExport={() => void exportDocument()} exporting={exporting} /> : <EditorToolbar onExport={() => void exportDocument()} exporting={exporting} />}
