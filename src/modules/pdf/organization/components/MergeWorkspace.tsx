@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { ArrowDown, ArrowUp, Download, GripVertical, Plus, Trash2 } from 'lucide-react';
 import { Button } from '../../../../components/ui/Button';
 import { downloadPdf } from '../utils/pdfDownload';
@@ -6,9 +6,14 @@ import { mergePdfFiles } from '../services/documentOperationsService';
 import { validatePdfFileSelection } from '../../services/pdfValidationService';
 import { resetCompletedToolSource } from '../../../../utils/toolReset';
 import { getProcessingErrorMessage } from '../../../../utils/processingErrors';
+import { MergePdfPreview } from './MergePdfPreview';
 
 type MergeFile = { file: File; pageCount: number | null };
 type OperationMessage = { text: string; error: boolean };
+
+function mergeFileKey(file: File) {
+    return `${file.name}-${file.size}-${file.lastModified}`;
+}
 
 export function MergeWorkspace() {
     const [files, setFiles] = useState<MergeFile[]>([]);
@@ -21,6 +26,9 @@ export function MergeWorkspace() {
     useEffect(() => {
         mountedRef.current = true;
         return () => { mountedRef.current = false; };
+    }, []);
+    const updatePageCount = useCallback((fileKey: string, pageCount: number) => {
+        setFiles((current) => current.map((item) => mergeFileKey(item.file) === fileKey && item.pageCount !== pageCount ? { ...item, pageCount } : item));
     }, []);
     const addFiles = (incoming: File[]) => {
         if (busyRef.current) return;
@@ -35,8 +43,8 @@ export function MergeWorkspace() {
             }
         }
         setFiles((current) => {
-            const known = new Set(current.map(({ file }) => `${file.name}-${file.size}-${file.lastModified}`));
-            const additions = accepted.filter((file) => !known.has(`${file.name}-${file.size}-${file.lastModified}`)).map((file) => ({ file, pageCount: null }));
+            const known = new Set(current.map(({ file }) => mergeFileKey(file)));
+            const additions = accepted.filter((file) => !known.has(mergeFileKey(file))).map((file) => ({ file, pageCount: null }));
             return additions.length ? [...current, ...additions] : current;
         });
         setMessage(selectionError ? { text: selectionError, error: true } : null);
@@ -87,7 +95,15 @@ export function MergeWorkspace() {
             <Button type="button" variant="secondary" disabled={busy} onClick={() => inputRef.current?.click()}><Plus size={17} aria-hidden="true" />Add PDFs</Button>
         </div>
         <ol className="merge-file-list" aria-label="PDF merge order">
-            {files.map(({ file, pageCount }, index) => <li key={`${file.name}-${file.size}-${file.lastModified}`} draggable={!busy} onDragStart={() => { if (!busyRef.current) draggingIndex.current = index; }} onDragOver={(event: DragEvent) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); if (busyRef.current) return; const source = draggingIndex.current; if (source === null || source === index) return; setFiles((current) => { const next = [...current]; const [moving] = next.splice(source, 1); next.splice(index, 0, moving); return next; }); setMessage(null); draggingIndex.current = null; }}><GripVertical size={18} aria-hidden="true" /><div><strong>{file.name}</strong><span>{formatFileSize(file.size)}{pageCount ? ` - ${pageCount} pages` : ''}</span></div><button className="icon-button" type="button" onClick={() => move(index, -1)} disabled={busy || index === 0} aria-label={`Move ${file.name} earlier`} title="Move earlier"><ArrowUp size={16} aria-hidden="true" /></button><button className="icon-button" type="button" onClick={() => move(index, 1)} disabled={busy || index === files.length - 1} aria-label={`Move ${file.name} later`} title="Move later"><ArrowDown size={16} aria-hidden="true" /></button><button className="icon-button" type="button" onClick={() => { setMessage(null); setFiles((current) => current.filter((_, currentIndex) => currentIndex !== index)); }} disabled={busy} aria-label={`Remove ${file.name}`} title="Remove"><Trash2 size={16} aria-hidden="true" /></button></li>)}
+            {files.map(({ file, pageCount }, index) => {
+                const fileKey = mergeFileKey(file);
+                return <li key={fileKey} draggable={!busy} onDragStart={() => { if (!busyRef.current) draggingIndex.current = index; }} onDragOver={(event: DragEvent) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); if (busyRef.current) return; const source = draggingIndex.current; if (source === null || source === index) return; setFiles((current) => { const next = [...current]; const [moving] = next.splice(source, 1); next.splice(index, 0, moving); return next; }); setMessage(null); draggingIndex.current = null; }}>
+                    <GripVertical size={18} aria-hidden="true" />
+                    <MergePdfPreview file={file} fileKey={fileKey} onPageCount={updatePageCount} />
+                    <div className="merge-file-details"><strong title={file.name}>{file.name}</strong><span>{formatFileSize(file.size)}{pageCount ? ` - ${pageCount} page${pageCount === 1 ? '' : 's'}` : ''}</span></div>
+                    <div className="merge-file-actions"><button className="icon-button" type="button" onClick={() => move(index, -1)} disabled={busy || index === 0} aria-label={`Move ${file.name} earlier`} title="Move earlier"><ArrowUp size={16} aria-hidden="true" /></button><button className="icon-button" type="button" onClick={() => move(index, 1)} disabled={busy || index === files.length - 1} aria-label={`Move ${file.name} later`} title="Move later"><ArrowDown size={16} aria-hidden="true" /></button><button className="icon-button" type="button" onClick={() => { setMessage(null); setFiles((current) => current.filter((_, currentIndex) => currentIndex !== index)); }} disabled={busy} aria-label={`Remove ${file.name}`} title="Remove"><Trash2 size={16} aria-hidden="true" /></button></div>
+                </li>;
+            })}
         </ol>
         <Button type="button" onClick={() => void merge()} disabled={files.length < 2 || busy}><Download size={17} aria-hidden="true" />{busy ? 'Merging' : 'Merge and download'}</Button>
         {message && <p className="operation-message" role={message.error ? 'alert' : 'status'}>{message.text}</p>}

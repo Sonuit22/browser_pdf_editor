@@ -11,6 +11,7 @@
 | /organize-pdf | https://pdfbyib.com/organize-pdf | https://pdfbyib.com/organize-pdf | PASS |
 | /compress-pdf | https://pdfbyib.com/compress-pdf | https://pdfbyib.com/compress-pdf | PASS |
 | /jpg-to-pdf | https://pdfbyib.com/jpg-to-pdf | https://pdfbyib.com/jpg-to-pdf | PASS |
+| /ppt-to-pdf | https://pdfbyib.com/ppt-to-pdf | https://pdfbyib.com/ppt-to-pdf | PASS |
 | /pdf-to-jpg | https://pdfbyib.com/pdf-to-jpg | https://pdfbyib.com/pdf-to-jpg | PASS |
 | /word-to-pdf | https://pdfbyib.com/word-to-pdf | https://pdfbyib.com/word-to-pdf | PASS |
 | /pdf-to-word | https://pdfbyib.com/pdf-to-word | https://pdfbyib.com/pdf-to-word | PASS |

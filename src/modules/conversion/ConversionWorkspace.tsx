@@ -6,6 +6,7 @@ import { useShell } from '../../contexts/ShellContext';
 import { findToolByRoute } from '../../config/toolRegistry';
 import { activeConversionLimits, conversionAccept, conversionOutputFilename, type ConversionToolKey } from './conversionConfig';
 import { docxToHtml, htmlToPdf, imagesToPdf, loadPdf, pdfToJpg, pdfToPpt, pdfToWord, releaseLoadedPdf, renderPageToBlob, type CancelSignal } from './conversionServices';
+import { inspectPptx, pptxToPdf } from './pptxToPdfService';
 import { validateImageFile } from '../../utils/imageFiles';
 import { resetCompletedToolSource } from '../../utils/toolReset';
 import { downloadBlob } from '../../utils/browserDownload';
@@ -122,6 +123,23 @@ export default function ConversionWorkspace() {
                 }
                 return;
             }
+            if (tool === 'ppt-to-pdf') {
+                if (/\.ppt$/i.test(file.name)) throw new Error('Old .ppt files are not supported. Save the presentation as .pptx first.');
+                if (!/\.pptx$/i.test(file.name)) throw new Error('Choose a .pptx PowerPoint file.');
+                if (file.size > limits.pptxBytes) throw new Error(`PPTX files are limited to ${Math.round(limits.pptxBytes / 1024 / 1024)} MB on this device.`);
+                setFiles([file]); busyRef.current = true; setBusy(true);
+                const inspected = await inspectPptx(file, (current, total, label) => {
+                    if (isCurrent()) setProgress({ current, total, label });
+                }, operationSignal);
+                if (!isCurrent()) return;
+                if (inspected.thumbnails.length > limits.pdfPages) throw new Error(`This device supports presentations up to ${limits.pdfPages} slides.`);
+                const urls = inspected.thumbnails.map((blob) => URL.createObjectURL(blob));
+                setPageCount(urls.length);
+                setSelected(Array.from({ length: urls.length }, (_, index) => index + 1));
+                setWarnings(inspected.warnings);
+                updateThumbnails(urls);
+                return;
+            }
             setFiles([file]); busyRef.current = true; setBusy(true);
             pdf = await loadPdf(file);
             if (!isCurrent()) return;
@@ -139,7 +157,7 @@ export default function ConversionWorkspace() {
             }
         } catch (cause) {
             if (isCurrent()) {
-                if (tool.startsWith('pdf-')) {
+                if (tool.startsWith('pdf-') || tool === 'ppt-to-pdf') {
                     revokeThumbnails();
                     setThumbs([]);
                     setFiles([]);
@@ -209,6 +227,9 @@ export default function ConversionWorkspace() {
             } else if (tool === 'pdf-to-ppt') {
                 if (!selected.length) throw new Error('Select at least one page.');
                 blob = await pdfToPpt(files[0], selected, update, operationSignal);
+            } else if (tool === 'ppt-to-pdf') {
+                if (!selected.length) throw new Error('Select at least one slide.');
+                blob = await pptxToPdf(files[0], selected, update, operationSignal);
             } else if (tool === 'pdf-to-word') {
                 blob = await pdfToWord(files[0], update, operationSignal);
             } else if (tool === 'word-to-pdf') {
@@ -231,7 +252,9 @@ export default function ConversionWorkspace() {
     };
 
     const allSelected = pageCount > 0 && selected.length === pageCount;
-    const canConvert = files.length > 0 && !busy && (tool !== 'word-to-pdf' || Boolean(html));
+    const canConvert = files.length > 0 && !busy
+        && (tool !== 'word-to-pdf' || Boolean(html))
+        && (tool !== 'ppt-to-pdf' || selected.length > 0);
     const title = definition?.title ?? 'PDF conversion';
     return <section className="conversion-page" aria-label={`${title} conversion workspace`}>
         <div className="conversion-heading">
@@ -252,12 +275,12 @@ export default function ConversionWorkspace() {
                 <div className="conversion-card__title"><div><span>2</span><h2>Options</h2></div></div>
                 {tool === 'jpg-to-pdf' && <div className="conversion-options"><label>Page size<select value={pageSize} disabled={busy} onChange={(event) => { setPageSize(event.target.value as typeof pageSize); invalidateOutput(); }}><option value="a4">A4</option><option value="letter">Letter</option><option value="fit">Fit image</option></select></label><label>Orientation<select value={orientation} disabled={busy} onChange={(event) => { setOrientation(event.target.value as typeof orientation); invalidateOutput(); }}><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></label><label>Margins <output>{margin} pt</output><input type="range" min="0" max="72" value={margin} disabled={busy} onChange={(event) => { setMargin(Number(event.target.value)); invalidateOutput(); }} /></label><Quality value={imageQuality} setValue={(value) => { setImageQuality(value); invalidateOutput(); }} disabled={busy} /></div>}
                 {tool === 'pdf-to-jpg' && <div className="conversion-options"><label>Render quality<select value={renderQuality} disabled={busy} onChange={(event) => { setRenderQuality(event.target.value as typeof renderQuality); invalidateOutput(); }}><option value="standard">Standard</option><option value="high">High</option><option value="maximum">Maximum</option></select></label><Quality value={imageQuality} setValue={(value) => { setImageQuality(value); invalidateOutput(); }} disabled={busy} /></div>}
-                {(tool === 'pdf-to-ppt' || tool === 'pdf-to-word' || tool === 'word-to-pdf') && <p className="conversion-basic">{tool === 'pdf-to-ppt' ? 'Visual page-to-slide conversion' : tool === 'pdf-to-word' ? 'Editable text extraction' : 'Preview-based PDF conversion'}</p>}
-                {pageCount > 0 && tool !== 'pdf-to-word' && <div className="page-selection"><div><strong>Pages</strong><button type="button" disabled={busy} onClick={() => { setSelected(allSelected ? [] : Array.from({ length: pageCount }, (_, index) => index + 1)); invalidateOutput(); }}>{allSelected ? 'Clear all' : 'Select all'}</button></div><div>{thumbs.map((url, index) => { const page = index + 1; return <label key={url} className={selected.includes(page) ? 'is-selected' : ''}><img src={url} alt={`Page ${page}`} /><input type="checkbox" disabled={busy} checked={selected.includes(page)} onChange={() => { setSelected((current) => current.includes(page) ? current.filter((item) => item !== page) : [...current, page].sort((a, b) => a - b)); invalidateOutput(); }} /><span>Page {page}</span></label>; })}</div></div>}
+                {(tool === 'ppt-to-pdf' || tool === 'pdf-to-ppt' || tool === 'pdf-to-word' || tool === 'word-to-pdf') && <p className="conversion-basic">{tool === 'ppt-to-pdf' ? 'Visual slide-to-page conversion' : tool === 'pdf-to-ppt' ? 'Visual page-to-slide conversion' : tool === 'pdf-to-word' ? 'Editable text extraction' : 'Preview-based PDF conversion'}</p>}
+                {pageCount > 0 && tool !== 'pdf-to-word' && <div className="page-selection"><div><strong>{tool === 'ppt-to-pdf' ? 'Slides' : 'Pages'}</strong><button type="button" disabled={busy} onClick={() => { setSelected(allSelected ? [] : Array.from({ length: pageCount }, (_, index) => index + 1)); invalidateOutput(); }}>{allSelected ? 'Clear all' : 'Select all'}</button></div><div>{thumbs.map((url, index) => { const page = index + 1; const itemLabel = tool === 'ppt-to-pdf' ? 'Slide' : 'Page'; return <label key={url} className={selected.includes(page) ? 'is-selected' : ''}><img src={url} alt={`${itemLabel} ${page}`} /><input type="checkbox" disabled={busy} checked={selected.includes(page)} onChange={() => { setSelected((current) => current.includes(page) ? current.filter((item) => item !== page) : [...current, page].sort((a, b) => a - b)); invalidateOutput(); }} /><span>{itemLabel} {page}</span></label>; })}</div></div>}
             </section>
             <section className="conversion-card conversion-preview-card">
                 <div className="conversion-card__title"><div><span>3</span><h2>Preview & convert</h2></div></div>
-                {html ? <div ref={preview} className="docx-preview" dangerouslySetInnerHTML={{ __html: html }} /> : thumbs.length && !multiple ? <div className="conversion-preview-pages">{thumbs.slice(0, 4).map((url, index) => <img key={url} src={url} alt={`Preview page ${index + 1}`} />)}</div> : <div className="conversion-empty">Your preview will appear here.</div>}
+                {html ? <div ref={preview} className="docx-preview" dangerouslySetInnerHTML={{ __html: html }} /> : thumbs.length && !multiple ? <div className="conversion-preview-pages">{thumbs.slice(0, 4).map((url, index) => <img key={url} src={url} alt={`Preview ${tool === 'ppt-to-pdf' ? 'slide' : 'page'} ${index + 1}`} />)}</div> : <div className="conversion-empty">Your preview will appear here.</div>}
                 {warnings.length > 0 && <details><summary>{warnings.length} document warning(s)</summary><ul>{warnings.slice(0, 5).map((warning) => <li key={warning}>{warning}</li>)}</ul></details>}
                 {busy && <div className="conversion-progress" role="status"><div><span>{progress.label || 'Preparing file'}</span><strong>{progress.total ? `${progress.current} / ${progress.total}` : 'Working…'}</strong></div><progress max={Math.max(1, progress.total)} value={progress.current} /><Button variant="secondary" onClick={() => { signal.current.cancelled = true; }}>Cancel</Button></div>}
                 {error && <div className="conversion-error" role="alert"><X size={17} />{error}</div>}

@@ -14,6 +14,7 @@ describe('conversion output filenames', () => {
         expect(conversionOutputFilename('jpg-to-pdf', [file('scan.jpg'), file('page-2.jpeg')])).toBe('scan-and-1-more.pdf');
         expect(conversionOutputFilename('pdf-to-word', [file('source.pdf')])).toBe('source.docx');
         expect(conversionOutputFilename('pdf-to-ppt', [file('source.pdf')])).toBe('source.pptx');
+        expect(conversionOutputFilename('ppt-to-pdf', [file('slides.pptx')])).toBe('slides.pdf');
         expect(conversionOutputFilename('word-to-pdf', [file('source.docx')])).toBe('source.pdf');
     });
 });

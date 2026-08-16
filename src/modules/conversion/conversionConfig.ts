@@ -11,10 +11,11 @@ export function activeConversionLimits() {
     return isMobileDevice() ? conversionLimits.mobile : conversionLimits.desktop;
 }
 
-export type ConversionToolKey = 'jpg-to-pdf' | 'pdf-to-jpg' | 'pdf-to-ppt' | 'pdf-to-word' | 'word-to-pdf';
+export type ConversionToolKey = 'jpg-to-pdf' | 'ppt-to-pdf' | 'pdf-to-jpg' | 'pdf-to-ppt' | 'pdf-to-word' | 'word-to-pdf';
 
 export const conversionAccept: Record<ConversionToolKey, string> = {
     'jpg-to-pdf': '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp',
+    'ppt-to-pdf': '.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation',
     'pdf-to-jpg': '.pdf,application/pdf',
     'pdf-to-ppt': '.pdf,application/pdf',
     'pdf-to-word': '.pdf,application/pdf',
