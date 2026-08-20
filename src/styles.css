@@ -70,6 +70,7 @@ h1, h2, h3, p { margin-top: 0; } h1, h2, h3 { color: var(--text); letter-spacing
 .pdf-thumbnail__base-canvas { position: relative; box-shadow: 0 2px 5px rgba(0,0,0,.16); }
 .pdf-thumbnail__annotation-canvas { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 .pdf-canvas-stage { min-width: 0; min-height: 0; display: grid; place-items: center; padding: 16px; overflow: auto; scrollbar-gutter: stable both-edges; background: #c8d3dd; }
+.pdf-canvas-scroll, .pdf-canvas-align { display: contents; }
 .pdf-canvas-stage canvas { display: block; max-width: none; background: #fff; box-shadow: 0 8px 20px rgba(0,0,0,.22); }
 .pdf-page-frame { position: relative; flex: none; } .pdf-page-frame canvas { position: relative; z-index: 1; }
 .annotation-overlay { position: absolute; inset: 0; z-index: 2; touch-action: pan-x pan-y pinch-zoom; } .annotation-overlay--select { touch-action: pan-y; }
@@ -469,7 +470,7 @@ body { overflow-x: hidden; }
 .signature-canvas-hint { margin: 0; color: var(--text-muted, #667085); font-size: .78rem; line-height: 1.45; }
 .signature-drawing-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
 .signature-drawing-actions .button { min-height: 42px; }
-.pdf-viewer--signing .annotation-image-wrap { touch-action: none; }
+.pdf-viewer--signing .annotation-image-wrap.annotation-item--selected { touch-action: none; }
 .signature-free-draw { display: grid; place-items: center; gap: 10px; min-height: 150px; padding: 22px; border: 1px dashed var(--border, #aaa); border-radius: 8px; text-align: center; }
 .signature-free-draw p { max-width: 420px; margin: 0; color: var(--text-muted, #667085); }
 .signature-preview { display: block; max-width: 100%; max-height: 160px; margin: 12px auto; object-fit: contain; }
@@ -586,13 +587,13 @@ body { overflow-x: hidden; }
 :root[data-theme="dark"] .landing-upload__file-details strong { color: #f8fafc; }
 
 /* Touch-first annotation editing */
-.annotation-overlay--select{touch-action:pan-x pan-y pinch-zoom}.annotation-overlay--draw,.annotation-overlay--highlight{touch-action:pan-x pan-y pinch-zoom}.annotation-item{touch-action:pinch-zoom}.resize-handle,.rotation-handle{touch-action:none}.annotation-path{pointer-events:none!important}.annotation-path :is(polyline,path)[data-annotation-id]{pointer-events:stroke;touch-action:none;cursor:move}.annotation-path-selection{position:absolute;border:1px dashed #178a49;pointer-events:none}.annotation-path-selection .resize-handle,.annotation-path-selection .object-quick-actions{pointer-events:auto}
-.annotation-overlay--object-gesture,.annotation-overlay--object-gesture .annotation-item,.annotation-text,.annotation-image-wrap,.annotation-shape-wrap{touch-action:none}.annotation-overlay--object-gesture{user-select:none;-webkit-user-select:none}
+.annotation-overlay--select{touch-action:pan-x pan-y pinch-zoom}.annotation-overlay--draw,.annotation-overlay--highlight,.annotation-overlay--rectangle,.annotation-overlay--rounded-rectangle,.annotation-overlay--ellipse,.annotation-overlay--line,.annotation-overlay--arrow,.annotation-overlay--triangle{touch-action:none}.annotation-item{touch-action:pan-y pinch-zoom}.annotation-item--selected,.resize-handle,.rotation-handle{touch-action:none}.annotation-path{pointer-events:none!important}.annotation-path :is(polyline,path)[data-annotation-id]{pointer-events:stroke;cursor:move}.annotation-path-selection{position:absolute;border:1px dashed #178a49;pointer-events:none}.annotation-path-selection .resize-handle,.annotation-path-selection .object-quick-actions{pointer-events:auto}
+.annotation-overlay--object-gesture,.annotation-overlay--object-gesture .annotation-item{touch-action:none}.annotation-overlay--object-gesture{user-select:none;-webkit-user-select:none}
 .rotation-handle{position:absolute;left:50%;top:-38px;z-index:8;width:28px;height:28px;display:grid;place-items:center;transform:translateX(-50%);border:2px solid #fff;border-radius:50%;color:#fff;background:var(--brand);box-shadow:0 0 0 1px var(--brand);cursor:grab;touch-action:none}.rotation-handle::after{content:"";position:absolute;top:26px;width:1px;height:10px;background:var(--brand)}.rotation-handle:active{cursor:grabbing}
 .object-quick-actions{position:absolute;left:50%;bottom:calc(100% + 44px);z-index:12;display:flex;gap:3px;padding:4px;transform:translateX(-50%);border:1px solid var(--border,#d1d5db);border-radius:8px;background:var(--surface,#fff);box-shadow:0 6px 18px rgba(0,0,0,.18);touch-action:none}.object-quick-actions button{width:30px;height:30px;display:grid;place-items:center;padding:0;border:0;border-radius:5px;color:var(--text,#111);background:transparent}.object-quick-actions button:hover{background:rgba(23,138,73,.1)}.object-quick-actions button:last-child{color:#b42318}
 .mobile-object-menu{position:fixed;left:50%;bottom:18px;z-index:100;width:min(360px,calc(100vw - 24px));display:none;grid-template-columns:1fr;gap:4px;padding:10px;transform:translateX(-50%);border:1px solid var(--border,#d1d5db);border-radius:14px;background:var(--surface,#fff);box-shadow:0 18px 50px rgba(0,0,0,.3)}.mobile-object-menu button{min-height:46px;display:flex;align-items:center;gap:10px;padding:0 12px;border:0;border-radius:8px;color:inherit;background:transparent;text-align:left}.mobile-object-menu button:active{background:rgba(23,138,73,.12)}.mobile-object-menu button:last-child{color:#b42318}
 .selected-properties output{float:right;color:var(--brand);font-variant-numeric:tabular-nums}.selected-properties input[type="range"]{min-height:32px;accent-color:var(--brand)}
-@media(max-width:900px){.resize-handle{width:40px;height:40px;border-width:3px}.resize-handle--nw{left:-21px;top:-21px}.resize-handle--n{top:-21px}.resize-handle--ne{right:-21px;top:-21px}.resize-handle--e{right:-21px}.resize-handle--se{right:-21px;bottom:-21px}.resize-handle--s{bottom:-21px}.resize-handle--sw{left:-21px;bottom:-21px}.resize-handle--w{left:-21px}.rotation-handle{top:-60px;width:42px;height:42px}.rotation-handle::after{top:40px;height:19px}.object-quick-actions{display:none}.mobile-object-menu{display:grid}.right-panel.document-details.has-selection{position:fixed!important;inset:auto 0 0!important;z-index:90;width:100%!important;max-height:min(55vh,520px);padding:10px 14px 18px!important;border:1px solid var(--border,#d1d5db)!important;border-radius:18px 18px 0 0;background:var(--surface,#fff)!important;box-shadow:0 -12px 36px rgba(0,0,0,.22);overflow-y:auto}.right-panel.document-details.has-selection .details-toggle{position:sticky;top:-10px;z-index:2;background:var(--surface,#fff)}.right-panel.document-details.has-selection .details-file-icon,.right-panel.document-details.has-selection dl,.right-panel.document-details.has-selection .details-actions+dl{display:none}.right-panel.document-details.has-selection .selected-properties{border:0;padding:8px 0}.right-panel.document-details.has-selection .selected-properties>label{min-height:48px}.right-panel.document-details.has-selection .details-actions button{min-height:44px;flex:1}.annotation-text textarea{touch-action:none}}
+@media(max-width:900px){.resize-handle{width:40px;height:40px;border-width:3px}.resize-handle--nw{left:-21px;top:-21px}.resize-handle--n{top:-21px}.resize-handle--ne{right:-21px;top:-21px}.resize-handle--e{right:-21px}.resize-handle--se{right:-21px;bottom:-21px}.resize-handle--s{bottom:-21px}.resize-handle--sw{left:-21px;bottom:-21px}.resize-handle--w{left:-21px}.rotation-handle{top:-60px;width:42px;height:42px}.rotation-handle::after{top:40px;height:19px}.object-quick-actions{display:none}.mobile-object-menu{display:grid}.right-panel.document-details.has-selection{position:fixed!important;inset:auto 0 0!important;z-index:90;width:100%!important;max-height:min(55vh,520px);padding:10px 14px 18px!important;border:1px solid var(--border,#d1d5db)!important;border-radius:18px 18px 0 0;background:var(--surface,#fff)!important;box-shadow:0 -12px 36px rgba(0,0,0,.22);overflow-y:auto}.right-panel.document-details.has-selection .details-toggle{position:sticky;top:-10px;z-index:2;background:var(--surface,#fff)}.right-panel.document-details.has-selection .details-file-icon,.right-panel.document-details.has-selection dl,.right-panel.document-details.has-selection .details-actions+dl{display:none}.right-panel.document-details.has-selection .selected-properties{border:0;padding:8px 0}.right-panel.document-details.has-selection .selected-properties>label{min-height:48px}.right-panel.document-details.has-selection .details-actions button{min-height:44px;flex:1}.annotation-text.annotation-item--selected textarea{touch-action:none}}
 @media(any-pointer:coarse){.resize-handle{width:40px;height:40px;border-width:3px}.resize-handle--nw{left:-21px;top:-21px}.resize-handle--n{top:-21px}.resize-handle--ne{right:-21px;top:-21px}.resize-handle--e{right:-21px}.resize-handle--se{right:-21px;bottom:-21px}.resize-handle--s{bottom:-21px}.resize-handle--sw{left:-21px;bottom:-21px}.resize-handle--w{left:-21px}.rotation-handle{top:-60px;width:42px;height:42px}.rotation-handle::after{top:40px;height:19px}.object-quick-actions{display:none}.mobile-object-menu{display:grid}}
 
 /* Compact privacy-focused footer */
@@ -1711,10 +1712,10 @@ body { overflow-x: hidden; }
         box-shadow: none;
     }
     .tool-workspace-shell--editor .pdf-viewer {
-        min-height: min(760px, calc(100dvh - 112px));
+        min-height: 0;
         display: flex;
         flex-direction: column;
-        overflow: clip;
+        overflow: visible;
     }
     .tool-workspace-shell--editor .pdf-toolbar {
         position: sticky;
@@ -1831,18 +1832,39 @@ body { overflow-x: hidden; }
     .tool-workspace-shell--editor .fill-form-actions .fill-form-download { margin-left: 0; }
     .tool-workspace-shell--editor .pdf-viewer__body {
         position: relative;
-        min-height: 460px;
-        flex: 1 1 auto;
+        min-height: clamp(420px, 55dvh, 620px);
+        flex: 0 0 auto;
         display: block;
-        overflow: hidden;
+        overflow: visible;
     }
     .tool-workspace-shell--editor .pdf-canvas-stage {
-        height: 100%;
-        min-height: 460px;
-        place-items: center;
-        padding: 12px;
-        overflow: auto;
-        overscroll-behavior: contain;
+        --pdf-scroll-gutter: clamp(20px, 3vw, 32px);
+        width: 100%;
+        height: auto;
+        min-height: clamp(420px, 55dvh, 620px);
+        display: block;
+        padding: 16px var(--pdf-scroll-gutter) 20px;
+        overflow: visible;
+        scrollbar-gutter: auto;
+        touch-action: pan-y pinch-zoom;
+        overscroll-behavior: auto;
+    }
+    .tool-workspace-shell--editor .pdf-canvas-scroll {
+        width: 100%;
+        min-width: 0;
+        display: block;
+        overflow-x: auto;
+        overflow-y: hidden;
+        overscroll-behavior-inline: contain;
+        overscroll-behavior-block: auto;
+        touch-action: pan-x pan-y pinch-zoom;
+        -webkit-overflow-scrolling: touch;
+    }
+    .tool-workspace-shell--editor .pdf-canvas-align {
+        width: max-content;
+        min-width: 100%;
+        display: flex;
+        justify-content: center;
     }
     .tool-workspace-shell--editor .thumbnail-sidebar {
         position: fixed;
@@ -1925,7 +1947,7 @@ body { overflow-x: hidden; }
         padding-inline: 9px;
     }
     .tool-workspace-shell--editor .pdf-viewer {
-        min-height: calc(100dvh - 118px);
+        min-height: 0;
         border-radius: 6px;
     }
     .tool-workspace-shell--editor .pdf-toolbar {
@@ -1950,6 +1972,15 @@ body { overflow-x: hidden; }
         grid-row: 3;
         gap: 5px;
         padding-bottom: max(0px, env(safe-area-inset-bottom));
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+        touch-action: pan-x;
+    }
+    .tool-workspace-shell--editor .pdf-toolbar__responsive-actions::-webkit-scrollbar {
+        display: none;
     }
     .pdf-responsive-action {
         width: 44px;
@@ -1972,10 +2003,11 @@ body { overflow-x: hidden; }
     }
     .tool-workspace-shell--editor .pdf-viewer__body,
     .tool-workspace-shell--editor .pdf-canvas-stage {
-        min-height: 390px;
+        min-height: clamp(340px, 48dvh, 470px);
     }
     .tool-workspace-shell--editor .pdf-canvas-stage {
-        padding: 8px;
+        --pdf-scroll-gutter: clamp(14px, 4vw, 20px);
+        padding: 12px var(--pdf-scroll-gutter) 18px;
         scrollbar-gutter: auto;
     }
     .highlighter-settings,

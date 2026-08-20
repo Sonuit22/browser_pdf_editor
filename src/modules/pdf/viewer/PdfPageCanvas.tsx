@@ -125,7 +125,13 @@ function PdfPageCanvasComponent({ page, pageNumber, getPage, zoom, rotation, onR
         }
     }, []);
 
-    return <div ref={containerRef} className="pdf-canvas-stage"><div className="pdf-page-frame" style={layout ? { width: layout.width, height: layout.height } : undefined}><canvas ref={canvasRef} aria-label={`PDF page ${pageNumber}`} />{layout && children?.(layout)}</div></div>;
+    return <div ref={containerRef} className="pdf-canvas-stage">
+        <div className="pdf-canvas-scroll" aria-label="PDF page horizontal pan area">
+            <div className="pdf-canvas-align">
+                <div className="pdf-page-frame" style={layout ? { width: layout.width, height: layout.height } : undefined}><canvas ref={canvasRef} aria-label={`PDF page ${pageNumber}`} />{layout && children?.(layout)}</div>
+            </div>
+        </div>
+    </div>;
 }
 
 export const PdfPageCanvas = memo(PdfPageCanvasComponent, (previous, next) => (

@@ -35,6 +35,32 @@ describe('responsive PDF editor workspace', () => {
         expect(canvas).toContain('window.visualViewport?.addEventListener');
         expect(canvas).toContain("window.addEventListener('orientationchange', measure)");
         expect(canvas).toContain('(size.width - fitMargin) / baseViewport.width');
+        expect(canvas).toContain('className="pdf-canvas-scroll"');
+        expect(canvas).toContain('className="pdf-canvas-align"');
+    });
+
+    it('provides real phone and tablet scroll gutters outside the PDF interaction frame', async () => {
+        const css = await readFile('src/styles.css', 'utf8');
+
+        expect(css).toContain('--pdf-scroll-gutter: clamp(20px, 3vw, 32px)');
+        expect(css).toContain('--pdf-scroll-gutter: clamp(14px, 4vw, 20px)');
+        expect(css).toContain('padding: 16px var(--pdf-scroll-gutter) 20px');
+        expect(css).toContain('padding: 12px var(--pdf-scroll-gutter) 18px');
+        expect(css).toContain('overscroll-behavior-block: auto');
+        expect(css).toContain('touch-action: pan-x pan-y pinch-zoom');
+    });
+
+    it('captures touch only for explicit creation or selected-object gestures', async () => {
+        const [overlay, css] = await Promise.all([
+            readFile('src/modules/pdf/editor/components/AnnotationOverlay.tsx', 'utf8'),
+            readFile('src/styles.css', 'utf8'),
+        ]);
+
+        expect(overlay).toContain("event.pointerType === 'touch' && !wasSelected");
+        expect(overlay).toContain('if (isNativeFormAnnotation(annotation)) return');
+        expect(overlay).not.toContain('else event.preventDefault();');
+        expect(css).toContain('.annotation-item--selected,.resize-handle,.rotation-handle{touch-action:none}');
+        expect(css).toContain('.annotation-item{touch-action:pan-y pinch-zoom}');
     });
 
     it('keeps the Sign PDF drawing pad and signing objects pointer-safe', async () => {

@@ -204,8 +204,11 @@ export function AnnotationOverlay({ pageId, layout, onPreviewChange }: Annotatio
         if (activeTool === 'select' && selected) {
             const annotation = annotations.find((item) => item.id === selected);
             if (annotation) {
+                if (isNativeFormAnnotation(annotation)) return;
+                const wasSelected = selectedIds.includes(annotation.id);
                 select(annotation.id, event.shiftKey);
                 if (annotation.locked) return;
+                if (event.pointerType === 'touch' && !wasSelected && !handle && !rotate) return;
                 event.preventDefault();
                 const gestureAnnotation = isPathAnnotation(annotation) ? { ...annotation, ...pathBounds(annotation.points) } : annotation;
                 const gesture: Gesture = { mode: rotate ? 'rotate' : handle ? 'resize' : 'move', start: point, startClient: { x: event.clientX, y: event.clientY }, annotation: gestureAnnotation, handle, moved: false };
@@ -371,7 +374,7 @@ function AnnotationItem({ annotation, viewport, selected, onUpdate, onDuplicate,
         const path = pathCommandsToSvg(smoothPathCommands(points));
         const paint = pathPaint(annotation, viewport.scale);
         const pathSelectionBox = pdfBoundsToViewport(pathBounds(annotation.points), viewport);
-        return <><svg className={`annotation-item annotation-path${annotation.type === 'highlight' ? ' annotation-highlight-path' : ''}`} style={{ ...style, left: 0, top: 0, width: '100%', height: '100%', opacity: 1 }}><path data-annotation-id={annotation.id} d={path} fill="none" stroke="transparent" strokeWidth={Math.max(22, paint.width + 12)} strokeLinecap="round" strokeLinejoin="round" /><path d={path} fill="none" pointerEvents="none" stroke={paint.color} strokeOpacity={paint.opacity} strokeWidth={paint.width} strokeLinecap={paint.lineCap} strokeLinejoin={paint.lineJoin} /></svg>{selected && <div data-annotation-id={annotation.id} className="annotation-path-selection annotation-item--selected" style={{ left: pathSelectionBox.left, top: pathSelectionBox.top, width: pathSelectionBox.width, height: pathSelectionBox.height, zIndex: 2_147_480_000 }}><ResizeHandles />{controls}</div>}</>;
+        return <><svg className={`annotation-item annotation-path${annotation.type === 'highlight' ? ' annotation-highlight-path' : ''}${selectedClass}`} style={{ ...style, left: 0, top: 0, width: '100%', height: '100%', opacity: 1 }}><path data-annotation-id={annotation.id} d={path} fill="none" stroke="transparent" strokeWidth={Math.max(22, paint.width + 12)} strokeLinecap="round" strokeLinejoin="round" /><path d={path} fill="none" pointerEvents="none" stroke={paint.color} strokeOpacity={paint.opacity} strokeWidth={paint.width} strokeLinecap={paint.lineCap} strokeLinejoin={paint.lineJoin} /></svg>{selected && <div data-annotation-id={annotation.id} className="annotation-path-selection annotation-item--selected" style={{ left: pathSelectionBox.left, top: pathSelectionBox.top, width: pathSelectionBox.width, height: pathSelectionBox.height, zIndex: 2_147_480_000 }}><ResizeHandles />{controls}</div>}</>;
     }
     if (annotation.type === 'text') return <div data-annotation-id={annotation.id} className={`annotation-item annotation-text${selectedClass}`} style={{ ...style, padding: annotation.padding, border: `${annotation.borderWidth}px solid ${annotation.borderColor}`, background: hexWithOpacity(annotation.backgroundColor, annotation.backgroundOpacity) }}><EditableText annotation={annotation} scale={viewport.scale} selected={selected} onUpdate={onUpdate} />{selectionHandles}</div>;
     if (annotation.type === 'image' || annotation.type === 'signature') return <div data-annotation-id={annotation.id} className={`annotation-item annotation-image-wrap${selectedClass}`} style={style}><img className="annotation-image" src={annotation.source} alt={annotation.type === 'image' ? 'Added annotation' : annotation.signatureKind === 'date' ? 'Added date' : annotation.signatureKind === 'checkmark' ? 'Added checkmark' : 'Visual signature'} draggable={false} />{selectionHandles}</div>;
@@ -415,7 +418,7 @@ function EditableText({ annotation, scale, selected, onUpdate }: { annotation: E
         const height = Math.max(annotation.height, element.scrollHeight / scale);
         if (value !== annotation.text || height !== annotation.height) onUpdate({ text: value, height });
     };
-    return <textarea ref={inputRef} readOnly={!selected || !editing} aria-label="Editable PDF text" value={value} onFocus={() => setEditing(true)} onDoubleClick={(event) => { event.stopPropagation(); setEditing(true); event.currentTarget.focus({ preventScroll: true }); }} onPointerDown={(event) => { if (editing) event.stopPropagation(); else event.preventDefault(); }} onChange={(event) => setValue(event.target.value)} onBlur={(event) => finishEditing(event.currentTarget)} onKeyDown={(event) => { if (event.key === 'Escape') event.currentTarget.blur(); }} style={{ color: annotation.color, fontSize: annotation.fontSize * scale, fontFamily: annotation.fontFamily, fontWeight: annotation.bold ? 700 : 400, fontStyle: annotation.italic ? 'italic' : 'normal', textDecoration: annotation.underline ? 'underline' : 'none', textAlign: annotation.align, lineHeight: annotation.lineHeight, letterSpacing: annotation.letterSpacing }} />;
+    return <textarea ref={inputRef} readOnly={!selected || !editing} aria-label="Editable PDF text" value={value} onFocus={() => setEditing(true)} onDoubleClick={(event) => { event.stopPropagation(); setEditing(true); event.currentTarget.focus({ preventScroll: true }); }} onPointerDown={(event) => { if (editing) event.stopPropagation(); }} onChange={(event) => setValue(event.target.value)} onBlur={(event) => finishEditing(event.currentTarget)} onKeyDown={(event) => { if (event.key === 'Escape') event.currentTarget.blur(); }} style={{ color: annotation.color, fontSize: annotation.fontSize * scale, fontFamily: annotation.fontFamily, fontWeight: annotation.bold ? 700 : 400, fontStyle: annotation.italic ? 'italic' : 'normal', textDecoration: annotation.underline ? 'underline' : 'none', textAlign: annotation.align, lineHeight: annotation.lineHeight, letterSpacing: annotation.letterSpacing }} />;
 }
 function movePointsWithinPage(points: Point[], dx: number, dy: number, pageWidth: number, pageHeight: number) {
     const minX = Math.min(...points.map((point) => point.x)); const maxX = Math.max(...points.map((point) => point.x));
@@ -425,6 +428,9 @@ function movePointsWithinPage(points: Point[], dx: number, dy: number, pageWidth
 }
 function isPathAnnotation(annotation: PdfAnnotation): annotation is Extract<PdfAnnotation, { type: 'draw' | 'highlight' }> {
     return annotation.type === 'draw' || annotation.type === 'highlight';
+}
+function isNativeFormAnnotation(annotation: PdfAnnotation) {
+    return annotation.type === 'form-text' || annotation.type === 'form-checkbox' || annotation.type === 'form-signature' || annotation.type === 'form-radio' || annotation.type === 'form-choice';
 }
 function withPathBounds<T extends Extract<PdfAnnotation, { type: 'draw' | 'highlight' }>>(annotation: T): T {
     return { ...annotation, ...pathBounds(annotation.points) };
